@@ -5,8 +5,18 @@ import { BAND_MIN_ZOOM, type ZoomBand } from "../domain/importance.ts";
 import type { Placename } from "../domain/placename.ts";
 
 const SOURCE_ID = "placenames";
+const SELECTED_SOURCE_ID = "placenames-selected";
 const REACH_SOURCE_ID = "reachability";
 const REACH_LAYER_ID = "reachability-line";
+const SELECTED_HALO_ID = "placenames-selected-halo";
+const SELECTED_RING_ID = "placenames-selected-ring";
+const SELECTED_DOT_ID = "placenames-selected-dot";
+const SELECTED_LABEL_ID = "placenames-selected-label";
+
+const EMPTY_POINTS: GeoJSON.FeatureCollection = {
+  type: "FeatureCollection",
+  features: [],
+};
 
 const BANDS: ReadonlyArray<ZoomBand> = [
   "locality",
@@ -113,7 +123,7 @@ function addBandLayers(map: Map, band: ZoomBand) {
       "circle-radius": [
         "case",
         ["boolean", ["feature-state", "selected"], false],
-        9.5,
+        0,
         [
           "match",
           ["get", "featureKind"],
@@ -127,7 +137,7 @@ function addBandLayers(map: Map, band: ZoomBand) {
       "circle-stroke-width": [
         "case",
         ["boolean", ["feature-state", "selected"], false],
-        2.4,
+        0,
         [
           "match",
           ["get", "featureKind"],
@@ -154,20 +164,20 @@ function addBandLayers(map: Map, band: ZoomBand) {
         ],
       ],
       "circle-opacity": [
-        "match",
-        ["get", "featureKind"],
-        "town",
-        1,
-        "settlement",
-        0.95,
-        0.78,
-      ],
-      "circle-stroke-color": [
         "case",
-        ["boolean", ["feature-state", "selected"], false],
-        "#f4f7f8",
-        "#102029",
+        ["boolean", ["feature-state", "inactive"], false],
+        0.42,
+        [
+          "match",
+          ["get", "featureKind"],
+          "town",
+          1,
+          "settlement",
+          0.95,
+          0.78,
+        ],
       ],
+      "circle-stroke-color": "#102029",
     },
   });
 
@@ -208,20 +218,160 @@ function addBandLayers(map: Map, band: ZoomBand) {
       "icon-allow-overlap": false,
     },
     paint: {
-      "text-color": "#f4f7f8",
+      "text-color": [
+        "case",
+        ["boolean", ["feature-state", "selected"], false],
+        "rgba(244, 247, 248, 0)",
+        "#f4f7f8",
+      ],
       "text-halo-color": "#0d2a38",
-      "text-halo-width": 1.45,
+      "text-halo-width": [
+        "case",
+        ["boolean", ["feature-state", "selected"], false],
+        0,
+        1.45,
+      ],
       "text-opacity": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        minzoom,
-        band === "locality" ? 1 : 0.55,
-        minzoom + 0.8,
-        1,
+        "case",
+        ["boolean", ["feature-state", "selected"], false],
+        0,
+        [
+          "case",
+          ["boolean", ["feature-state", "inactive"], false],
+          0.48,
+          [
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            minzoom,
+            band === "locality" ? 1 : 0.55,
+            minzoom + 0.8,
+            1,
+          ],
+        ],
       ],
     },
   });
+}
+
+function addSelectedLayers(map: Map) {
+  map.addLayer({
+    id: SELECTED_HALO_ID,
+    type: "circle",
+    source: SELECTED_SOURCE_ID,
+    paint: {
+      "circle-radius": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        3,
+        14,
+        8,
+        22,
+        12,
+        28,
+      ],
+      "circle-color": "#f0c27a",
+      "circle-opacity": 0.28,
+      "circle-blur": 0.55,
+    },
+  });
+
+  map.addLayer({
+    id: SELECTED_RING_ID,
+    type: "circle",
+    source: SELECTED_SOURCE_ID,
+    paint: {
+      "circle-radius": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        3,
+        9,
+        8,
+        12,
+        12,
+        14,
+      ],
+      "circle-color": "transparent",
+      "circle-opacity": 1,
+      "circle-stroke-width": 2.5,
+      "circle-stroke-color": "#f4f7f8",
+      "circle-stroke-opacity": 0.95,
+    },
+  });
+
+  map.addLayer({
+    id: SELECTED_DOT_ID,
+    type: "circle",
+    source: SELECTED_SOURCE_ID,
+    paint: {
+      "circle-radius": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        3,
+        6.5,
+        8,
+        8.5,
+        12,
+        9.5,
+      ],
+      "circle-color": "#c45c26",
+      "circle-opacity": 1,
+      "circle-stroke-width": 1.8,
+      "circle-stroke-color": "#0d2a38",
+    },
+  });
+
+  map.addLayer({
+    id: SELECTED_LABEL_ID,
+    type: "symbol",
+    source: SELECTED_SOURCE_ID,
+    layout: {
+      "text-field": ["get", "officialName"],
+      "text-font": ["Noto Sans Bold", "Noto Sans Regular"],
+      "text-size": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        3,
+        14,
+        8,
+        16.5,
+        12,
+        18,
+      ],
+      "text-offset": [0, 1.2],
+      "text-anchor": "top",
+      "text-max-width": 10,
+      "text-allow-overlap": true,
+      "text-ignore-placement": true,
+      "symbol-sort-key": 0,
+    },
+    paint: {
+      "text-color": "#fff8f0",
+      "text-halo-color": "#0d2a38",
+      "text-halo-width": 2.4,
+      "text-halo-blur": 0.35,
+      "text-opacity": 1,
+    },
+  });
+}
+
+function selectedCollection(
+  collection: GeoJSON.FeatureCollection<GeoJSON.Point, Placename> | null,
+  selectedId: number | null,
+): GeoJSON.FeatureCollection {
+  if (!collection || selectedId == null) return EMPTY_POINTS;
+  const feature = collection.features.find(
+    (entry) => entry.properties.recordId === selectedId,
+  );
+  if (!feature) return EMPTY_POINTS;
+  return {
+    type: "FeatureCollection",
+    features: [feature],
+  };
 }
 
 export function MapCanvas({
@@ -269,6 +419,11 @@ export function MapCanvas({
         },
       });
 
+      map.addSource(SELECTED_SOURCE_ID, {
+        type: "geojson",
+        data: EMPTY_POINTS,
+      });
+
       map.addSource(REACH_SOURCE_ID, {
         type: "geojson",
         data: {
@@ -292,38 +447,40 @@ export function MapCanvas({
       for (const band of BANDS) {
         addBandLayers(map, band);
       }
+
+      // Selected marker/label paint above band layers and reach lines.
+      addSelectedLayers(map);
     };
 
     const bindInteractions = () => {
+      const selectFromEvent = (
+        event: maplibregl.MapMouseEvent & {
+          features?: maplibregl.MapGeoJSONFeature[];
+        },
+      ) => {
+        const place = parsePlacename(event.features?.[0]?.properties ?? null);
+        if (!place) return;
+        onSelectRef.current(place);
+      };
+
+      const bindPointer = (layerId: string) => {
+        map.on("click", layerId, selectFromEvent);
+        map.on("mouseenter", layerId, () => {
+          map.getCanvas().style.cursor = "pointer";
+        });
+        map.on("mouseleave", layerId, () => {
+          map.getCanvas().style.cursor = "";
+        });
+      };
+
       for (const band of BANDS) {
-        const circleId = circleLayerId(band);
-        const labelId = labelLayerId(band);
-
-        const selectFromEvent = (
-          event: maplibregl.MapMouseEvent & {
-            features?: maplibregl.MapGeoJSONFeature[];
-          },
-        ) => {
-          const place = parsePlacename(event.features?.[0]?.properties ?? null);
-          if (!place) return;
-          onSelectRef.current(place);
-        };
-
-        map.on("click", circleId, selectFromEvent);
-        map.on("click", labelId, selectFromEvent);
-        map.on("mouseenter", circleId, () => {
-          map.getCanvas().style.cursor = "pointer";
-        });
-        map.on("mouseleave", circleId, () => {
-          map.getCanvas().style.cursor = "";
-        });
-        map.on("mouseenter", labelId, () => {
-          map.getCanvas().style.cursor = "pointer";
-        });
-        map.on("mouseleave", labelId, () => {
-          map.getCanvas().style.cursor = "";
-        });
+        bindPointer(circleLayerId(band));
+        bindPointer(labelLayerId(band));
       }
+
+      bindPointer(SELECTED_DOT_ID);
+      bindPointer(SELECTED_RING_ID);
+      bindPointer(SELECTED_LABEL_ID);
     };
 
     map.on("load", () => {
@@ -393,14 +550,23 @@ export function MapCanvas({
 
     return whenSourceReady(map, () => {
       if (!sourceReady(map)) return;
+      if (!map.getSource(SELECTED_SOURCE_ID)) return;
 
+      const hasSelection = selectedId != null;
       for (const feature of collection.features) {
         const id = feature.properties.recordId;
+        const isSelected = id === selectedId;
         map.setFeatureState(
           { source: SOURCE_ID, id },
-          { selected: id === selectedId },
+          {
+            selected: isSelected,
+            inactive: hasSelection && !isSelected,
+          },
         );
       }
+
+      const selectedSource = map.getSource(SELECTED_SOURCE_ID) as GeoJSONSource;
+      selectedSource.setData(selectedCollection(collection, selectedId));
 
       if (selectedId == null) return;
       const selected = collection.features.find(

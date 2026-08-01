@@ -215,101 +215,131 @@ export function App() {
             autoComplete="off"
           />
           {results.length > 0 ? (
-            <ul className="results">
-              {results.map((hit, index) => (
-                <li
-                  key={hit.place.globalId}
-                  style={{ ["--stagger" as string]: String(index) }}
-                >
-                  <button
-                    type="button"
-                    aria-selected={selected?.recordId === hit.place.recordId}
-                    onClick={() => selectPlace(hit.place)}
+            <ul className="results" role="listbox" aria-label="Search results">
+              {results.map((hit, index) => {
+                const isSelected = selected?.recordId === hit.place.recordId;
+                const hitArea = responsibilityLabel(
+                  hit.place.municipalityCode,
+                  hit.place.municipalityName,
+                );
+                const showDanish =
+                  Boolean(hit.place.danishName) &&
+                  hit.place.danishName !== hit.place.officialName;
+                return (
+                  <li
+                    key={hit.place.globalId}
+                    style={{ ["--stagger" as string]: String(index) }}
                   >
-                    {hit.place.officialName}
-                    <span className="meta">
-                      {hit.place.typeLabel}
-                      {hit.place.danishName &&
-                      hit.place.danishName !== hit.place.officialName
-                        ? ` · ${hit.place.danishName}`
-                        : ""}
-                      {responsibilityLabel(
-                        hit.place.municipalityCode,
-                        hit.place.municipalityName,
-                      )
-                        ? ` · ${responsibilityLabel(
-                            hit.place.municipalityCode,
-                            hit.place.municipalityName,
-                          )}`
-                        : ""}
-                    </span>
-                  </button>
-                </li>
-              ))}
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      className={isSelected ? "is-selected" : undefined}
+                      onClick={() => selectPlace(hit.place)}
+                    >
+                      <span className="result-body">
+                        <span className="result-name">
+                          {hit.place.officialName}
+                        </span>
+                        <span className="result-meta">
+                          <span className="badge badge-secondary">
+                            {hit.place.typeLabel}
+                          </span>
+                          {showDanish ? (
+                            <span className="badge badge-outline">
+                              {hit.place.danishName}
+                            </span>
+                          ) : null}
+                          {hitArea ? (
+                            <span className="result-area">{hitArea}</span>
+                          ) : null}
+                        </span>
+                      </span>
+                      <span className="result-check" aria-hidden="true">
+                        <svg viewBox="0 0 16 16" width="14" height="14">
+                          <path
+                            d="M3.2 8.2 6.4 11.4 12.8 4.6"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           ) : null}
         </div>
 
         {selected ? (
-          <aside className="panel surface" aria-live="polite">
-            <h2>{selected.officialName}</h2>
-
-            <dl className="names">
-              <div>
-                <dt>Official</dt>
-                <dd>{selected.officialName}</dd>
-              </div>
-              {selected.danishName &&
-              selected.danishName !== selected.officialName ? (
-                <div>
-                  <dt>Danish</dt>
-                  <dd>{selected.danishName}</dd>
-                </div>
+          <aside className="panel surface layer-card" aria-live="polite">
+            <div className="layer-card-secondary">
+              <span className="badge badge-secondary">{selected.typeLabel}</span>
+              {areaLabel ? (
+                <span className="badge badge-outline">{areaLabel}</span>
               ) : null}
-              {selected.oldOfficialName &&
-              selected.oldOfficialName !== selected.officialName ? (
+            </div>
+            <div className="layer-card-primary">
+              <h2>{selected.officialName}</h2>
+
+              <dl className="names">
                 <div>
-                  <dt>Historical</dt>
-                  <dd>{selected.oldOfficialName}</dd>
+                  <dt>Official</dt>
+                  <dd>{selected.officialName}</dd>
                 </div>
-              ) : null}
-            </dl>
+                {selected.danishName &&
+                selected.danishName !== selected.officialName ? (
+                  <div>
+                    <dt>Danish</dt>
+                    <dd>{selected.danishName}</dd>
+                  </div>
+                ) : null}
+                {selected.oldOfficialName &&
+                selected.oldOfficialName !== selected.officialName ? (
+                  <div>
+                    <dt>Historical</dt>
+                    <dd>{selected.oldOfficialName}</dd>
+                  </div>
+                ) : null}
+              </dl>
 
-            <p className="summary">
-              {selected.typeLabel}
-              {areaLabel ? ` · ${areaLabel}` : ""}
-            </p>
-
-            {reachLinks.length > 0 ? (
-              <div className="reach">
-                <h3>Reachable from here</h3>
-                <ul>
-                  {reachLinks.map((link, index) => (
-                    <li
-                      key={link.edge.id}
-                      style={{ ["--stagger" as string]: String(index) }}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => selectByOfficialName(link.otherName)}
+              {reachLinks.length > 0 ? (
+                <div className="reach">
+                  <h3>Reachable from here</h3>
+                  <ul>
+                    {reachLinks.map((link, index) => (
+                      <li
+                        key={link.edge.id}
+                        style={{ ["--stagger" as string]: String(index) }}
                       >
-                        <span className="reach-name">{link.otherName}</span>
-                        <span className="meta">
-                          {link.edge.mode}
-                          {link.edge.operator ? ` · ${link.edge.operator}` : ""}
-                          {` · ${link.seasonLabel}`}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : selected.isLocality ? (
-              <p className="hint">
-                No structural connections in the seed graph yet for this
-                locality.
-              </p>
-            ) : null}
+                        <button
+                          type="button"
+                          onClick={() => selectByOfficialName(link.otherName)}
+                        >
+                          <span className="reach-name">{link.otherName}</span>
+                          <span className="meta">
+                            {link.edge.mode}
+                            {link.edge.operator
+                              ? ` · ${link.edge.operator}`
+                              : ""}
+                            {` · ${link.seasonLabel}`}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : selected.isLocality ? (
+                <p className="hint">
+                  No structural connections in the seed graph yet for this
+                  locality.
+                </p>
+              ) : null}
+            </div>
           </aside>
         ) : null}
       </div>
