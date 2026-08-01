@@ -175,7 +175,7 @@ export function App() {
       </header>
 
       <div className="controls">
-        <div className="chrome-field chrome-field-pad">
+        <LayerCard className="chrome-field chrome-field-pad" data-chrome="lens">
           <Tabs
             variant="segmented"
             size="sm"
@@ -187,26 +187,31 @@ export function App() {
             }}
             tabs={[...LENS_TABS]}
           />
-        </div>
+        </LayerCard>
 
         {layers.lens === "geography" ? (
-          <div className="chips" role="group" aria-label="Geography groups">
-            {GEOGRAPHY_CHIPS.map(([group, label]) => {
-              const active = layers.geography.has(group);
-              return (
-                <Button
-                  key={group}
-                  type="button"
-                  size="sm"
-                  variant={active ? "primary" : "outline"}
-                  aria-pressed={active}
-                  onClick={() => toggleGeography(group)}
-                >
-                  {label}
-                </Button>
-              );
-            })}
-          </div>
+          <LayerCard
+            className="chrome-field chrome-field-pad"
+            data-chrome="geography"
+          >
+            <div className="chips" role="group" aria-label="Geography groups">
+              {GEOGRAPHY_CHIPS.map(([group, label]) => {
+                const active = layers.geography.has(group);
+                return (
+                  <Button
+                    key={group}
+                    type="button"
+                    size="sm"
+                    variant={active ? "primary" : "outline"}
+                    aria-pressed={active}
+                    onClick={() => toggleGeography(group)}
+                  >
+                    {label}
+                  </Button>
+                );
+              })}
+            </div>
+          </LayerCard>
         ) : null}
 
         <MunicipalityMenu
@@ -223,7 +228,11 @@ export function App() {
         />
 
         {selected ? (
-          <LayerCard className="place-panel" aria-live="polite">
+          <LayerCard
+            className="place-panel"
+            data-chrome="place"
+            aria-live="polite"
+          >
             <LayerCard.Secondary className="place-panel-meta">
               <Badge variant="secondary">{selected.typeLabel}</Badge>
               {areaLabel ? (

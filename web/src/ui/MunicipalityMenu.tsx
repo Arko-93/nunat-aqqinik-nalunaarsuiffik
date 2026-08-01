@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { LayerCard } from "@cloudflare/kumo/components/layer-card";
 import { Select } from "@cloudflare/kumo/components/select";
 import {
   MUNICIPALITY_OPTIONS,
@@ -24,8 +26,13 @@ const SELECT_ITEMS = MUNICIPALITY_OPTIONS.map((option) => ({
 }));
 
 export function MunicipalityMenu({ value, onChange }: Props) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <div className="chrome-field">
+    <LayerCard
+      className={`chrome-field${open ? " is-open" : ""}`}
+      data-chrome="responsibility"
+    >
       <Select
         label="Responsibility"
         hideLabel={false}
@@ -33,6 +40,8 @@ export function MunicipalityMenu({ value, onChange }: Props) {
         onValueChange={(next) => {
           if (typeof next === "string") onChange(fromKey(next));
         }}
+        open={open}
+        onOpenChange={setOpen}
         items={SELECT_ITEMS}
       >
         {SELECT_ITEMS.map((option) => (
@@ -41,6 +50,6 @@ export function MunicipalityMenu({ value, onChange }: Props) {
           </Select.Option>
         ))}
       </Select>
-    </div>
+    </LayerCard>
   );
 }
