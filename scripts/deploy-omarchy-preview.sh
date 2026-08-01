@@ -15,6 +15,11 @@ if [[ ! -f public/data/placenames.geojson ]]; then
 	exit 1
 fi
 
+if [[ ! -f public/data/reachability-graph.json ]]; then
+	echo "Missing public/data/reachability-graph.json; run: python3 web/scripts/export-reachability-graph.py" >&2
+	exit 1
+fi
+
 ssh "$remote_host" "mkdir -p '$remote_dir'"
 
 rsync -az --delete \

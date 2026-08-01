@@ -6,15 +6,17 @@ SHELL := /bin/bash
 
 map-fetch:
 	pnpm --dir web fetch:placenames
+	python3 web/scripts/export-reachability-graph.py
 
 map-build: map-fetch
 	pnpm --dir web install
 	pnpm --dir web build
 
-# Primary Omarchy product surface: official names map
+# Omarchy test surface (deploy from current worktree/branch; do not merge)
 map-omarchy:
 	pnpm --dir web install
 	pnpm --dir web fetch:placenames
+	python3 web/scripts/export-reachability-graph.py
 	pnpm --dir web build
 	bash scripts/deploy-omarchy-preview.sh
 

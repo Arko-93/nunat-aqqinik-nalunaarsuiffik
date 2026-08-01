@@ -5,6 +5,8 @@ import { BAND_MIN_ZOOM, type ZoomBand } from "../domain/importance.ts";
 import type { Placename } from "../domain/placename.ts";
 
 const SOURCE_ID = "placenames";
+const REACH_SOURCE_ID = "reachability";
+const REACH_LAYER_ID = "reachability-line";
 
 const BANDS: ReadonlyArray<ZoomBand> = [
   "locality",
@@ -19,6 +21,7 @@ const labelLayerId = (band: ZoomBand) => `placenames-label-${band}`;
 
 type Props = {
   collection: GeoJSON.FeatureCollection<GeoJSON.Point, Placename> | null;
+  reachabilityLines: GeoJSON.FeatureCollection<GeoJSON.LineString> | null;
   selectedId: number | null;
   onSelect: (place: Placename) => void;
 };
@@ -211,14 +214,21 @@ function addBandLayers(map: Map, band: ZoomBand) {
   });
 }
 
-export function MapCanvas({ collection, selectedId, onSelect }: Props) {
+export function MapCanvas({
+  collection,
+  reachabilityLines,
+  selectedId,
+  onSelect,
+}: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
   const onSelectRef = useRef(onSelect);
   const collectionRef = useRef(collection);
+  const reachRef = useRef(reachabilityLines);
   const fittedRef = useRef(false);
   onSelectRef.current = onSelect;
   collectionRef.current = collection;
+  reachRef.current = reachabilityLines;
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -246,6 +256,26 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
         data: {
           type: "FeatureCollection",
           features: [],
+        },
+      });
+
+      map.addSource(REACH_SOURCE_ID, {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [],
+        },
+      });
+
+      map.addLayer({
+        id: REACH_LAYER_ID,
+        type: "line",
+        source: REACH_SOURCE_ID,
+        paint: {
+          "line-color": "#c45c26",
+          "line-width": 2.4,
+          "line-opacity": 0.85,
+          "line-dasharray": [1.2, 1.4],
         },
       });
 
@@ -305,6 +335,11 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
             fittedRef.current = true;
           }
         }
+      }
+      const reach = reachRef.current;
+      if (reach) {
+        const reachSource = map.getSource(REACH_SOURCE_ID) as GeoJSONSource;
+        reachSource.setData(reach);
       }
     });
 
@@ -374,6 +409,28 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       });
     });
   }, [collection, selectedId]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !reachabilityLines) return;
+
+    return whenSourceReady(map, () => {
+      if (!map.getSource(REACH_SOURCE_ID)) return;
+      const source = map.getSource(REACH_SOURCE_ID) as GeoJSONSource;
+      source.setData(reachabilityLines);
+
+      if (reachabilityLines.features.length === 0) return;
+      const bounds = new maplibregl.LngLatBounds();
+      for (const feature of reachabilityLines.features) {
+        for (const coord of feature.geometry.coordinates) {
+          bounds.extend(coord as [number, number]);
+        }
+      }
+      if (!bounds.isEmpty()) {
+        map.fitBounds(bounds, { padding: 90, maxZoom: 8.5, duration: 700 });
+      }
+    });
+  }, [reachabilityLines]);
 
   return <div className="map-root" ref={containerRef} />;
 }

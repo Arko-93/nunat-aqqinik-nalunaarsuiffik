@@ -1,0 +1,61 @@
+{
+  "generatedFrom": "data/source",
+  "nodes": [
+    {
+      "placeId": "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722",
+      "officialName": "Qaqortoq",
+      "danishName": "Julianehåb",
+      "historicalName": null,
+      "longitude": -46.036,
+      "latitude": 60.718
+    },
+    {
+      "placeId": "plc_a0c38659-994b-4e7e-8ba6-9a8e1f86653f",
+      "officialName": "Narsaq",
+      "danishName": "Narssaq",
+      "historicalName": null,
+      "longitude": -46.05,
+      "latitude": 60.913
+    },
+    {
+      "placeId": "plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864",
+      "officialName": "Nanortalik",
+      "danishName": null,
+      "historicalName": null,
+      "longitude": -45.24,
+      "latitude": 60.141
+    }
+  ],
+  "edges": [
+    {
+      "id": "con_daf7a1d3-fe77-44e7-b956-edec2ed228c9",
+      "fromPlaceId": "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722",
+      "toPlaceId": "plc_a0c38659-994b-4e7e-8ba6-9a8e1f86653f",
+      "fromName": "Qaqortoq",
+      "toName": "Narsaq",
+      "direction": "bidirectional",
+      "mode": "helicopter",
+      "operator": "Air Greenland",
+      "frequencyBand": "multiple_daily",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_dd920d1b-68ce-48e4-900b-ba1e838e79a5",
+      "fromPlaceId": "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722",
+      "toPlaceId": "plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864",
+      "fromName": "Qaqortoq",
+      "toName": "Nanortalik",
+      "direction": "bidirectional",
+      "mode": "helicopter",
+      "operator": "Air Greenland",
+      "frequencyBand": "multiple_daily",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    }
+  ]
+}

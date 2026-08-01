@@ -62,6 +62,19 @@ body,
   pointer-events: none;
 }
 
+.brand .preview-badge {
+  margin: 0 0 0.35rem;
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(196, 92, 38, 0.92);
+  color: #fff8f2;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow: none;
+}
+
 .brand h1 {
   margin: 0;
   font-family: var(--font-display);
@@ -143,6 +156,77 @@ body,
 .scope button[aria-pressed="true"]:hover {
   background: #26586f;
   color: var(--paper);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.chips button {
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition:
+    color var(--motion),
+    background-color var(--motion),
+    transform var(--motion);
+}
+
+.chips button:hover {
+  color: var(--ink);
+}
+
+.chips button:active {
+  transform: scale(0.97);
+}
+
+.chips button.active,
+.chips button[aria-pressed="true"] {
+  background: var(--sea);
+  color: var(--paper);
+  border-color: transparent;
+}
+
+.select-field {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-outer);
+  box-shadow: var(--shadow);
+}
+
+.select-field span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.select-field select {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.98rem;
+  color: var(--ink);
+  border-radius: var(--radius-inner);
+}
+
+.select-field select:focus-visible {
+  outline: 2px solid var(--sea);
+  outline-offset: 2px;
 }
 
 .search,
@@ -256,18 +340,95 @@ body,
   overflow-wrap: anywhere;
 }
 
-.panel .danish {
-  margin: 0.2rem 0 0;
+.panel .names {
+  margin: 0.7rem 0 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.panel .names div {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.4rem;
+  font-size: 0.92rem;
+}
+
+.panel .names dt {
+  margin: 0;
   color: var(--muted);
+}
+
+.panel .names dd {
+  margin: 0;
   overflow-wrap: anywhere;
 }
 
 .panel .summary {
-  margin: 0.5rem 0 0;
+  margin: 0.55rem 0 0;
   color: var(--muted);
   font-size: 0.95rem;
   line-height: 1.35;
   overflow-wrap: anywhere;
+}
+
+.panel .hint {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.panel .reach {
+  margin: 0.85rem 0 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(16, 32, 41, 0.1);
+}
+
+.panel .reach h3 {
+  margin: 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.panel .reach ul {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+}
+
+.panel .reach button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0.4rem 0.2rem;
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-inner);
+  color: var(--ink);
+  transition: background-color var(--motion), transform var(--motion);
+}
+
+.panel .reach button:hover {
+  background: rgba(31, 77, 99, 0.08);
+}
+
+.panel .reach button:active {
+  transform: scale(0.985);
+}
+
+.panel .reach-name {
+  display: block;
+  font-weight: 600;
+}
+
+.panel .reach .meta {
+  display: block;
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 .status {

@@ -1,35 +1,56 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  enrichCollection,
-  type Placename,
-  type PlacenameScope,
-} from "../domain/placename.ts";
+  defaultLayerState,
+  MUNICIPALITY_OPTIONS,
+  placeVisible,
+  type GeographyGroup,
+  type LayerState,
+} from "../domain/layers.ts";
+import { enrichCollection, type Placename } from "../domain/placename.ts";
+import {
+  linksFromOfficialName,
+  reachabilityLineCollection,
+  type ReachabilityGraph,
+} from "../domain/reachability.ts";
 import { searchPlacenames } from "../domain/search.ts";
 import { MapCanvas } from "./MapCanvas.tsx";
 
 type Collection = GeoJSON.FeatureCollection<GeoJSON.Point, Placename>;
 
+const EMPTY_LINES: GeoJSON.FeatureCollection<GeoJSON.LineString> = {
+  type: "FeatureCollection",
+  features: [],
+};
+
 export function App() {
   const [collection, setCollection] = useState<Collection | null>(null);
+  const [graph, setGraph] = useState<ReachabilityGraph | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Placename | null>(null);
-  const [scope, setScope] = useState<PlacenameScope>("all");
+  const [layers, setLayers] = useState<LayerState>(() => defaultLayerState());
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/data/placenames.geojson")
-      .then(async (response) => {
+    Promise.all([
+      fetch("/data/placenames.geojson").then(async (response) => {
         if (!response.ok) {
           throw new Error(`Failed to load placenames (${response.status})`);
         }
         return response.json() as Promise<Collection>;
-      })
-      .then((data) => {
-        if (!cancelled) {
-          setCollection(enrichCollection(data));
-          setError(null);
+      }),
+      fetch("/data/reachability-graph.json").then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to load reachability (${response.status})`);
         }
+        return response.json() as Promise<ReachabilityGraph>;
+      }),
+    ])
+      .then(([places, reachability]) => {
+        if (cancelled) return;
+        setCollection(enrichCollection(places));
+        setGraph(reachability);
+        setError(null);
       })
       .catch((cause: unknown) => {
         if (!cancelled) {
@@ -43,13 +64,13 @@ export function App() {
 
   const visibleCollection = useMemo((): Collection | null => {
     if (!collection) return null;
-    const features = collection.features.filter((feature) => {
-      if (feature.properties.isLocalityShadow) return false;
-      if (scope === "localities") return feature.properties.isLocality;
-      return true;
-    });
-    return { type: "FeatureCollection", features };
-  }, [collection, scope]);
+    return {
+      type: "FeatureCollection",
+      features: collection.features.filter((feature) =>
+        placeVisible(feature.properties, layers),
+      ),
+    };
+  }, [collection, layers]);
 
   const places = useMemo(
     () =>
@@ -57,57 +78,140 @@ export function App() {
     [visibleCollection],
   );
 
-  const localityCount = useMemo(
-    () =>
-      collection?.features.filter((feature) => feature.properties.isLocality)
-        .length ?? 0,
-    [collection],
-  );
-
   const results = useMemo(
     () => searchPlacenames(places, query, 12),
     [places, query],
   );
 
+  const reachLinks = useMemo(
+    () =>
+      selected ? linksFromOfficialName(graph, selected.officialName) : [],
+    [graph, selected],
+  );
+
+  const reachLines = useMemo(
+    () =>
+      selected
+        ? reachabilityLineCollection(graph, selected.officialName)
+        : EMPTY_LINES,
+    [graph, selected],
+  );
+
+  const setLens = (lens: LayerState["lens"]) => {
+    setLayers((current) => ({ ...current, lens }));
+  };
+
+  const toggleGeography = (group: GeographyGroup) => {
+    setLayers((current) => {
+      const next = new Set(current.geography);
+      if (next.has(group)) next.delete(group);
+      else next.add(group);
+      return { ...current, geography: next };
+    });
+  };
+
+  const selectPlace = (place: Placename) => {
+    setSelected(place);
+    setQuery(place.officialName);
+  };
+
+  const selectByOfficialName = (name: string) => {
+    const match =
+      collection?.features.find(
+        (feature) =>
+          feature.properties.isLocality &&
+          feature.properties.officialName.toLocaleLowerCase("kl") ===
+            name.toLocaleLowerCase("kl"),
+      )?.properties ?? null;
+    if (match) selectPlace(match);
+  };
+
   return (
     <div className="app">
       <MapCanvas
         collection={visibleCollection}
+        reachabilityLines={reachLines}
         selectedId={selected?.recordId ?? null}
-        onSelect={setSelected}
+        onSelect={selectPlace}
       />
 
       <header className="brand">
+        <p className="preview-badge">Test branch · not main</p>
         <h1>Nunat Aqqinik Nalunaarsuiffik</h1>
-        <p>Official Greenland place names — NunaGIS midpoints</p>
+        <p>Place identity lenses for Greenland decisions</p>
       </header>
 
       <div className="controls">
-        <div className="scope" role="group" aria-label="Map scope">
+        <div className="scope" role="group" aria-label="Content lens">
           <button
             type="button"
-            className={scope === "all" ? "active" : undefined}
-            aria-pressed={scope === "all"}
-            onClick={() => setScope("all")}
+            className={layers.lens === "inhabited" ? "active" : undefined}
+            aria-pressed={layers.lens === "inhabited"}
+            onClick={() => setLens("inhabited")}
           >
-            All names
+            Inhabited
           </button>
           <button
             type="button"
-            className={scope === "localities" ? "active" : undefined}
-            aria-pressed={scope === "localities"}
-            onClick={() => setScope("localities")}
+            className={layers.lens === "geography" ? "active" : undefined}
+            aria-pressed={layers.lens === "geography"}
+            onClick={() => setLens("geography")}
           >
-            Localities
+            + Geography
           </button>
         </div>
+
+        {layers.lens === "geography" ? (
+          <div className="chips" role="group" aria-label="Geography groups">
+            {(
+              [
+                ["waters", "Waters"],
+                ["islands", "Islands"],
+                ["landforms", "Landforms"],
+              ] as const
+            ).map(([group, label]) => (
+              <button
+                key={group}
+                type="button"
+                className={layers.geography.has(group) ? "active" : undefined}
+                aria-pressed={layers.geography.has(group)}
+                onClick={() => toggleGeography(group)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        <label className="select-field">
+          <span>Municipality</span>
+          <select
+            value={layers.municipalityCode ?? ""}
+            onChange={(event) => {
+              const value = event.target.value;
+              setLayers((current) => ({
+                ...current,
+                municipalityCode: value === "" ? null : Number(value),
+              }));
+            }}
+          >
+            {MUNICIPALITY_OPTIONS.map((option) => (
+              <option
+                key={String(option.code)}
+                value={option.code ?? ""}
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <div className="search">
           <label htmlFor="place-search">Search</label>
           <input
             id="place-search"
             type="search"
-            placeholder="Nuuk, Qaqortoq, Sermitsiaq…"
+            placeholder="Nuuk, Qaqortoq, Naajaat…"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             autoComplete="off"
@@ -119,10 +223,7 @@ export function App() {
                   <button
                     type="button"
                     aria-selected={selected?.recordId === hit.place.recordId}
-                    onClick={() => {
-                      setSelected(hit.place);
-                      setQuery(hit.place.officialName);
-                    }}
+                    onClick={() => selectPlace(hit.place)}
                   >
                     {hit.place.officialName}
                     <span className="meta">
@@ -145,16 +246,62 @@ export function App() {
         {selected ? (
           <aside className="panel" aria-live="polite">
             <h2>{selected.officialName}</h2>
-            {selected.danishName &&
-            selected.danishName !== selected.officialName ? (
-              <p className="danish">{selected.danishName}</p>
-            ) : null}
+
+            <dl className="names">
+              <div>
+                <dt>Official</dt>
+                <dd>{selected.officialName}</dd>
+              </div>
+              {selected.danishName &&
+              selected.danishName !== selected.officialName ? (
+                <div>
+                  <dt>Danish</dt>
+                  <dd>{selected.danishName}</dd>
+                </div>
+              ) : null}
+              {selected.oldOfficialName &&
+              selected.oldOfficialName !== selected.officialName ? (
+                <div>
+                  <dt>Historical</dt>
+                  <dd>{selected.oldOfficialName}</dd>
+                </div>
+              ) : null}
+            </dl>
+
             <p className="summary">
               {selected.typeLabel}
               {selected.municipalityName
                 ? ` · ${selected.municipalityName}`
                 : ""}
             </p>
+
+            {reachLinks.length > 0 ? (
+              <div className="reach">
+                <h3>Reachable from here</h3>
+                <ul>
+                  {reachLinks.map((link) => (
+                    <li key={link.edge.id}>
+                      <button
+                        type="button"
+                        onClick={() => selectByOfficialName(link.otherName)}
+                      >
+                        <span className="reach-name">{link.otherName}</span>
+                        <span className="meta">
+                          {link.edge.mode}
+                          {link.edge.operator ? ` · ${link.edge.operator}` : ""}
+                          {` · ${link.seasonLabel}`}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : selected.isLocality ? (
+              <p className="hint">
+                No structural connections in the seed graph yet for this
+                locality.
+              </p>
+            ) : null}
           </aside>
         ) : null}
       </div>
@@ -163,10 +310,10 @@ export function App() {
         {error
           ? error
           : collection
-            ? scope === "localities"
-              ? `${places.length} localities`
-              : `${places.length} names · ${localityCount} localities`
-            : "Loading placenames…"}
+            ? `${places.length} shown · ${layers.lens}${
+                layers.municipalityCode != null ? " · filtered" : ""
+              }`
+            : "Loading map lenses…"}
       </div>
     </div>
   );
