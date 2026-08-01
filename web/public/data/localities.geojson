@@ -1,0 +1,1855 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 13435,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -44.28468603199997,
+          60.150332992000074
+        ]
+      },
+      "properties": {
+        "globalId": "1D242C34-7E07-414B-9147-9C3854075840",
+        "recordId": 13435,
+        "officialName": "Aappilattoq",
+        "danishName": null,
+        "oldOfficialName": "Augpilagtoq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0102",
+        "longitude": -44.28468603199997,
+        "latitude": 60.150332992000074
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31347,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -55.594187302999956,
+          72.88510096600004
+        ]
+      },
+      "properties": {
+        "globalId": "012E7108-8134-40A2-89D8-73A8C766612F",
+        "recordId": 31347,
+        "officialName": "Aappilattoq",
+        "danishName": null,
+        "oldOfficialName": "Augpilagtoq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1603",
+        "longitude": -55.594187302999956,
+        "latitude": 72.88510096600004
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 17961,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -52.838981915999966,
+          68.71159177600003
+        ]
+      },
+      "properties": {
+        "globalId": "1E27BF8A-73D5-4030-B15A-39059C081860",
+        "recordId": 17961,
+        "officialName": "Aasiaat",
+        "danishName": "Egedesminde",
+        "oldOfficialName": "Ausiait",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 959,
+        "municipalityName": "Kommune Qeqertalik",
+        "localityCode": "1000",
+        "longitude": -52.838981915999966,
+        "latitude": 68.71159177600003
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 35659,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -52.32972857799996,
+          68.74467569500007
+        ]
+      },
+      "properties": {
+        "globalId": "CF24220B-6E52-4218-A3FD-A46BADFD8C6B",
+        "recordId": 35659,
+        "officialName": "Akunnaaq",
+        "danishName": null,
+        "oldOfficialName": "Akúnâq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 959,
+        "municipalityName": "Kommune Qeqertalik",
+        "localityCode": "1003",
+        "longitude": -52.32972857799996,
+        "latitude": 68.74467569500007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13444,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -45.565008485999954,
+          60.46217893700003
+        ]
+      },
+      "properties": {
+        "globalId": "75D07E2E-242F-4C2A-9B23-792E2BD06A25",
+        "recordId": 13444,
+        "officialName": "Alluitsup Paa",
+        "danishName": "Sydprøven",
+        "oldOfficialName": "Agdluitsup pâ",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0108",
+        "longitude": -45.565008485999954,
+        "latitude": 60.46217893700003
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13441,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -45.382511971999975,
+          60.595585407000044
+        ]
+      },
+      "properties": {
+        "globalId": "755C1C14-E96C-4AE4-928C-FC7555DDF3FC",
+        "recordId": 13441,
+        "officialName": "Ammassivik",
+        "danishName": "Sletten",
+        "oldOfficialName": "Angmagssivik",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0106",
+        "longitude": -45.382511971999975,
+        "latitude": 60.595585407000044
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13469,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -48.43702392299997,
+          61.17592865000006
+        ]
+      },
+      "properties": {
+        "globalId": "18FE74E4-0E86-4C1D-8743-743DA7A7D581",
+        "recordId": 13469,
+        "officialName": "Arsuk",
+        "danishName": null,
+        "oldOfficialName": "Arsuk",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 956,
+        "municipalityName": "Kommuneqarfik Sermersooq",
+        "localityCode": "0501",
+        "longitude": -48.43702392299997,
+        "latitude": 61.17592865000006
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13474,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -52.17197572599997,
+          64.80354038300004
+        ]
+      },
+      "properties": {
+        "globalId": "D8CA5623-8AF5-42A6-8E27-C70EB69159B0",
+        "recordId": 13474,
+        "officialName": "Atammik",
+        "danishName": null,
+        "oldOfficialName": "Atangmik",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 957,
+        "municipalityName": "Qeqqata kommunia",
+        "localityCode": "0701",
+        "longitude": -52.17197572599997,
+        "latitude": 64.80354038300004
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13477,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.62008204099993,
+          67.94083431200005
+        ]
+      },
+      "properties": {
+        "globalId": "ADC03985-035D-47A9-BFA2-E0ABCCF2BDDA",
+        "recordId": 13477,
+        "officialName": "Attu",
+        "danishName": null,
+        "oldOfficialName": "Agto",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 959,
+        "municipalityName": "Kommune Qeqertalik",
+        "localityCode": "0902",
+        "longitude": -53.62008204099993,
+        "latitude": 67.94083431200005
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13446,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -45.90983021599993,
+          60.62286973300007
+        ]
+      },
+      "properties": {
+        "globalId": "BEB6AFB8-2FF9-4848-9F43-ECB9493D57BA",
+        "recordId": 13446,
+        "officialName": "Eqalugaarsuit",
+        "danishName": null,
+        "oldOfficialName": "Eqalugârssuit",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0202",
+        "longitude": -45.90983021599993,
+        "latitude": 60.62286973300007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13434,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -79.45438720199996,
+          76.38428546800003
+        ]
+      },
+      "properties": {
+        "globalId": "CB5CAA04-A684-4352-953D-B2F0F79DA09A",
+        "recordId": 13434,
+        "officialName": "Grise Fiord :100:",
+        "danishName": "Grise Fiord :100:",
+        "oldOfficialName": null,
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1704",
+        "longitude": -79.45438720199996,
+        "latitude": 76.38428546800003
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13453,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -45.42195470799993,
+          60.98808702000008
+        ]
+      },
+      "properties": {
+        "globalId": "C5404350-2FAE-42CB-94FA-2A2C9E5A0218",
+        "recordId": 13453,
+        "officialName": "Igaliku",
+        "danishName": null,
+        "oldOfficialName": "Igaliko",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0302",
+        "longitude": -45.42195470799993,
+        "latitude": 60.98808702000008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13478,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.171484497999984,
+          68.14720878200006
+        ]
+      },
+      "properties": {
+        "globalId": "981C5DCF-179B-4182-98B7-D9D828D018FE",
+        "recordId": 13478,
+        "officialName": "Iginniarfik",
+        "danishName": null,
+        "oldOfficialName": "Igíniarfik",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 959,
+        "municipalityName": "Kommune Qeqertalik",
+        "localityCode": "0905",
+        "longitude": -53.171484497999984,
+        "latitude": 68.14720878200006
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 35662,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.83133533199998,
+          68.63353197000004
+        ]
+      },
+      "properties": {
+        "globalId": "CAC4BC15-8BA1-4312-9711-AF685195213A",
+        "recordId": 35662,
+        "officialName": "Ikamiut",
+        "danishName": null,
+        "oldOfficialName": null,
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 959,
+        "municipalityName": "Kommune Qeqertalik",
+        "localityCode": "1101",
+        "longitude": -51.83133533199998,
+        "latitude": 68.63353197000004
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13479,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.44528505899996,
+          68.14027000900006
+        ]
+      },
+      "properties": {
+        "globalId": "6289FCD4-3AAC-445F-8C9D-14C39E27A95A",
+        "recordId": 13479,
+        "officialName": "Ikerasaarsuk",
+        "danishName": null,
+        "oldOfficialName": "Ikerasârssuk",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 959,
+        "municipalityName": "Kommune Qeqertalik",
+        "localityCode": "0908",
+        "longitude": -53.44528505899996,
+        "latitude": 68.14027000900006
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 32990,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.30491607399995,
+          70.50186907500006
+        ]
+      },
+      "properties": {
+        "globalId": "03633E83-B2A7-4C4C-9477-D3B829FC4F47",
+        "recordId": 32990,
+        "officialName": "Ikerasak",
+        "danishName": null,
+        "oldOfficialName": null,
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1503",
+        "longitude": -51.30491607399995,
+        "latitude": 70.50186907500006
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13481,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.11382581799995,
+          69.08035770800007
+        ]
+      },
+      "properties": {
+        "globalId": "9C7F2277-EA58-422E-AC6A-6BF6C57FEE16",
+        "recordId": 13481,
+        "officialName": "Ilimanaq",
+        "danishName": "Claushavn",
+        "oldOfficialName": "Ilimanaq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1204",
+        "longitude": -51.11382581799995,
+        "latitude": 69.08035770800007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31344,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.567856190999976,
+          71.24193643600006
+        ]
+      },
+      "properties": {
+        "globalId": "D330B470-7B3B-43E0-B107-6678946BF335",
+        "recordId": 31344,
+        "officialName": "Illorsuit",
+        "danishName": null,
+        "oldOfficialName": "Igdlorssuit",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1501",
+        "longitude": -53.567856190999976,
+        "latitude": 71.24193643600006
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13496,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.06625714099994,
+          69.22288169900008
+        ]
+      },
+      "properties": {
+        "globalId": "2079163E-6BDA-43FD-BC3E-6038FA320C62",
+        "recordId": 13496,
+        "officialName": "Ilulissat",
+        "danishName": "Jakobshavn",
+        "oldOfficialName": "Ilulíssat",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1200",
+        "longitude": -51.06625714099994,
+        "latitude": 69.22288169900008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31349,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -56.01019952299998,
+          73.20041606900008
+        ]
+      },
+      "properties": {
+        "globalId": "489F8982-68F3-4949-88A4-04AE1F91519D",
+        "recordId": 31349,
+        "officialName": "Innaarsuit",
+        "danishName": null,
+        "oldOfficialName": "Ivnârssuit",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1609",
+        "longitude": -56.01019952299998,
+        "latitude": 73.20041606900008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26539,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -38.97886295199993,
+          65.54751387200008
+        ]
+      },
+      "properties": {
+        "globalId": "4AA261D9-AD81-430C-A215-3A065D278A24",
+        "recordId": 26539,
+        "officialName": "Isertoq",
+        "danishName": "Kraulshavn",
+        "oldOfficialName": "Isertoq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 956,
+        "municipalityName": "Kommuneqarfik Sermersooq",
+        "localityCode": "1803",
+        "longitude": -38.97886295199993,
+        "latitude": 65.54751387200008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21181,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.499479633999954,
+          66.57741445900007
+        ]
+      },
+      "properties": {
+        "globalId": "9578E041-55AB-401F-AC9E-800D64044C30",
+        "recordId": 21181,
+        "officialName": "Itilleq",
+        "danishName": null,
+        "oldOfficialName": "Itivdleq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 957,
+        "municipalityName": "Qeqqata kommunia",
+        "localityCode": "0801",
+        "longitude": -53.499479633999954,
+        "latitude": 66.57741445900007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26548,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -21.960136587999955,
+          70.48651453100007
+        ]
+      },
+      "properties": {
+        "globalId": "4F593CEC-8D5F-4D49-97D5-6271FEBE53DA",
+        "recordId": 26548,
+        "officialName": "Ittoqqortoormiit",
+        "danishName": "Scoresbysund",
+        "oldOfficialName": null,
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 956,
+        "municipalityName": "Kommuneqarfik Sermersooq",
+        "localityCode": "1900",
+        "longitude": -21.960136587999955,
+        "latitude": 70.48651453100007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13476,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.34303643399994,
+          65.82619703000006
+        ]
+      },
+      "properties": {
+        "globalId": "0C2CD2D3-FF84-40CA-AEE4-234D685FECA3",
+        "recordId": 13476,
+        "officialName": "Kangaamiut",
+        "danishName": null,
+        "oldOfficialName": "Kangâmiut",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 957,
+        "municipalityName": "Qeqqata kommunia",
+        "localityCode": "0700",
+        "longitude": -53.34303643399994,
+        "latitude": 65.82619703000006
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13495,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.453859774999955,
+          68.31038658100005
+        ]
+      },
+      "properties": {
+        "globalId": "8393BE41-5993-4653-8E30-562C8DA06699",
+        "recordId": 13495,
+        "officialName": "Kangaatsiaq",
+        "danishName": null,
+        "oldOfficialName": "Kangâtsiaq",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 959,
+        "municipalityName": "Kommune Qeqertalik",
+        "localityCode": "0900",
+        "longitude": -53.453859774999955,
+        "latitude": 68.31038658100005
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19480,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.949175915999945,
+          69.48340968100007
+        ]
+      },
+      "properties": {
+        "globalId": "C42F976D-A2ED-4BC8-9BBD-C209072EA9A5",
+        "recordId": 19480,
+        "officialName": "Kangerluk",
+        "danishName": "Diskofjord",
+        "oldOfficialName": "Kangerdluk",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 959,
+        "municipalityName": "Kommune Qeqertalik",
+        "localityCode": "1403",
+        "longitude": -53.949175915999945,
+        "latitude": 69.48340968100007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13484,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -50.78329573899998,
+          67.00337719800007
+        ]
+      },
+      "properties": {
+        "globalId": "23E19C4A-4BD0-461B-AF97-E7E3E1D76C82",
+        "recordId": 13484,
+        "officialName": "Kangerlussuaq",
+        "danishName": "Danmarkshavn",
+        "oldOfficialName": "Kangerdlugssuaq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 957,
+        "municipalityName": "Qeqqata kommunia",
+        "localityCode": "0820",
+        "longitude": -50.78329573899998,
+        "latitude": 67.00337719800007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31345,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -55.540442834999965,
+          72.38018516300008
+        ]
+      },
+      "properties": {
+        "globalId": "947354BA-12AE-441F-ABF2-119949F967BB",
+        "recordId": 31345,
+        "officialName": "Kangersuatsiaq",
+        "danishName": "Prøven",
+        "oldOfficialName": "Kangerssuatsiaq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1602",
+        "longitude": -55.540442834999965,
+        "latitude": 72.38018516300008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13471,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -50.26883977499995,
+          64.43247890900005
+        ]
+      },
+      "properties": {
+        "globalId": "9F92B6E4-1CF8-4472-B8ED-8BE0CFF2835E",
+        "recordId": 13471,
+        "officialName": "Kapisillit",
+        "danishName": null,
+        "oldOfficialName": "Kapisigdlit",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 956,
+        "municipalityName": "Kommuneqarfik Sermersooq",
+        "localityCode": "0605",
+        "longitude": -50.26883977499995,
+        "latitude": 64.43247890900005
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9731,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.120756410999945,
+          68.85756375500006
+        ]
+      },
+      "properties": {
+        "globalId": "A99E224A-F40E-4E5A-BEA1-3D26D4A82908",
+        "recordId": 9731,
+        "officialName": "Kitsissuarsuit",
+        "danishName": "Hunde Ejlande",
+        "oldOfficialName": "Kitsisuarssuit",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 959,
+        "municipalityName": "Kommune Qeqertalik",
+        "localityCode": "1004",
+        "longitude": -53.120756410999945,
+        "latitude": 68.85756375500006
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31355,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -57.22204036599999,
+          74.57941990200004
+        ]
+      },
+      "properties": {
+        "globalId": "A532850A-7BB6-4771-BCD4-A7F8EDCD4A0F",
+        "recordId": 31355,
+        "officialName": "Kullorsuaq",
+        "danishName": null,
+        "oldOfficialName": null,
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1607",
+        "longitude": -57.22204036599999,
+        "latitude": 74.57941990200004
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26540,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -37.152445943999965,
+          65.57786731500005
+        ]
+      },
+      "properties": {
+        "globalId": "B0435894-1529-422B-8F97-DAA9259120D2",
+        "recordId": 26540,
+        "officialName": "Kulusuk",
+        "danishName": "Kulusuk",
+        "oldOfficialName": "Kulusuk",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 956,
+        "municipalityName": "Kommuneqarfik Sermersooq",
+        "localityCode": "1804",
+        "longitude": -37.152445943999965,
+        "latitude": 65.57786731500005
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26541,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -37.00486404499998,
+          65.86488398700004
+        ]
+      },
+      "properties": {
+        "globalId": "7E0C5193-80C1-4491-A506-3AC99932DD8D",
+        "recordId": 26541,
+        "officialName": "Kuummiit",
+        "danishName": "Kulusuk",
+        "oldOfficialName": "Kûngmit",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 956,
+        "municipalityName": "Kommuneqarfik Sermersooq",
+        "localityCode": "1806",
+        "longitude": -37.00486404499998,
+        "latitude": 65.86488398700004
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13494,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -52.91546386999994,
+          65.40927678100007
+        ]
+      },
+      "properties": {
+        "globalId": "FE1DB6C8-2C1D-46C7-8B13-A83B32A0751A",
+        "recordId": 13494,
+        "officialName": "Maniitsoq",
+        "danishName": "Sukkertoppen",
+        "oldOfficialName": "Manîtsoq",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 957,
+        "municipalityName": "Qeqqata kommunia",
+        "localityCode": "0700",
+        "longitude": -52.91546386999994,
+        "latitude": 65.40927678100007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31350,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -55.81008683699997,
+          73.14215463800008
+        ]
+      },
+      "properties": {
+        "globalId": "2DFDCA54-9175-408E-86FA-69744D2BE5DD",
+        "recordId": 31350,
+        "officialName": "Naajaat",
+        "danishName": null,
+        "oldOfficialName": "Naujât",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1608",
+        "longitude": -55.81008683699997,
+        "latitude": 73.14215463800008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13491,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -45.245750889999954,
+          60.14334753500003
+        ]
+      },
+      "properties": {
+        "globalId": "D99CA793-B5E8-45A5-94A0-8044FF865911",
+        "recordId": 13491,
+        "officialName": "Nanortalik",
+        "danishName": null,
+        "oldOfficialName": "Nanortalik",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0100",
+        "longitude": -45.245750889999954,
+        "latitude": 60.14334753500003
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13475,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -52.383845373999975,
+          65.04682482300007
+        ]
+      },
+      "properties": {
+        "globalId": "7BB2706E-5ED9-4917-9646-95899CF5F3C5",
+        "recordId": 13475,
+        "officialName": "Napasoq",
+        "danishName": null,
+        "oldOfficialName": "Napassoq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 957,
+        "municipalityName": "Qeqqata kommunia",
+        "localityCode": "0702",
+        "longitude": -52.383845373999975,
+        "latitude": 65.04682482300007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13489,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -46.049850610999954,
+          60.916493149000075
+        ]
+      },
+      "properties": {
+        "globalId": "9698B5BE-0D2D-41C2-BDCB-04AD705356DE",
+        "recordId": 13489,
+        "officialName": "Narsaq",
+        "danishName": null,
+        "oldOfficialName": "Narssaq",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0300",
+        "longitude": -46.049850610999954,
+        "latitude": 60.916493149000075
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13436,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -44.66328816099997,
+          60.005723540000076
+        ]
+      },
+      "properties": {
+        "globalId": "0D43884B-7500-418D-BB61-02754FAB738B",
+        "recordId": 13436,
+        "officialName": "Narsarmijit",
+        "danishName": "Frederiksdal",
+        "oldOfficialName": "Narssarmijit",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0103",
+        "longitude": -44.66328816099997,
+        "latitude": 60.005723540000076
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13467,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -45.421095262999984,
+          61.16215516200003
+        ]
+      },
+      "properties": {
+        "globalId": "7A33E89A-F274-4ACA-B046-B61441DE7BDD",
+        "recordId": 13467,
+        "officialName": "Narsarsuaq",
+        "danishName": null,
+        "oldOfficialName": "Narssarssuaq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0321",
+        "longitude": -45.421095262999984,
+        "latitude": 61.16215516200003
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13480,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -52.85106829799997,
+          68.23648783600004
+        ]
+      },
+      "properties": {
+        "globalId": "FBA157E2-4AAD-47B8-8B69-76B84D760C1C",
+        "recordId": 13480,
+        "officialName": "Niaqornaarsuk",
+        "danishName": null,
+        "oldOfficialName": "Niaqornârssuk",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 959,
+        "municipalityName": "Kommune Qeqertalik",
+        "localityCode": "0906",
+        "longitude": -52.85106829799997,
+        "latitude": 68.23648783600004
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31339,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.660569384999974,
+          70.78937337400004
+        ]
+      },
+      "properties": {
+        "globalId": "62D53C40-2C99-48CA-B438-9ACF918BA7A4",
+        "recordId": 31339,
+        "officialName": "Niaqornat",
+        "danishName": null,
+        "oldOfficialName": "Niaqornat",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1501",
+        "longitude": -53.660569384999974,
+        "latitude": 70.78937337400004
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31352,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -56.42601982999997,
+          73.51453195300007
+        ]
+      },
+      "properties": {
+        "globalId": "AD67EF79-73E3-40D2-8470-78FDBA7A7472",
+        "recordId": 31352,
+        "officialName": "Nutaarmiut",
+        "danishName": null,
+        "oldOfficialName": "Nutârmiut",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1610",
+        "longitude": -56.42601982999997,
+        "latitude": 73.51453195300007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31343,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.20930630299995,
+          71.53748692900007
+        ]
+      },
+      "properties": {
+        "globalId": "63396844-2A07-47AD-8545-01BBC0531366",
+        "recordId": 31343,
+        "officialName": "Nuugaatsiaq",
+        "danishName": null,
+        "oldOfficialName": "Nûgâtsiaq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1505",
+        "longitude": -53.20930630299995,
+        "latitude": 71.53748692900007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13493,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.72744014299997,
+          64.17780353400008
+        ]
+      },
+      "properties": {
+        "globalId": "5CD69C67-7A12-40FC-8947-4054A8369CE6",
+        "recordId": 13493,
+        "officialName": "Nuuk",
+        "danishName": "Godthåb",
+        "oldOfficialName": "Nûk",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 956,
+        "municipalityName": "Kommuneqarfik Sermersooq",
+        "localityCode": "0600",
+        "longitude": -51.72744014299997,
+        "latitude": 64.17780353400008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31354,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -57.05982770899993,
+          74.11023552300003
+        ]
+      },
+      "properties": {
+        "globalId": "98D76845-AF51-4D2C-9E7F-F016B9CE3EE0",
+        "recordId": 31354,
+        "officialName": "Nuussuaq",
+        "danishName": "Kraulshavn",
+        "oldOfficialName": "Nûgssuaq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1606",
+        "longitude": -57.05982770899993,
+        "latitude": 74.11023552300003
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 10222,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.005768617999934,
+          69.34197909800008
+        ]
+      },
+      "properties": {
+        "globalId": "5666E005-B50F-46A5-8247-7033200A8D65",
+        "recordId": 10222,
+        "officialName": "Oqaatsut",
+        "danishName": "Rodebay",
+        "oldOfficialName": "Oqaitsut",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1201",
+        "longitude": -51.005768617999934,
+        "latitude": 69.34197909800008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13492,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -49.66260049799996,
+          61.994542684000066
+        ]
+      },
+      "properties": {
+        "globalId": "6BB11B45-1B65-4BEF-95D6-5F41BB01FADA",
+        "recordId": 13492,
+        "officialName": "Paamiut",
+        "danishName": "Frederikshåb",
+        "oldOfficialName": "Pâmiut",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 956,
+        "municipalityName": "Kommuneqarfik Sermersooq",
+        "localityCode": "0500",
+        "longitude": -49.66260049799996,
+        "latitude": 61.994542684000066
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31363,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -69.22378897699997,
+          77.46779971900008
+        ]
+      },
+      "properties": {
+        "globalId": "86486C97-D838-4A2E-B790-C0A91D06538C",
+        "recordId": 31363,
+        "officialName": "Qaanaaq",
+        "danishName": "Thule",
+        "oldOfficialName": "Qânâq",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1700",
+        "longitude": -69.22378897699997,
+        "latitude": 77.46779971900008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31340,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -52.690672726999935,
+          70.73553919800008
+        ]
+      },
+      "properties": {
+        "globalId": "6C3F419B-E78F-4F8F-A183-6B5BE8C7BF70",
+        "recordId": 31340,
+        "officialName": "Qaarsut",
+        "danishName": null,
+        "oldOfficialName": "Qaersut",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1502",
+        "longitude": -52.690672726999935,
+        "latitude": 70.73553919800008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 859,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -46.043108692999965,
+          60.71660471200005
+        ]
+      },
+      "properties": {
+        "globalId": "39164A64-6FF1-48F2-B8B1-82FCC6FD72E6",
+        "recordId": 859,
+        "officialName": "Qaqortoq",
+        "danishName": "Julianehåb",
+        "oldOfficialName": null,
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0200",
+        "longitude": -46.043108692999965,
+        "latitude": 60.71660471200005
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 9759,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.18467960399994,
+          68.82237725500005
+        ]
+      },
+      "properties": {
+        "globalId": "B85BD1A8-62AF-4BA6-A83C-6AFE7F94D720",
+        "recordId": 9759,
+        "officialName": "Qasigiannguit",
+        "danishName": "Christianshåb",
+        "oldOfficialName": null,
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 959,
+        "municipalityName": "Kommune Qeqertalik",
+        "localityCode": "1100",
+        "longitude": -51.18467960399994,
+        "latitude": 68.82237725500005
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13461,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -45.51493100299996,
+          61.143427657000075
+        ]
+      },
+      "properties": {
+        "globalId": "2EF79251-4BB5-4BF6-842D-35387409B9DF",
+        "recordId": 13461,
+        "officialName": "Qassiarsuk",
+        "danishName": null,
+        "oldOfficialName": "Qagssiarssuk",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0305",
+        "longitude": -45.51493100299996,
+        "latitude": 61.143427657000075
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13451,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -47.15619804299996,
+          60.78096843000003
+        ]
+      },
+      "properties": {
+        "globalId": "1B7D009E-D47D-42EA-AB87-B6DE15978791",
+        "recordId": 13451,
+        "officialName": "Qassimiut",
+        "danishName": null,
+        "oldOfficialName": "Qagssimiut",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0204",
+        "longitude": -47.15619804299996,
+        "latitude": 60.78096843000003
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 11204,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.30334687299995,
+          69.99770597700007
+        ]
+      },
+      "properties": {
+        "globalId": "51A29A29-BF18-4713-99C5-6DE4CFDD682D",
+        "recordId": 11204,
+        "officialName": "Qeqertaq",
+        "danishName": null,
+        "oldOfficialName": "Qeqertaq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1202",
+        "longitude": -51.30334687299995,
+        "latitude": 69.99770597700007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 19481,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.53949906699995,
+          69.24372054600008
+        ]
+      },
+      "properties": {
+        "globalId": "88545377-18DA-41AB-970D-8784345DABA8",
+        "recordId": 19481,
+        "officialName": "Qeqertarsuaq",
+        "danishName": "Godhavn",
+        "oldOfficialName": "Qeqertarssuaq",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 959,
+        "municipalityName": "Kommune Qeqertalik",
+        "localityCode": "1400",
+        "longitude": -53.53949906699995,
+        "latitude": 69.24372054600008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13470,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -50.67294054599995,
+          63.08925254500008
+        ]
+      },
+      "properties": {
+        "globalId": "2BD7746A-4972-4D67-AC1D-7AFB6BCEBE6F",
+        "recordId": 13470,
+        "officialName": "Qeqertarsuatsiaat",
+        "danishName": "Fiskenæsset",
+        "oldOfficialName": "Qeqertarssuatsiait",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 956,
+        "municipalityName": "Kommuneqarfik Sermersooq",
+        "localityCode": "0601",
+        "longitude": -50.67294054599995,
+        "latitude": 63.08925254500008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31358,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.68503854699998,
+          77.49416018800008
+        ]
+      },
+      "properties": {
+        "globalId": "3C36E151-5410-4B49-ADDB-C83B2610DDE8",
+        "recordId": 31358,
+        "officialName": "Qeqertat",
+        "danishName": "Kraulshavn",
+        "oldOfficialName": "Qeqertat",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1707",
+        "longitude": -66.68503854699998,
+        "latitude": 77.49416018800008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13445,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -46.02423712399997,
+          60.537979617000076
+        ]
+      },
+      "properties": {
+        "globalId": "C192D9D1-2C2B-4F50-B986-1FEFC87D7367",
+        "recordId": 13445,
+        "officialName": "Saarloq",
+        "danishName": null,
+        "oldOfficialName": "Sârdloq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0201",
+        "longitude": -46.02423712399997,
+        "latitude": 60.537979617000076
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31341,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.63200974399996,
+          70.80976199900005
+        ]
+      },
+      "properties": {
+        "globalId": "63E1B202-897D-422D-9BAB-67A5905A3D35",
+        "recordId": 31341,
+        "officialName": "Saattut",
+        "danishName": null,
+        "oldOfficialName": null,
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1504",
+        "longitude": -51.63200974399996,
+        "latitude": 70.80976199900005
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13482,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.942272628999945,
+          70.01047842100007
+        ]
+      },
+      "properties": {
+        "globalId": "C522D3D6-777C-4F20-B1B3-087FE6819AA7",
+        "recordId": 13482,
+        "officialName": "Saqqaq",
+        "danishName": null,
+        "oldOfficialName": "Sarqaq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1203",
+        "longitude": -51.942272628999945,
+        "latitude": 70.01047842100007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21180,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -52.86666642499995,
+          66.89687291100006
+        ]
+      },
+      "properties": {
+        "globalId": "9133AF90-D2D6-4691-8C46-A36DD186F854",
+        "recordId": 21180,
+        "officialName": "Sarfannguit",
+        "danishName": null,
+        "oldOfficialName": "Sarfánguit",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 957,
+        "municipalityName": "Qeqqata kommunia",
+        "localityCode": "0803",
+        "longitude": -52.86666642499995,
+        "latitude": 66.89687291100006
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31357,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -65.10832593699996,
+          76.01988229200003
+        ]
+      },
+      "properties": {
+        "globalId": "6A62C301-9490-461B-B75A-40C3FED1402B",
+        "recordId": 31357,
+        "officialName": "Savissivik",
+        "danishName": "Kraulshavn",
+        "oldOfficialName": "Savigsivik",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1701",
+        "longitude": -65.10832593699996,
+        "latitude": 76.01988229200003
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26543,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -36.37788662599996,
+          65.90736614600007
+        ]
+      },
+      "properties": {
+        "globalId": "2D1ABD88-E18E-4001-99E2-E9933ED5646C",
+        "recordId": 26543,
+        "officialName": "Sermiligaaq",
+        "danishName": "Kulusuk",
+        "oldOfficialName": "Sermiligâq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 956,
+        "municipalityName": "Kommuneqarfik Sermersooq",
+        "localityCode": "1802",
+        "longitude": -36.37788662599996,
+        "latitude": 65.90736614600007
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31360,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -70.63559295999994,
+          77.78538187100008
+        ]
+      },
+      "properties": {
+        "globalId": "A2511311-52DC-40F5-AE5C-54A2733EB0F6",
+        "recordId": 31360,
+        "officialName": "Siorapaluk",
+        "danishName": "Kraulshavn",
+        "oldOfficialName": "Siorapaluk",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1704",
+        "longitude": -70.63559295999994,
+        "latitude": 77.78538187100008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 21182,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.64957287699997,
+          66.94287162400008
+        ]
+      },
+      "properties": {
+        "globalId": "60CE7AA7-9FC8-4FB3-8D99-7DD77F94CF1E",
+        "recordId": 21182,
+        "officialName": "Sisimiut",
+        "danishName": "Holsteinsborg",
+        "oldOfficialName": "Sisimiut",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 957,
+        "municipalityName": "Qeqqata kommunia",
+        "localityCode": "0800",
+        "longitude": -53.64957287699997,
+        "latitude": 66.94287162400008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26547,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -37.63721860499993,
+          65.61400428800005
+        ]
+      },
+      "properties": {
+        "globalId": "7736CBC0-0F0C-4959-8EB0-2DF12FF5A5A9",
+        "recordId": 26547,
+        "officialName": "Tasiilaq",
+        "danishName": "Ammassalik",
+        "oldOfficialName": "Tasîlaq",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 956,
+        "municipalityName": "Kommuneqarfik Sermersooq",
+        "localityCode": "1800",
+        "longitude": -37.63721860499993,
+        "latitude": 65.61400428800005
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31351,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -56.063346051999986,
+          73.36881104200006
+        ]
+      },
+      "properties": {
+        "globalId": "37B5C8D7-DCBE-4BC0-BC1C-5CC360649899",
+        "recordId": 31351,
+        "officialName": "Tasiusaq",
+        "danishName": null,
+        "oldOfficialName": "Tasiussaq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1605",
+        "longitude": -56.063346051999986,
+        "latitude": 73.36881104200006
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 13437,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -44.81674503599993,
+          60.19398922400006
+        ]
+      },
+      "properties": {
+        "globalId": "488157D6-877F-4BDF-80DE-2EA0BFC9328B",
+        "recordId": 13437,
+        "officialName": "Tasiusaq",
+        "danishName": null,
+        "oldOfficialName": "Tasiussaq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 955,
+        "municipalityName": "Kommune Kujalleq",
+        "localityCode": "0104",
+        "longitude": -44.81674503599993,
+        "latitude": 60.19398922400006
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 26538,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -37.779740369999956,
+          65.89022088700005
+        ]
+      },
+      "properties": {
+        "globalId": "A7B1B79E-F54E-4117-9F8C-4648577C8DBF",
+        "recordId": 26538,
+        "officialName": "Tiilerilaaq",
+        "danishName": "Kraulshavn",
+        "oldOfficialName": "Tiniteqilâq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 956,
+        "municipalityName": "Kommuneqarfik Sermersooq",
+        "localityCode": "1805",
+        "longitude": -37.779740369999956,
+        "latitude": 65.89022088700005
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31342,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.88486752399996,
+          71.05101708400008
+        ]
+      },
+      "properties": {
+        "globalId": "41F81232-E854-4218-9771-29A80535C589",
+        "recordId": 31342,
+        "officialName": "Ukkusissat",
+        "danishName": null,
+        "oldOfficialName": "Uvkusigssat",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1505",
+        "longitude": -51.88486752399996,
+        "latitude": 71.05101708400008
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31362,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -56.14200525899997,
+          72.78533258100003
+        ]
+      },
+      "properties": {
+        "globalId": "7AEB27F1-4AB1-4F71-AF58-6FC50F17A4CA",
+        "recordId": 31362,
+        "officialName": "Upernavik",
+        "danishName": null,
+        "oldOfficialName": "Upernavik",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1600",
+        "longitude": -56.14200525899997,
+        "latitude": 72.78533258100003
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 31346,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -55.52809897099996,
+          72.15416177000003
+        ]
+      },
+      "properties": {
+        "globalId": "9E49A3F4-351A-4027-AF41-BCB5714C035F",
+        "recordId": 31346,
+        "officialName": "Upernavik Kujalleq",
+        "danishName": "Søndre Upernavik",
+        "oldOfficialName": "Upernavik kujatdleq",
+        "featureKind": "settlement",
+        "typeCode": 23,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1601",
+        "longitude": -55.52809897099996,
+        "latitude": 72.15416177000003
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 32991,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -52.13146336999995,
+          70.68063273700005
+        ]
+      },
+      "properties": {
+        "globalId": "781CEB5A-0293-46BA-9214-BCBDB807B978",
+        "recordId": 32991,
+        "officialName": "Uummannaq",
+        "danishName": null,
+        "oldOfficialName": "Ùmánaq",
+        "featureKind": "town",
+        "typeCode": 21,
+        "municipalityCode": 960,
+        "municipalityName": "Avannaata kommunia",
+        "localityCode": "1500",
+        "longitude": -52.13146336999995,
+        "latitude": 70.68063273700005
+      }
+    }
+  ]
+}

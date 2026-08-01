@@ -1,0 +1,36 @@
+{
+  "name": "nunat-aqqinik-nalunaarsuiffik-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.13.1",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 3457",
+    "typecheck": "tsc --noEmit --pretty false",
+    "test": "vitest run",
+    "fetch:placenames": "tsx scripts/fetch-placenames.ts",
+    "fetch:localities": "tsx scripts/fetch-placenames.ts localities"
+  },
+  "dependencies": {
+    "effect": "4.0.0-beta.102",
+    "maplibre-gl": "^5.6.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@effect/platform-node": "4.0.0-beta.102",
+    "@types/geojson": "^7946.0.16",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vite": "^7.1.0",
+    "vitest": "^3.2.0"
+  }
+}

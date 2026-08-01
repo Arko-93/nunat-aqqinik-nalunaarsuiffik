@@ -1,0 +1,551 @@
+# Decision Geography status and implementation plan
+
+## Status
+
+This document is the product and implementation source of truth.
+
+- Current stage: Phase 2 in progress; Phase 4 tracer bullet proven; Phase 5 projection foundation complete
+- Current data: 15 place identities, 15 classification assertions, 28 names, 15 geometries, 15 memberships, 2 connections, and 2 service assertions
+- Publication status: not authoritative; `publish-check` reports expected pending-provenance blockers while `src_legacy_seed` remains
+- First operational extension: structural reachability
+- Immediate work: grow identity provenance (Asiaq + confirmed `plc_` joins); map Phase B serves the full official gazetteer
+- Product map: Omarchy `:3457` serves the official-names map (`web/`), not the old static review HTML
+- Map data: NunaGIS PlacenamesRegisterSearch midpoint layer (`MapServer/1`), 30,542 midpoints with locality filter (Type 21/23 → 74)
+- Authority requests: Oqaasileriffik replied 2026-07-30 pointing to NunaGIS; Asiaq reply still pending
+- Reconciliation (data ops): 0 matched, 0 conflicting, 0 missing, 15 unresolved overall; Oqaasileriffik `candidate_exact_name` ×15; Asiaq `waiting_for_export` ×15
+- Note: “Nunat Aqqinik Nalunaarsuiffik” is the NunaGIS public placenames register name; naming decisions remain Nunat Aqqinik Aalajangiisartut at Oqaasileriffik
+- Last implementation audit: 2026-08-01
+
+When this document conflicts with generated files, generated files are wrong. When it conflicts with an authoritative primary source about a real-world fact, the primary source wins and the discrepancy must be recorded.
+
+## Actual goal
+
+Build Greenland's small, continuously maintained geographic identity layer, then compose operational datasets around it.
+
+The system must let independent public-sector datasets reliably refer to the same places and answer operational questions across fragmented data, limited capacity, and difficult geography.
+
+The first proof is reachability:
+
+> Given a place and an effective date, which other places are structurally reachable, by which modes, under what seasonal constraints, and according to which evidence?
+
+This is not mainly a map, directory, route planner, or public website. Those can be products built from the data. The core product is trusted identity, provenance, history, and joins.
+
+## First principles
+
+### 1. Optimise for decisions, not data volume
+
+Only add data that supports a real join, constraint, or operational question. A smaller maintained dataset is better than a broad stale catalogue.
+
+### 2. Keep a thin stable core
+
+Place identities are the shared interface. Transport, population, services, emergency coverage, logistics, and tourism reference those identities without redefining places.
+
+### 3. Identity is not a label
+
+Permanent IDs must not contain or depend on names, spellings, municipalities, coordinates, operators, or other mutable facts.
+
+### 4. Store claims with evidence
+
+A real-world value is an assertion made by a source at a point in time. Names, coordinates, memberships, operators, seasonality, and service status need source references and effective dates.
+
+### 5. Preserve history
+
+Do not overwrite a past truth when the world changes. Close its validity period and add the new assertion.
+
+### 6. Make uncertainty explicit
+
+Unknown, pending verification, conflicting, and not applicable are different states. Do not turn missing evidence into a guessed value.
+
+### 7. Separate durable structure from changing service
+
+A transport connection is a structural edge. Operator, frequency, capability, seasonality, and status are time-bounded service assertions attached to that edge.
+
+### 8. Source once, publish many formats
+
+Canonical NDJSON source records generate consumer-friendly JSON, GeoJSON, CSV, and SQLite. Generated files are never edited by hand.
+
+## Scope
+
+### In scope now
+
+- Permanent place identities
+- Official Kalaallisut names and sourced alternate names
+- Point geometry
+- Administrative relationships
+- External authority identifiers
+- Provenance and retrieval metadata
+- Structural transport connections
+- Time-bounded transport service assertions
+- Deterministic distributions and validation
+
+### Explicitly out of scope
+
+- Live departures, delays, fares, inventory, or booking
+- Turn-by-turn routing
+- Unsourced route inference from maps or memory
+- Public-service, population, or emergency datasets before reachability is proven
+- A confirm/reject maintainer console as the primary product UI (map of official names is the product surface; reconciliation remains data ops)
+
+### Product UI (Phase B)
+
+- Full official gazetteer on a Greenland map (`web/`), deployed at Omarchy `:3457`
+- Locations from NunaGIS midpoint points, not guessed coordinates
+- Scope toggle: all names | localities (Type 21/23); progressive zoom bands (no clusters); ranked search (localities first)
+
+## Source-of-truth hierarchy
+
+1. `AGENTS.md` — repository working rules
+2. `docs/STATUS.md` — product goal, architecture, phases, acceptance gates, and current status
+3. `data/schema/` — machine-readable record contracts
+4. `data/source/` — canonical normalized records
+5. `data/scripts/validate.py` — cross-record and semantic invariants
+6. `data/dist/` — generated consumer artefacts
+7. `README.md` — orientation, not a competing specification
+
+Raw upstream material belongs under `data/raw/<source_id>/<retrieved_at>/` when licensing permits. If raw material cannot be committed, store a manifest containing its URL, retrieval timestamp, media type, checksum when available, licence, and access notes.
+
+## Authority policy
+
+### Place identity and names
+
+- Official Greenlandic naming decisions: Nunat Aqqinik Aalajangiisartut at Oqaasileriffik.
+- Geometry and distributed base-map records: Asiaq, subject to its product terms and field-level provenance.
+- Preserve the authority's upstream record identifier when one exists.
+- Kalaallisut official orthography is canonical.
+- Danish and other names are alternate name assertions, not replacements.
+
+### Transport
+
+- Prefer a primary operator publication or the public authority responsible for the service.
+- Prefer a dated service contract, network description, route publication, or timetable over marketing copy.
+- Use timetables only as evidence that a structural connection exists; do not import individual departures.
+- Record the effective period represented by the source.
+- If sources disagree, keep the conflicting assertions, record both sources, and leave the conflict visible until resolved.
+
+### Prohibited evidence
+
+- Agent memory
+- Search-result snippets without opening the primary source
+- An unsourced third-party map
+- Inference from proximity
+- Existing seed data marked `pending`
+
+## Target canonical data model
+
+Canonical sources should separate durable entities from mutable assertions.
+
+```text
+data/source/
+├── places.ndjson
+├── place-classifications.ndjson
+├── place-names.ndjson
+├── place-geometries.ndjson
+├── administrative-areas.ndjson
+├── administrative-memberships.ndjson
+├── external-identifiers.ndjson
+├── connections.ndjson
+├── connection-services.ndjson
+└── sources.ndjson
+```
+
+### Place
+
+A durable identity with minimal sourced lifecycle claims.
+
+```json
+{
+  "id": "plc_<uuid>",
+  "status": "active",
+  "created_at": "YYYY-MM-DD",
+  "retired_at": null,
+  "source_refs": [
+    {
+      "source_id": "src_<uuid>",
+      "record_id": "upstream-record-id"
+    }
+  ]
+}
+```
+
+Changing a name, point, municipality, or upstream identifier must not change the place ID.
+
+### Place classification assertion
+
+```json
+{
+  "id": "cls_<uuid>",
+  "place_id": "plc_<uuid>",
+  "feature_type": "town",
+  "valid_from": null,
+  "valid_to": null,
+  "source_refs": [
+    {
+      "source_id": "src_<uuid>",
+      "record_id": "upstream-record-id"
+    }
+  ],
+  "observed_at": "YYYY-MM-DD"
+}
+```
+
+Classification is mutable evidence, not identity. Close the previous assertion
+and add a new one when a place changes between classifications.
+
+### Place name assertion
+
+```json
+{
+  "id": "nam_<uuid>",
+  "place_id": "plc_<uuid>",
+  "value": "Nuuk",
+  "language": "kl",
+  "kind": "official",
+  "valid_from": null,
+  "valid_to": null,
+  "source_refs": [
+    {
+      "source_id": "src_<uuid>",
+      "record_id": "upstream-record-id"
+    }
+  ],
+  "observed_at": "YYYY-MM-DD"
+}
+```
+
+Exactly one current official Kalaallisut name is allowed per place.
+
+### Place geometry assertion
+
+```json
+{
+  "id": "geo_<uuid>",
+  "place_id": "plc_<uuid>",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-51.733, 64.175]
+  },
+  "valid_from": null,
+  "valid_to": null,
+  "source_refs": [
+    {
+      "source_id": "src_<uuid>",
+      "record_id": "upstream-record-id"
+    }
+  ],
+  "observed_at": "YYYY-MM-DD"
+}
+```
+
+GeoJSON coordinate order is longitude, latitude.
+
+### Administrative membership assertion
+
+```json
+{
+  "id": "mem_<uuid>",
+  "place_id": "plc_<uuid>",
+  "administrative_area_id": "adm_<uuid>",
+  "valid_from": "YYYY-MM-DD",
+  "valid_to": null,
+  "source_refs": [
+    {
+      "source_id": "src_<uuid>",
+      "record_id": "upstream-record-id"
+    }
+  ],
+  "observed_at": "YYYY-MM-DD"
+}
+```
+
+Municipal names must not be used as foreign keys.
+
+### External identifier
+
+```json
+{
+  "id": "xid_<uuid>",
+  "entity_type": "place",
+  "entity_id": "plc_<uuid>",
+  "namespace": "authority-defined-namespace",
+  "value": "authority-record-id",
+  "valid_from": null,
+  "valid_to": null,
+  "source_refs": [
+    {
+      "source_id": "src_<uuid>",
+      "record_id": "authority-record-id"
+    }
+  ]
+}
+```
+
+The pair `namespace + value` must be unique among current identifiers.
+
+### Structural connection
+
+One record represents a durable edge for an origin, destination, direction, and mode.
+
+```json
+{
+  "id": "con_<uuid>",
+  "origin_place_id": "plc_<uuid>",
+  "destination_place_id": "plc_<uuid>",
+  "direction": "bidirectional",
+  "mode": "air",
+  "created_at": "YYYY-MM-DD",
+  "retired_at": null
+}
+```
+
+Operator and frequency do not define connection identity.
+
+### Connection service assertion
+
+```json
+{
+  "id": "svc_<uuid>",
+  "connection_id": "con_<uuid>",
+  "operator": "Example operator",
+  "capabilities": ["passenger", "freight"],
+  "seasonality": {
+    "kind": "year_round",
+    "months": []
+  },
+  "frequency_band": "multiple_weekly",
+  "frequency_basis": "typical",
+  "status": "active",
+  "valid_from": "YYYY-MM-DD",
+  "valid_to": null,
+  "source_refs": [
+    {
+      "source_id": "src_<uuid>",
+      "record_id": "route-or-document-reference"
+    }
+  ],
+  "observed_at": "YYYY-MM-DD"
+}
+```
+
+Frequency is deliberately a coarse evidence-backed band. It is not a promise of a departure.
+
+### Source
+
+```json
+{
+  "id": "src_<uuid>",
+  "title": "Source title",
+  "publisher": "Publishing authority",
+  "url": "https://example.gl/source",
+  "retrieved_at": "YYYY-MM-DD",
+  "effective_from": null,
+  "effective_to": null,
+  "media_type": "text/html",
+  "checksum": null,
+  "licence": null,
+  "verification_status": "verified",
+  "notes": null
+}
+```
+
+`verified` means a human or agent opened the primary source and confirmed that it supports the assertion. It does not mean the source is infallible.
+
+## Distribution model
+
+Canonical sources remain normalized. Distributions are optimized for consumers:
+
+- `places.ndjson`, `.json`, `.csv`, and `.geojson` — one current denormalized place view
+- `reachability.ndjson`, `.json`, and `.csv` — one row per current structural connection with a `services` array containing every current service assertion
+- `decision-geography.db` — normalized history plus current views
+- `manifest.json` — dataset version, data-as-of date, record counts, schema versions, and checksums
+
+SQLite should expose:
+
+- Historical source tables
+- A `current_places` view
+- A `current_connections` view
+- Foreign keys and useful indexes
+
+## Validation contract
+
+Validation is part of the product, not build housekeeping.
+
+### Structural validation
+
+- Every NDJSON line parses independently.
+- Every record conforms to its JSON Schema.
+- Unknown properties fail validation.
+- IDs match their entity prefix and UUID format.
+- IDs and current readable slugs are unique.
+- Dates use ISO 8601 and validity ranges are ordered.
+- Coordinates are valid WGS84 values.
+
+### Referential validation
+
+- Every foreign key resolves.
+- Every source reference resolves.
+- No connection links a place to itself.
+- No active assertion references a retired entity outside its valid period.
+- Current external identifiers are unique within their namespace.
+
+### Semantic validation
+
+- Each place has exactly one current official Kalaallisut name.
+- Each active place has exactly one current classification.
+- Current names and geometries have at least one verified source.
+- A seasonal service lists valid months.
+- A year-round service has an empty month list.
+- A retired record has a retirement date.
+- `valid_to: null` defines a current assertion; a non-null `valid_to` preserves a historical assertion.
+- Duplicate structural edges are rejected after canonicalizing bidirectional endpoints.
+- A frequency band states whether it is a published maximum, typical level, guaranteed minimum, or unknown.
+
+### Provenance validation
+
+- `pending` sources are allowed during development.
+- `pending`, missing, or untraceable sources fail publication checks.
+- A URL alone is insufficient when the upstream source exposes a record identifier.
+- Every imported source snapshot has retrieval metadata.
+- Conflicting claims remain represented and are reported.
+
+### Reproducibility validation
+
+- `make clean all` succeeds from source only.
+- A second clean build produces identical data content.
+- Generated record counts match the manifest.
+- SQLite foreign-key checks return no rows.
+- Generated distributions are never newer in meaning than canonical sources.
+
+## Commands and gates
+
+The implementation should provide three explicit gates:
+
+```sh
+make -C data validate
+make -C data test
+make -C data publish-check
+```
+
+- `validate` — schemas, IDs, references, and semantic invariants
+- `test` — validation, regression fixtures, two reproducible builds, manifest checksums, distribution counts, and SQLite integrity
+- `publish-check` — the test gate plus verified provenance and no pending assertions
+
+All three gates are implemented. `publish-check` intentionally fails while the legacy seed remains pending.
+
+## Implementation phases
+
+### Phase 0 — Provisional foundation
+
+Status: complete.
+
+- Permanent place IDs minted for the 15 seed records
+- Initial place and connection schemas
+- Separate reachability source
+- Multi-format build
+- Pending legacy provenance made explicit
+
+Exit condition met.
+
+### Phase 1 — Harden the canonical contract
+
+Status: complete and audited.
+
+- Add JSON Schemas for every canonical record type, including sources
+- Execute JSON Schema validation rather than only hand-written field checks
+- Split mutable assertions from durable place and connection identities
+- Add administrative area and external identifier entities
+- Migrate the 15 seeds without changing their `plc_` IDs
+- Add temporal, semantic, and bidirectional-edge invariants
+- Add fixture-based tests containing both valid and intentionally invalid records
+- Add `test` and `publish-check` targets
+- Verify deterministic distributions, manifest checksums, and SQLite integrity
+- Preserve historical assertions instead of rejecting non-null `valid_to`
+- Distinguish published maximum frequency from typical or guaranteed frequency
+- Correct the Phase 4 source URL and effective date against the primary operator notice
+
+Exit condition met. `make -C data validate` and `make -C data test` pass.
+
+### Phase 2 — Establish authoritative place provenance
+
+Status: in progress; Oqaasileriffik public extract acquired via NunaGIS; Asiaq still pending.
+
+- Acquire or register the Oqaasileriffik official-name register or decision records
+- Acquire or register Asiaq geometry and upstream geodata identifiers separately
+- Oqaasileriffik bulk-export request sent 2026-07-26; reply 2026-07-30 directed to NunaGIS PlacenamesRegisterPublic (`MapServer/0`)
+- Dated attributes-only seed-name snapshot stored under `data/raw/nunagis_placenames/2026-08-01/` with manifest checksum
+- Normalized Type 21/23 locality rows written to `data/reconciliation/authority/oqaasileriffik-nunagis.ndjson` (`make -C data fetch-nunagis normalize-nunagis`)
+- Source registered as `src_nunagis_placenames_register` (verified retrieval; licence null on service metadata; not geometry authority)
+- Asiaq data-access request sent 2026-07-26 for download/service endpoint, field dictionary, licence, update cadence, and stable feature identifiers — reply still pending
+- Non-destructive 15-place reconciliation queue and normalized authority-input contract implemented under `data/reconciliation/`
+- Exact-name matching produces candidates only; explicit authority-to-`plc_` confirmation is required before a match is accepted
+- Current queue: Oqaasileriffik `candidate_exact_name` for all 15 seeds after Type 21/23 filtering; Asiaq still `waiting_for_export`
+- Review note: Kangerlussuaq Type 23 candidate carries Danish label `Danmarkshavn` in the register — keep visible until reviewed
+- Record licence, retrieval metadata, upstream IDs, and raw snapshot or manifest
+- Reconcile each of the 15 seeds against authority records
+- Replace `src_legacy_seed` references one assertion at a time
+- Record discrepancies instead of silently correcting them
+- Decide whether administrative-area names require their own sourced assertion model before publication
+- Replace legacy provenance on place classification/status and administrative-area records, not only names and geometry
+- Do not mark the legacy source verified as a shortcut
+
+Exit condition: all 15 seed places pass `publish-check`.
+
+### Phase 3 — Complete the operational locality spine
+
+Status: blocked by Phase 2.
+
+- Define the inclusion rule for inhabited and serviced places
+- Import all qualifying localities from the authoritative source
+- Match existing identities before minting new IDs
+- Create a machine-readable reconciliation report
+- Review duplicates, homonyms, historical names, and missing coordinates
+
+Exit condition: the locality spine has full authoritative coverage and zero unresolved identity collisions.
+
+### Phase 4 — Build one reachability tracer bullet
+
+Status: complete (tracer bullet proven).
+
+- Registered Air Greenland's dated service-contract notice as the primary source
+- Registered source, added two sourced structural edges and service assertions
+- Corrected service validity to the contract start on 2026-04-16
+- Recorded `multiple_daily` as a published maximum, not a guaranteed or typical frequency
+- Generated denormalized reachability distributions
+- Proven: `SELECT` query from Qaqortoq on 2026-07-26 returns Nanortalik and Narsaq
+- Exit condition met
+
+### Phase 5 — Expand and operationalise reachability
+
+Status: not started.
+
+- Import the structural network for the locality spine
+- Add conflict and change reports
+- Detect isolated places and seasonal loss of connectivity
+- Add dataset versioning, checksums, and changelog generation
+- Document the update runbook for a maintainer with limited weekly capacity
+- Concurrent operators and service patterns are already preserved as multiple assertions in each structural connection's `services` array
+
+Exit condition: a maintainer can detect upstream changes, review them, rebuild, and publish without manual file surgery.
+
+## Definition of done
+
+The first product milestone is done when:
+
+- Every locality has a permanent identity and authoritative current name.
+- Every published assertion is traceable to an opened primary source.
+- Historical changes can be represented without rewriting identity.
+- At least one sourced connection answers the reachability query.
+- Invalid, ambiguous, or unsourced records fail before publication.
+- All consumer formats are reproducibly generated from canonical source data.
+- A new agent can follow this document without inventing facts or changing scope.
+
+## Work discipline
+
+For every change:
+
+1. Read `AGENTS.md`, this plan, relevant schemas, and the complete files being changed.
+2. State which phase and exit condition the change advances.
+3. Inspect the primary source before adding real-world assertions.
+4. Update source, schemas, validation, tests, and distributions together when the contract changes.
+5. Run the strongest available gate and report exact results.
+
+Do not broaden the domain until the current phase exit condition passes.

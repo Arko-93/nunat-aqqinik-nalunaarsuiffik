@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Places — Nunat Aqqinik Nalunaarsuiffik</title>
+    <link rel="stylesheet" href="/assets/preview.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <p class="brand">Nunat Aqqinik Nalunaarsuiffik</p>
+        <h1>Places</h1>
+        <p class="lede">
+          Current seed identities from the built distribution. Name and geometry
+          provenance still reference <code>src_legacy_seed</code>.
+        </p>
+        <nav>
+          <a href="/">Home</a>
+          <a href="/reconciliation.html">Reconciliation</a>
+          <a href="/dist/nunat-aqqinik-nalunaarsuiffik.json">JSON</a>
+          <a href="/dist/nunat-aqqinik-nalunaarsuiffik.geojson">GeoJSON</a>
+        </nav>
+      </header>
+
+      <p id="status" class="status">Loading places…</p>
+
+      <div class="panel" style="overflow-x: auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Official name</th>
+              <th>Type</th>
+              <th>Municipality</th>
+              <th>Coordinates</th>
+              <th>Slug</th>
+              <th>ID</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script type="module">
+      import {
+        loadJson,
+        setStatus,
+        municipalityName,
+        formatCoords,
+      } from "/assets/preview.js";
+
+      const statusEl = document.getElementById("status");
+      const rowsEl = document.getElementById("rows");
+
+      try {
+        const places = await loadJson("/dist/nunat-aqqinik-nalunaarsuiffik.json");
+        places.sort((a, b) =>
+          (a.canonical_name?.value || "").localeCompare(
+            b.canonical_name?.value || "",
+            "kl"
+          )
+        );
+        rowsEl.innerHTML = places
+          .map((place) => {
+            const name = place.canonical_name?.value || "—";
+            const alt = (place.alternate_names || [])
+              .map((row) => row.value)
+              .join(", ");
+            return `
+            <tr>
+              <td data-label="Official name">
+                <strong>${name}</strong>
+                ${alt ? `<div class="mono" style="color:var(--muted)">${alt}</div>` : ""}
+              </td>
+              <td data-label="Type">${place.feature_type || "—"}</td>
+              <td data-label="Municipality">${municipalityName(place)}</td>
+              <td data-label="Coordinates" class="mono">${formatCoords(place)}</td>
+              <td data-label="Slug" class="mono">${place.slug || "—"}</td>
+              <td data-label="ID" class="mono">${place.id}</td>
+            </tr>`;
+          })
+          .join("");
+        setStatus(statusEl, `${places.length} places`);
+      } catch (error) {
+        setStatus(statusEl, String(error.message || error), true);
+      }
+    </script>
+  </body>
+</html>

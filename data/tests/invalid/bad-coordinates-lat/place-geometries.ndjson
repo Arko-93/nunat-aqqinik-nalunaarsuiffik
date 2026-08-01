@@ -1,0 +1,1 @@
+{"id": "geo_00000000-0000-4000-8000-00000000000d", "place_id": "plc_00000000-0000-4000-8000-000000000001", "geometry": {"type": "Point", "coordinates": [-51.733, 91.0]}, "valid_from": null, "valid_to": null, "source_refs": [{"source_id": "src_00000000-0000-4000-8000-000000000006", "record_id": null}], "observed_at": "2024-01-01"}

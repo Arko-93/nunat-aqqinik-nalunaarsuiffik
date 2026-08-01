@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:decision-geography:schema:place-name",
+  "title": "Decision Geography place name assertion",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "place_id",
+    "value",
+    "language",
+    "kind",
+    "source_refs",
+    "observed_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^nam_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "place_id": {
+      "type": "string",
+      "pattern": "^plc_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "value": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language": {
+      "type": "string",
+      "minLength": 2
+    },
+    "kind": {
+      "enum": [
+        "official",
+        "exonym",
+        "historical",
+        "alias"
+      ]
+    },
+    "valid_from": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "valid_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_id",
+          "record_id"
+        ],
+        "properties": {
+          "source_id": {
+            "type": "string"
+          },
+          "record_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date"
+    }
+  }
+}

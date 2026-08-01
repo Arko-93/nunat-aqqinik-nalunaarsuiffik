@@ -1,0 +1,2 @@
+{"id": "con_00000000-0000-4000-8000-000000000005", "origin_place_id": "plc_00000000-0000-4000-8000-000000000001", "destination_place_id": "plc_00000000-0000-4000-8000-000000000002", "direction": "bidirectional", "mode": "air", "created_at": "2024-01-01", "retired_at": null}
+{"id": "con_00000000-0000-4000-8000-00000000002f", "origin_place_id": "plc_00000000-0000-4000-8000-000000000002", "destination_place_id": "plc_00000000-0000-4000-8000-000000000001", "direction": "bidirectional", "mode": "air", "created_at": "2024-01-01", "retired_at": null}

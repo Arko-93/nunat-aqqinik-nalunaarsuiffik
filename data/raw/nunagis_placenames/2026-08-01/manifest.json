@@ -1,0 +1,30 @@
+{
+  "source_id": "src_nunagis_placenames_register",
+  "title": "NunaGIS PlacenamesRegisterPublic seed-name query",
+  "publisher": "NunaGIS / Oqaasileriffik",
+  "url": "https://kort.nunagis.gl/refserver/rest/services/PlacenamesRegister/PlacenamesRegisterPublic/MapServer/0",
+  "query_url": "https://kort.nunagis.gl/refserver/rest/services/PlacenamesRegister/PlacenamesRegisterPublic/MapServer/0/query?f=json&where=PlacenameOfficial+%3D+%27Nuuk%27+OR+PlacenameOfficial+%3D+%27Sisimiut%27+OR+PlacenameOfficial+%3D+%27Ilulissat%27+OR+PlacenameOfficial+%3D+%27Qaqortoq%27+OR+PlacenameOfficial+%3D+%27Kangerlussuaq%27+OR+PlacenameOfficial+%3D+%27Tasiilaq%27+OR+PlacenameOfficial+%3D+%27Ittoqqortoormiit%27+OR+PlacenameOfficial+%3D+%27Qaanaaq%27+OR+PlacenameOfficial+%3D+%27Uummannaq%27+OR+PlacenameOfficial+%3D+%27Narsaq%27+OR+PlacenameOfficial+%3D+%27Aasiaat%27+OR+PlacenameOfficial+%3D+%27Paamiut%27+OR+PlacenameOfficial+%3D+%27Nanortalik%27+OR+PlacenameOfficial+%3D+%27Maniitsoq%27+OR+PlacenameOfficial+%3D+%27Kulusuk%27&outFields=OBJECTID%2CGlobalID%2CPlacenameOfficial%2CPlacenameOfficialOld%2CPlacenameVariant%2CPlacenameDanish%2CPlacenameInternational%2CPlacenameAlternative%2CCategory%2CSubCategory%2CType%2CLokalityCode%2CMunicipalityCode%2CID%2CCreator%2CCreationDate%2CEditor%2CEditDate&returnGeometry=false",
+  "retrieved_at": "2026-08-01",
+  "media_type": "application/json",
+  "checksum": "sha256:2fea1b6003eb01d5e9ffccebe88db24d7bc9aff8ed9597e1f4ae5467d99d47cf",
+  "licence": null,
+  "record_count": 160,
+  "seed_official_names": [
+    "Nuuk",
+    "Sisimiut",
+    "Ilulissat",
+    "Qaqortoq",
+    "Kangerlussuaq",
+    "Tasiilaq",
+    "Ittoqqortoormiit",
+    "Qaanaaq",
+    "Uummannaq",
+    "Narsaq",
+    "Aasiaat",
+    "Paamiut",
+    "Nanortalik",
+    "Maniitsoq",
+    "Kulusuk"
+  ],
+  "notes": "Public ArcGIS REST extract of Stednavneregister offentlig. Oqaasileriffik (Tino Didriksen) pointed Ole to this endpoint on 2026-07-30 as the official NunaGIS placenames source. Attributes only; geometry omitted. Licence not stated on service metadata."
+}

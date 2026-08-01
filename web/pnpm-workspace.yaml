@@ -1,0 +1,7 @@
+allowBuilds:
+  esbuild: set this to true or false
+  msgpackr-extract: set this to true or false
+dangerouslyAllowAllBuilds: true
+onlyBuiltDependencies:
+  - esbuild
+  - msgpackr-extract

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:decision-geography:schema:connection",
+  "title": "Decision Geography structural transport connection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "origin_place_id",
+    "destination_place_id",
+    "direction",
+    "mode",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^con_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "origin_place_id": {
+      "type": "string",
+      "pattern": "^plc_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "destination_place_id": {
+      "type": "string",
+      "pattern": "^plc_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "direction": {
+      "enum": [
+        "one_way",
+        "bidirectional"
+      ]
+    },
+    "mode": {
+      "enum": [
+        "air",
+        "helicopter",
+        "sea",
+        "local_boat",
+        "road"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "retired_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    }
+  }
+}

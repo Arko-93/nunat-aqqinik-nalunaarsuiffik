@@ -1,0 +1,75 @@
+# Decision Geography build targets
+# Prerequisites: python3, .venv with jsonschema
+
+SHELL := /bin/bash
+SOURCE_DIR := source
+SCRIPTS_DIR := scripts
+DIST_DIR := dist
+
+# Auto-detect .venv
+VENV_PYTHON := python3
+ifneq ($(wildcard .venv/bin/python3),)
+	VENV_PYTHON := .venv/bin/python3
+else ifneq ($(wildcard ../.venv/bin/python3),)
+	VENV_PYTHON := ../.venv/bin/python3
+else ifneq ($(wildcard ../../.venv/bin/python3),)
+	VENV_PYTHON := ../../.venv/bin/python3
+endif
+PYTHON := $(VENV_PYTHON)
+
+SOURCE_NDJSON := $(SOURCE_DIR)/places.ndjson \
+                 $(SOURCE_DIR)/place-classifications.ndjson \
+                 $(SOURCE_DIR)/place-names.ndjson \
+                 $(SOURCE_DIR)/place-geometries.ndjson \
+                 $(SOURCE_DIR)/administrative-areas.ndjson \
+                 $(SOURCE_DIR)/administrative-memberships.ndjson \
+                 $(SOURCE_DIR)/external-identifiers.ndjson \
+                 $(SOURCE_DIR)/connections.ndjson \
+                 $(SOURCE_DIR)/connection-services.ndjson \
+                 $(SOURCE_DIR)/sources.ndjson
+
+NUNAGIS_AUTHORITY := reconciliation/authority/oqaasileriffik-nunagis.ndjson
+
+.PHONY: all validate test publish-check reconcile fetch-nunagis normalize-nunagis build clean
+
+all: validate build
+
+# --- Validation gates ---
+
+validate:
+	$(PYTHON) $(SCRIPTS_DIR)/validate.py --mode validate --source-dir $(SOURCE_DIR)
+
+test:
+	$(PYTHON) $(SCRIPTS_DIR)/validate.py --mode test --source-dir $(SOURCE_DIR)
+	$(PYTHON) $(SCRIPTS_DIR)/test_reconciliation.py
+	$(PYTHON) $(SCRIPTS_DIR)/test_build.py
+
+publish-check:
+	$(PYTHON) $(SCRIPTS_DIR)/validate.py --mode publish-check --source-dir $(SOURCE_DIR)
+	$(PYTHON) $(SCRIPTS_DIR)/test_reconciliation.py
+	$(PYTHON) $(SCRIPTS_DIR)/test_build.py
+
+fetch-nunagis:
+	$(PYTHON) $(SCRIPTS_DIR)/fetch_nunagis_placenames.py
+
+normalize-nunagis:
+	$(PYTHON) $(SCRIPTS_DIR)/normalize_nunagis_placenames.py
+
+reconcile:
+	@authority_args=""; \
+	if [ -f "$(NUNAGIS_AUTHORITY)" ]; then \
+		authority_args="--authority $(NUNAGIS_AUTHORITY)"; \
+	fi; \
+	$(PYTHON) $(SCRIPTS_DIR)/reconcile_places.py $$authority_args
+
+# --- Build distributions ---
+
+build: $(DIST_DIR)
+	$(PYTHON) $(SCRIPTS_DIR)/build.py
+	$(PYTHON) $(SCRIPTS_DIR)/ndjson2db.py
+
+$(DIST_DIR):
+	mkdir -p $(DIST_DIR)
+
+clean:
+	rm -rf $(DIST_DIR)

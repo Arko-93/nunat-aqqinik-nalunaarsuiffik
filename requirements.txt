@@ -1,0 +1,2 @@
+# Build dependencies
+jsonschema==4.26.0

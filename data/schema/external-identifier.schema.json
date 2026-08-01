@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:decision-geography:schema:external-identifier",
+  "title": "Decision Geography external identifier",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "entity_type",
+    "entity_id",
+    "namespace",
+    "value",
+    "source_refs"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^xid_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "entity_type": {
+      "enum": [
+        "place",
+        "connection",
+        "area"
+      ]
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "namespace": {
+      "type": "string",
+      "minLength": 1
+    },
+    "value": {
+      "type": "string",
+      "minLength": 1
+    },
+    "valid_from": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "valid_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_id",
+          "record_id"
+        ],
+        "properties": {
+          "source_id": {
+            "type": "string"
+          },
+          "record_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

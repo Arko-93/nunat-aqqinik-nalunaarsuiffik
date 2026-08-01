@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reconciliation — Nunat Aqqinik Nalunaarsuiffik</title>
+    <link rel="stylesheet" href="/assets/preview.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <p class="brand">Nunat Aqqinik Nalunaarsuiffik</p>
+        <h1>Reconciliation queue</h1>
+        <p class="lede">
+          Non-destructive Phase 2 review queue. Exact-name hits are candidates
+          only until <code>confirmed_place_id</code> is set.
+        </p>
+        <nav>
+          <a href="/">Home</a>
+          <a href="/places.html">Places</a>
+          <a href="/data/place-seeds.json">Queue JSON</a>
+        </nav>
+      </header>
+
+      <div class="note">
+        <strong>Review note:</strong> Kangerlussuaq Type 23 candidate carries
+        Danish label <code>Danmarkshavn</code> in NunaGIS — keep visible until
+        reviewed. Asiaq remains <code>waiting_for_export</code> for all seeds.
+      </div>
+
+      <p id="status" class="status">Loading reconciliation queue…</p>
+
+      <div class="panel" style="overflow-x: auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Place</th>
+              <th>Overall</th>
+              <th>Oqaasileriffik</th>
+              <th>Record</th>
+              <th>Asiaq</th>
+              <th>Differences</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script type="module">
+      import { loadJson, setStatus, badgeClass } from "/assets/preview.js";
+
+      const statusEl = document.getElementById("status");
+      const rowsEl = document.getElementById("rows");
+
+      function badge(status) {
+        const cls = badgeClass(status || "unresolved");
+        return `<span class="badge ${cls}">${status || "—"}</span>`;
+      }
+
+      function formatDiffs(row) {
+        const diffs = row.differences || [];
+        if (!diffs.length) return "—";
+        return diffs
+          .map(
+            (diff) =>
+              `${diff.namespace || "?"}.${diff.field}: seed=${JSON.stringify(
+                diff.seed
+              )} auth=${JSON.stringify(diff.authority)}`
+          )
+          .join("; ");
+      }
+
+      try {
+        const rows = await loadJson("/data/place-seeds.json");
+        rows.sort((a, b) =>
+          (a.current_official_name || "").localeCompare(
+            b.current_official_name || "",
+            "kl"
+          )
+        );
+
+        let oqaasileriffikCandidates = 0;
+        let asiaqWaiting = 0;
+        rowsEl.innerHTML = rows
+          .map((row) => {
+            const oqaasileriffik = row.authority_matches?.oqaasileriffik || {};
+            const asiaq = row.authority_matches?.asiaq || {};
+            if (oqaasileriffik.status === "candidate_exact_name") {
+              oqaasileriffikCandidates += 1;
+            }
+            if (asiaq.status === "waiting_for_export") {
+              asiaqWaiting += 1;
+            }
+            const highlight =
+              row.current_official_name === "Kangerlussuaq"
+                ? ' style="outline:1px solid var(--warn)"'
+                : "";
+            return `
+            <tr${highlight}>
+              <td data-label="Place">
+                <strong>${row.current_official_name || "—"}</strong>
+                <div class="mono" style="color:var(--muted)">${row.current_feature_type || ""}</div>
+              </td>
+              <td data-label="Overall">${badge(row.status)}</td>
+              <td data-label="Oqaasileriffik">${badge(oqaasileriffik.status)}</td>
+              <td data-label="Record" class="mono">
+                ${oqaasileriffik.record_id || "—"}
+                ${
+                  oqaasileriffik.decision_ref
+                    ? `<div style="color:var(--muted)">${oqaasileriffik.decision_ref}</div>`
+                    : ""
+                }
+              </td>
+              <td data-label="Asiaq">${badge(asiaq.status)}</td>
+              <td data-label="Differences" class="mono">${formatDiffs(row)}</td>
+            </tr>`;
+          })
+          .join("");
+
+        setStatus(
+          statusEl,
+          `${rows.length} seeds · Oqaasileriffik candidates ${oqaasileriffikCandidates} · Asiaq waiting ${asiaqWaiting}`
+        );
+      } catch (error) {
+        setStatus(statusEl, String(error.message || error), true);
+      }
+    </script>
+  </body>
+</html>

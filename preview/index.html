@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nunat Aqqinik Nalunaarsuiffik — preview</title>
+    <link rel="stylesheet" href="/assets/preview.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <p class="brand">Nunat Aqqinik Nalunaarsuiffik</p>
+        <h1>Place identity preview</h1>
+        <p class="lede">
+          Static Omarchy review surface for the Greenland place identity layer
+          and Phase 2 reconciliation queue. Tailscale-only.
+        </p>
+        <nav>
+          <a href="/places.html">Places</a>
+          <a href="/reconciliation.html">Reconciliation</a>
+          <a href="/dist/">Raw distributions</a>
+        </nav>
+      </header>
+
+      <p id="status" class="status">Loading manifest…</p>
+
+      <div class="cards" id="cards"></div>
+
+      <div class="note">
+        <strong>Phase 2:</strong> Oqaasileriffik candidates come from NunaGIS
+        PlacenamesRegister. Asiaq geometry is still waiting. Official names are
+        not yet confirmed into canonical source.
+      </div>
+
+      <section class="panel">
+        <h2>Browse</h2>
+        <ul class="file-list">
+          <li><a href="/places.html">15 seed places</a></li>
+          <li><a href="/reconciliation.html">Reconciliation queue</a></li>
+          <li>
+            <a href="/dist/nunat-aqqinik-nalunaarsuiffik.json"
+              >Places JSON</a
+            >
+          </li>
+          <li>
+            <a href="/dist/nunat-aqqinik-nalunaarsuiffik.geojson"
+              >Places GeoJSON</a
+            >
+          </li>
+          <li>
+            <a href="/dist/reachability.json">Reachability JSON</a>
+          </li>
+          <li><a href="/dist/manifest.json">Build manifest</a></li>
+          <li>
+            <a href="/data/place-seeds.json">Reconciliation JSON</a>
+          </li>
+        </ul>
+      </section>
+    </div>
+
+    <script type="module">
+      import { loadJson, setStatus } from "/assets/preview.js";
+
+      const statusEl = document.getElementById("status");
+      const cardsEl = document.getElementById("cards");
+
+      try {
+        const manifest = await loadJson("/dist/manifest.json");
+        const sources = manifest.canonical_sources || {};
+        const cards = [
+          ["Places", sources.places],
+          ["Names", sources.place_names],
+          ["Connections", sources.connections],
+          ["Sources", sources.sources],
+          ["Data as of", manifest.data_as_of],
+          ["Pending source", manifest.pending_source ? "yes" : "no"],
+        ];
+        cardsEl.innerHTML = cards
+          .map(
+            ([label, value]) => `
+          <div class="card">
+            <span class="label">${label}</span>
+            <span class="value">${value ?? "—"}</span>
+          </div>`
+          )
+          .join("");
+        setStatus(
+          statusEl,
+          `Dataset ${manifest.dataset} · version ${manifest.version}`
+        );
+      } catch (error) {
+        setStatus(statusEl, String(error.message || error), true);
+      }
+    </script>
+  </body>
+</html>

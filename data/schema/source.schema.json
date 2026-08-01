@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:decision-geography:schema:source",
+  "title": "Decision Geography provenance source",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "verification_status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^src_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$|^src_[a-z]+(_[a-z]+)*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "publisher": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "url": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "retrieved_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "effective_from": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "effective_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "media_type": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "checksum": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "licence": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "verification_status": {
+      "enum": [
+        "verified",
+        "pending"
+      ]
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

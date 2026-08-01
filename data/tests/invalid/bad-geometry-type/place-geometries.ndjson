@@ -1,0 +1,1 @@
+{"id": "geo_00000000-0000-4000-8000-00000000000f", "place_id": "plc_00000000-0000-4000-8000-000000000001", "geometry": {"type": "Polygon", "coordinates": [[[-51, 64], [-51, 65], [-52, 65], [-52, 64], [-51, 64]]]}, "valid_from": null, "valid_to": null, "source_refs": [{"source_id": "src_00000000-0000-4000-8000-000000000006", "record_id": null}], "observed_at": "2024-01-01"}

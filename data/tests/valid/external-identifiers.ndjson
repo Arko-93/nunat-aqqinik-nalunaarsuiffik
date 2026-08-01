@@ -1,0 +1,1 @@
+{"id": "xid_00000000-0000-4000-8000-00000000000c", "entity_type": "place", "entity_id": "plc_00000000-0000-4000-8000-000000000001", "namespace": "test", "value": "ABC123", "valid_from": null, "valid_to": null, "source_refs": [{"source_id": "src_00000000-0000-4000-8000-000000000006", "record_id": null}]}
