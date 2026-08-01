@@ -1,4 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { Badge } from "@cloudflare/kumo/components/badge";
+import { Button } from "@cloudflare/kumo/components/button";
+import { LayerCard } from "@cloudflare/kumo/components/layer-card";
+import { Tabs } from "@cloudflare/kumo/components/tabs";
+import { Text } from "@cloudflare/kumo/components/text";
 import {
   defaultLayerState,
   placeVisible,
@@ -19,6 +24,7 @@ import {
 import { searchPlacenames } from "../domain/search.ts";
 import { MapCanvas } from "./MapCanvas.tsx";
 import { MunicipalityMenu } from "./MunicipalityMenu.tsx";
+import { PlaceSearch } from "./PlaceSearch.tsx";
 
 type Collection = GeoJSON.FeatureCollection<GeoJSON.Point, Placename>;
 
@@ -26,6 +32,17 @@ const EMPTY_LINES: GeoJSON.FeatureCollection<GeoJSON.LineString> = {
   type: "FeatureCollection",
   features: [],
 };
+
+const LENS_TABS = [
+  { value: "inhabited", label: "Inhabited" },
+  { value: "geography", label: "+ Geography" },
+] as const;
+
+const GEOGRAPHY_CHIPS = [
+  ["waters", "Waters"],
+  ["islands", "Islands"],
+  ["landforms", "Landforms"],
+] as const;
 
 export function App() {
   const [collection, setCollection] = useState<Collection | null>(null);
@@ -152,50 +169,43 @@ export function App() {
       />
 
       <header className="brand">
-        <p className="preview-badge">Test branch · not main</p>
+        <Badge variant="beta">Test branch · not main</Badge>
         <h1>Nunat Aqqinik Nalunaarsuiffik</h1>
         <p>Place identity lenses for Greenland decisions</p>
       </header>
 
       <div className="controls">
-        <div className="scope surface" role="group" aria-label="Content lens">
-          <button
-            type="button"
-            className={layers.lens === "inhabited" ? "active" : undefined}
-            aria-pressed={layers.lens === "inhabited"}
-            onClick={() => setLens("inhabited")}
-          >
-            Inhabited
-          </button>
-          <button
-            type="button"
-            className={layers.lens === "geography" ? "active" : undefined}
-            aria-pressed={layers.lens === "geography"}
-            onClick={() => setLens("geography")}
-          >
-            + Geography
-          </button>
+        <div className="chrome-field chrome-field-pad">
+          <Tabs
+            variant="segmented"
+            size="sm"
+            value={layers.lens}
+            onValueChange={(value) => {
+              if (value === "inhabited" || value === "geography") {
+                setLens(value);
+              }
+            }}
+            tabs={[...LENS_TABS]}
+          />
         </div>
 
         {layers.lens === "geography" ? (
           <div className="chips" role="group" aria-label="Geography groups">
-            {(
-              [
-                ["waters", "Waters"],
-                ["islands", "Islands"],
-                ["landforms", "Landforms"],
-              ] as const
-            ).map(([group, label]) => (
-              <button
-                key={group}
-                type="button"
-                className={layers.geography.has(group) ? "active" : undefined}
-                aria-pressed={layers.geography.has(group)}
-                onClick={() => toggleGeography(group)}
-              >
-                {label}
-              </button>
-            ))}
+            {GEOGRAPHY_CHIPS.map(([group, label]) => {
+              const active = layers.geography.has(group);
+              return (
+                <Button
+                  key={group}
+                  type="button"
+                  size="sm"
+                  variant={active ? "primary" : "outline"}
+                  aria-pressed={active}
+                  onClick={() => toggleGeography(group)}
+                >
+                  {label}
+                </Button>
+              );
+            })}
           </div>
         ) : null}
 
@@ -204,87 +214,26 @@ export function App() {
           onChange={setMunicipalityFilter}
         />
 
-        <div className="search surface">
-          <label htmlFor="place-search">Search</label>
-          <input
-            id="place-search"
-            type="search"
-            placeholder="Nuuk, Qaqortoq, Naajaat…"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            autoComplete="off"
-          />
-          {results.length > 0 ? (
-            <ul className="results" role="listbox" aria-label="Search results">
-              {results.map((hit, index) => {
-                const isSelected = selected?.recordId === hit.place.recordId;
-                const hitArea = responsibilityLabel(
-                  hit.place.municipalityCode,
-                  hit.place.municipalityName,
-                );
-                const showDanish =
-                  Boolean(hit.place.danishName) &&
-                  hit.place.danishName !== hit.place.officialName;
-                return (
-                  <li
-                    key={hit.place.globalId}
-                    style={{ ["--stagger" as string]: String(index) }}
-                  >
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={isSelected}
-                      className={isSelected ? "is-selected" : undefined}
-                      onClick={() => selectPlace(hit.place)}
-                    >
-                      <span className="result-body">
-                        <span className="result-name">
-                          {hit.place.officialName}
-                        </span>
-                        <span className="result-meta">
-                          <span className="badge badge-secondary">
-                            {hit.place.typeLabel}
-                          </span>
-                          {showDanish ? (
-                            <span className="badge badge-outline">
-                              {hit.place.danishName}
-                            </span>
-                          ) : null}
-                          {hitArea ? (
-                            <span className="result-area">{hitArea}</span>
-                          ) : null}
-                        </span>
-                      </span>
-                      <span className="result-check" aria-hidden="true">
-                        <svg viewBox="0 0 16 16" width="14" height="14">
-                          <path
-                            d="M3.2 8.2 6.4 11.4 12.8 4.6"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : null}
-        </div>
+        <PlaceSearch
+          query={query}
+          results={results}
+          selectedId={selected?.recordId ?? null}
+          onQueryChange={setQuery}
+          onSelect={selectPlace}
+        />
 
         {selected ? (
-          <aside className="panel surface layer-card" aria-live="polite">
-            <div className="layer-card-secondary">
-              <span className="badge badge-secondary">{selected.typeLabel}</span>
+          <LayerCard className="place-panel" aria-live="polite">
+            <LayerCard.Secondary className="place-panel-meta">
+              <Badge variant="secondary">{selected.typeLabel}</Badge>
               {areaLabel ? (
-                <span className="badge badge-outline">{areaLabel}</span>
+                <Badge variant="outline">{areaLabel}</Badge>
               ) : null}
-            </div>
-            <div className="layer-card-primary">
-              <h2>{selected.officialName}</h2>
+            </LayerCard.Secondary>
+            <LayerCard.Primary>
+              <Text as="h2" variant="heading2">
+                {selected.officialName}
+              </Text>
 
               <dl className="names">
                 <div>
@@ -309,38 +258,41 @@ export function App() {
 
               {reachLinks.length > 0 ? (
                 <div className="reach">
-                  <h3>Reachable from here</h3>
+                  <Text as="h3" variant="heading3">
+                    Reachable from here
+                  </Text>
                   <ul>
-                    {reachLinks.map((link, index) => (
-                      <li
-                        key={link.edge.id}
-                        style={{ ["--stagger" as string]: String(index) }}
-                      >
-                        <button
+                    {reachLinks.map((link) => (
+                      <li key={link.edge.id}>
+                        <Button
                           type="button"
+                          variant="ghost"
+                          className="reach-link"
                           onClick={() => selectByOfficialName(link.otherName)}
                         >
                           <span className="reach-name">{link.otherName}</span>
-                          <span className="meta">
+                          <Text as="span" variant="secondary" size="xs">
                             {link.edge.mode}
                             {link.edge.operator
                               ? ` · ${link.edge.operator}`
                               : ""}
                             {` · ${link.seasonLabel}`}
-                          </span>
-                        </button>
+                          </Text>
+                        </Button>
                       </li>
                     ))}
                   </ul>
                 </div>
               ) : selected.isLocality ? (
                 <p className="hint">
-                  No structural connections in the seed graph yet for this
-                  locality.
+                  <Text as="span" variant="secondary" size="sm">
+                    No structural connections in the seed graph yet for this
+                    locality.
+                  </Text>
                 </p>
               ) : null}
-            </div>
-          </aside>
+            </LayerCard.Primary>
+          </LayerCard>
         ) : null}
       </div>
 
