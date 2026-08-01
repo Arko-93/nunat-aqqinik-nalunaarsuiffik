@@ -31,14 +31,35 @@ export const PlacenameScope = Schema.Literals(["localities", "all"]).annotate({
 });
 export type PlacenameScope = typeof PlacenameScope.Type;
 
+/** Real Greenland municipalities (for filters and responsibility). */
 export const MUNICIPALITY_BY_CODE: Readonly<Record<number, string>> = {
   955: "Kommune Kujalleq",
   956: "Kommuneqarfik Sermersooq",
   957: "Qeqqata kommunia",
   959: "Kommune Qeqertalik",
   960: "Avannaata kommunia",
-  961: "Nationalparken / other",
-  999: "Nationalparken",
+};
+
+/** NunaGIS area codes that are not municipalities. */
+export const NON_MUNICIPALITY_CODES: ReadonlySet<number> = new Set([961, 999]);
+
+export const AREA_LABEL_BY_CODE: Readonly<Record<number, string>> = {
+  ...MUNICIPALITY_BY_CODE,
+  961: "National park / other area",
+  999: "National park",
+};
+
+export const isMunicipalityCode = (code: number | null): boolean =>
+  code != null && code in MUNICIPALITY_BY_CODE;
+
+export const responsibilityLabel = (
+  municipalityCode: number | null,
+  municipalityName: string | null,
+): string | null => {
+  if (municipalityCode != null && municipalityCode in AREA_LABEL_BY_CODE) {
+    return AREA_LABEL_BY_CODE[municipalityCode] ?? null;
+  }
+  return municipalityName;
 };
 
 export const isLocalityType = (typeCode: number): boolean =>
@@ -193,7 +214,7 @@ export const toPlacename = (
     municipalityName:
       municipalityCode == null
         ? null
-        : (MUNICIPALITY_BY_CODE[municipalityCode] ?? null),
+        : (AREA_LABEL_BY_CODE[municipalityCode] ?? null),
     localityCode: cleanOptionalName(attributes.LokalityCode),
     longitude: geometry.x,
     latitude: geometry.y,
@@ -208,6 +229,10 @@ export const enrichPlacename = (raw: Placename | Record<string, unknown>): Place
     raw.isLocality === "true" ||
     isLocalityType(typeCode);
   const ranked = withMapRank({ typeCode, isLocality });
+  const municipalityCode =
+    raw.municipalityCode == null || raw.municipalityCode === ""
+      ? null
+      : Number(raw.municipalityCode);
   return Schema.decodeUnknownSync(Placename)({
     globalId: String(raw.globalId),
     recordId: Number(raw.recordId),
@@ -224,13 +249,12 @@ export const enrichPlacename = (raw: Placename | Record<string, unknown>): Place
     importance: ranked.importance,
     minZoom: ranked.minZoom,
     zoomBand: ranked.zoomBand,
-    municipalityCode:
-      raw.municipalityCode == null || raw.municipalityCode === ""
-        ? null
-        : Number(raw.municipalityCode),
-    municipalityName: cleanOptionalName(
-      raw.municipalityName as string | null | undefined,
-    ),
+    municipalityCode,
+    municipalityName:
+      municipalityCode == null
+        ? cleanOptionalName(raw.municipalityName as string | null | undefined)
+        : (AREA_LABEL_BY_CODE[municipalityCode] ??
+          cleanOptionalName(raw.municipalityName as string | null | undefined)),
     localityCode: cleanOptionalName(
       raw.localityCode as string | null | undefined,
     ),

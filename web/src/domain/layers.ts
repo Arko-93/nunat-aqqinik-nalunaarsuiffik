@@ -1,10 +1,16 @@
-import { MUNICIPALITY_BY_CODE } from "./placename.ts";
+import {
+  MUNICIPALITY_BY_CODE,
+  NON_MUNICIPALITY_CODES,
+} from "./placename.ts";
 import type { Placename } from "./placename.ts";
 
 /** Map content lens — inhabited places are the default decision surface. */
 export type ContentLens = "inhabited" | "geography";
 
 export type GeographyGroup = "waters" | "islands" | "landforms";
+
+/** null = all; number = kommune; "outside" = national park / non-municipal. */
+export type MunicipalityFilter = number | "outside" | null;
 
 const WATER_TYPES = new Set([
   10, 18, 56, 57, 86, 166, 164, 167, 170, 178, 186,
@@ -27,23 +33,27 @@ export const geographyGroupFor = (
 export type LayerState = {
   lens: ContentLens;
   geography: ReadonlySet<GeographyGroup>;
-  municipalityCode: number | null;
+  municipalityFilter: MunicipalityFilter;
 };
 
 export const defaultLayerState = (): LayerState => ({
   lens: "inhabited",
   geography: new Set<GeographyGroup>(["waters", "islands"]),
-  municipalityCode: null,
+  municipalityFilter: null,
 });
 
 export const MUNICIPALITY_OPTIONS: ReadonlyArray<{
-  code: number | null;
+  value: MunicipalityFilter;
   label: string;
 }> = [
-  { code: null, label: "All municipalities" },
+  { value: null, label: "All areas" },
   ...Object.entries(MUNICIPALITY_BY_CODE)
-    .map(([code, label]) => ({ code: Number(code), label }))
+    .map(([code, label]) => ({
+      value: Number(code) as MunicipalityFilter,
+      label,
+    }))
     .sort((a, b) => a.label.localeCompare(b.label, "da")),
+  { value: "outside", label: "Outside municipalities" },
 ];
 
 export const placeVisible = (
@@ -52,11 +62,16 @@ export const placeVisible = (
 ): boolean => {
   if (place.isLocalityShadow) return false;
 
-  if (
-    layers.municipalityCode != null &&
-    place.municipalityCode !== layers.municipalityCode
-  ) {
-    return false;
+  const filter = layers.municipalityFilter;
+  if (typeof filter === "number") {
+    if (place.municipalityCode !== filter) return false;
+  } else if (filter === "outside") {
+    if (
+      place.municipalityCode == null ||
+      !NON_MUNICIPALITY_CODES.has(place.municipalityCode)
+    ) {
+      return false;
+    }
   }
 
   if (layers.lens === "inhabited") {

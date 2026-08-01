@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   defaultLayerState,
-  MUNICIPALITY_OPTIONS,
   placeVisible,
   type GeographyGroup,
   type LayerState,
+  type MunicipalityFilter,
 } from "../domain/layers.ts";
-import { enrichCollection, type Placename } from "../domain/placename.ts";
+import {
+  enrichCollection,
+  responsibilityLabel,
+  type Placename,
+} from "../domain/placename.ts";
 import {
   linksFromOfficialName,
   reachabilityLineCollection,
@@ -14,6 +18,7 @@ import {
 } from "../domain/reachability.ts";
 import { searchPlacenames } from "../domain/search.ts";
 import { MapCanvas } from "./MapCanvas.tsx";
+import { MunicipalityMenu } from "./MunicipalityMenu.tsx";
 
 type Collection = GeoJSON.FeatureCollection<GeoJSON.Point, Placename>;
 
@@ -110,6 +115,10 @@ export function App() {
     });
   };
 
+  const setMunicipalityFilter = (municipalityFilter: MunicipalityFilter) => {
+    setLayers((current) => ({ ...current, municipalityFilter }));
+  };
+
   const selectPlace = (place: Placename) => {
     setSelected(place);
     setQuery(place.officialName);
@@ -125,6 +134,13 @@ export function App() {
       )?.properties ?? null;
     if (match) selectPlace(match);
   };
+
+  const areaLabel = selected
+    ? responsibilityLabel(
+        selected.municipalityCode,
+        selected.municipalityName,
+      )
+    : null;
 
   return (
     <div className="app">
@@ -142,7 +158,7 @@ export function App() {
       </header>
 
       <div className="controls">
-        <div className="scope" role="group" aria-label="Content lens">
+        <div className="scope surface" role="group" aria-label="Content lens">
           <button
             type="button"
             className={layers.lens === "inhabited" ? "active" : undefined}
@@ -183,30 +199,12 @@ export function App() {
           </div>
         ) : null}
 
-        <label className="select-field">
-          <span>Municipality</span>
-          <select
-            value={layers.municipalityCode ?? ""}
-            onChange={(event) => {
-              const value = event.target.value;
-              setLayers((current) => ({
-                ...current,
-                municipalityCode: value === "" ? null : Number(value),
-              }));
-            }}
-          >
-            {MUNICIPALITY_OPTIONS.map((option) => (
-              <option
-                key={String(option.code)}
-                value={option.code ?? ""}
-              >
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <MunicipalityMenu
+          value={layers.municipalityFilter}
+          onChange={setMunicipalityFilter}
+        />
 
-        <div className="search">
+        <div className="search surface">
           <label htmlFor="place-search">Search</label>
           <input
             id="place-search"
@@ -218,8 +216,11 @@ export function App() {
           />
           {results.length > 0 ? (
             <ul className="results">
-              {results.map((hit) => (
-                <li key={hit.place.globalId}>
+              {results.map((hit, index) => (
+                <li
+                  key={hit.place.globalId}
+                  style={{ ["--stagger" as string]: String(index) }}
+                >
                   <button
                     type="button"
                     aria-selected={selected?.recordId === hit.place.recordId}
@@ -232,8 +233,14 @@ export function App() {
                       hit.place.danishName !== hit.place.officialName
                         ? ` · ${hit.place.danishName}`
                         : ""}
-                      {hit.place.municipalityName
-                        ? ` · ${hit.place.municipalityName}`
+                      {responsibilityLabel(
+                        hit.place.municipalityCode,
+                        hit.place.municipalityName,
+                      )
+                        ? ` · ${responsibilityLabel(
+                            hit.place.municipalityCode,
+                            hit.place.municipalityName,
+                          )}`
                         : ""}
                     </span>
                   </button>
@@ -244,7 +251,7 @@ export function App() {
         </div>
 
         {selected ? (
-          <aside className="panel" aria-live="polite">
+          <aside className="panel surface" aria-live="polite">
             <h2>{selected.officialName}</h2>
 
             <dl className="names">
@@ -270,17 +277,18 @@ export function App() {
 
             <p className="summary">
               {selected.typeLabel}
-              {selected.municipalityName
-                ? ` · ${selected.municipalityName}`
-                : ""}
+              {areaLabel ? ` · ${areaLabel}` : ""}
             </p>
 
             {reachLinks.length > 0 ? (
               <div className="reach">
                 <h3>Reachable from here</h3>
                 <ul>
-                  {reachLinks.map((link) => (
-                    <li key={link.edge.id}>
+                  {reachLinks.map((link, index) => (
+                    <li
+                      key={link.edge.id}
+                      style={{ ["--stagger" as string]: String(index) }}
+                    >
                       <button
                         type="button"
                         onClick={() => selectByOfficialName(link.otherName)}
@@ -311,7 +319,7 @@ export function App() {
           ? error
           : collection
             ? `${places.length} shown · ${layers.lens}${
-                layers.municipalityCode != null ? " · filtered" : ""
+                layers.municipalityFilter != null ? " · filtered" : ""
               }`
             : "Loading map lenses…"}
       </div>

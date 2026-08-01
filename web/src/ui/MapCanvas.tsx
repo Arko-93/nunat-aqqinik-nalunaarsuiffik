@@ -113,7 +113,7 @@ function addBandLayers(map: Map, band: ZoomBand) {
       "circle-radius": [
         "case",
         ["boolean", ["feature-state", "selected"], false],
-        8,
+        9.5,
         [
           "match",
           ["get", "featureKind"],
@@ -122,6 +122,18 @@ function addBandLayers(map: Map, band: ZoomBand) {
           "settlement",
           5.5,
           ["interpolate", ["linear"], ["zoom"], minzoom, 2.2, minzoom + 3, 3.6],
+        ],
+      ],
+      "circle-stroke-width": [
+        "case",
+        ["boolean", ["feature-state", "selected"], false],
+        2.4,
+        [
+          "match",
+          ["get", "featureKind"],
+          "other",
+          0.7,
+          1.4,
         ],
       ],
       "circle-color": [
@@ -150,14 +162,12 @@ function addBandLayers(map: Map, band: ZoomBand) {
         0.95,
         0.78,
       ],
-      "circle-stroke-width": [
-        "match",
-        ["get", "featureKind"],
-        "other",
-        0.7,
-        1.4,
+      "circle-stroke-color": [
+        "case",
+        ["boolean", ["feature-state", "selected"], false],
+        "#f4f7f8",
+        "#102029",
       ],
-      "circle-stroke-color": "#102029",
     },
   });
 
@@ -397,15 +407,18 @@ export function MapCanvas({
         (feature) => feature.properties.recordId === selectedId,
       );
       if (!selected) return;
+      const center = selected.geometry.coordinates as [number, number];
       const targetZoom = Math.max(
         map.getZoom(),
         selected.properties.minZoom + 1.2,
-        selected.properties.isLocality ? 6.5 : 9,
+        selected.properties.isLocality ? 6.2 : 8.5,
       );
+      // Occasional camera move — keep under 300ms feel with ease-out punch.
       map.easeTo({
-        center: selected.geometry.coordinates as [number, number],
+        center,
         zoom: targetZoom,
-        duration: 700,
+        duration: 280,
+        easing: (t) => 1 - Math.pow(1 - t, 3),
       });
     });
   }, [collection, selectedId]);
@@ -427,7 +440,12 @@ export function MapCanvas({
         }
       }
       if (!bounds.isEmpty()) {
-        map.fitBounds(bounds, { padding: 90, maxZoom: 8.5, duration: 700 });
+        map.fitBounds(bounds, {
+          padding: 96,
+          maxZoom: 8.2,
+          duration: 320,
+          easing: (t) => 1 - Math.pow(1 - t, 3),
+        });
       }
     });
   }, [reachabilityLines]);
