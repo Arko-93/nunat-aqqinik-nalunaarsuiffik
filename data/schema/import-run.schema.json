@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:decision-geography:schema:import-run",
+  "title": "Decision Geography snapshot import run",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "source_snapshot_id",
+    "adapter_name",
+    "adapter_version",
+    "started_at",
+    "completed_at",
+    "status",
+    "record_counts",
+    "warnings",
+    "errors"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^imp_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "source_snapshot_id": {
+      "type": "string",
+      "pattern": "^snp_[a-z0-9_]+$|^snp_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "previous_snapshot_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^(snp_[a-z0-9_]+|snp_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})?$"
+    },
+    "adapter_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "adapter_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "enum": [
+        "completed",
+        "failed",
+        "partial"
+      ]
+    },
+    "record_counts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

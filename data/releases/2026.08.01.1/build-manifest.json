@@ -1,0 +1,48 @@
+{
+  "dataset": "nunat-aqqinik-nalunaarsuiffik",
+  "version": "2026.08.01",
+  "schema_version": "1.0",
+  "data_as_of": "2026-08-01",
+  "canonical_sources": {
+    "places": 15,
+    "place_classifications": 15,
+    "place_names": 28,
+    "place_geometries": 15,
+    "administrative_areas": 5,
+    "administrative_memberships": 15,
+    "external_identifiers": 0,
+    "connections": 2,
+    "connection_services": 2,
+    "sources": 3
+  },
+  "distributions": {
+    "nunat-aqqinik-nalunaarsuiffik.ndjson": 15,
+    "nunat-aqqinik-nalunaarsuiffik.json": 15,
+    "nunat-aqqinik-nalunaarsuiffik.geojson": 15,
+    "nunat-aqqinik-nalunaarsuiffik.csv": 15,
+    "reachability.ndjson": 2,
+    "reachability.json": 2,
+    "reachability.csv": 2
+  },
+  "sha256": {
+    "source/places.ndjson": "d7582a4174287240f4a7089eb09f2ccb778f411bc21bcfbc4317f874da9f0823",
+    "source/place-classifications.ndjson": "f856119032b8eb9439e73d95ddca28d708839e25a5720d3bcdf6dc942b8ff344",
+    "source/place-names.ndjson": "b257b6570ad31882ef2d376e6e8da37d45fea3d490fa4603d019f29bc8c126e3",
+    "source/place-geometries.ndjson": "7d0f79a1e7ca8f7a86754efa835da971a698defe411ae7e192bb36fc30578ce9",
+    "source/administrative-areas.ndjson": "5388dd48e7bab5ef08a68f78ae883a717bfcc72505fef42328545c86ea43ff0b",
+    "source/administrative-memberships.ndjson": "498e4c1dd088b9061091bf824870093d9fb8a860a36c82270b783c48d26159df",
+    "source/external-identifiers.ndjson": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source/connections.ndjson": "daa0f728de03165a8bbeb133f1c4f4d26d93e69ad3abd5baabd34844dbe4673c",
+    "source/connection-services.ndjson": "f5bfc625b59894301cc6b3afcf4d9df675c28a30d2be0229c75122d365f43a17",
+    "source/sources.ndjson": "ffd20b7df68a35b50ade18e9f0b5d38184ea1fa4d5831731e0db94b2c0f46edc",
+    "dist/nunat-aqqinik-nalunaarsuiffik.ndjson": "6787320a1de60d8c85846e3641a55c65feeccb65b09ef10241cfc7a3c806da49",
+    "dist/nunat-aqqinik-nalunaarsuiffik.json": "cf65ae5ae160096a863fc5cee5c8ef0bd39543907115573fca359c9d785c059c",
+    "dist/nunat-aqqinik-nalunaarsuiffik.geojson": "8eb2dc21b5c8f18d150f5996db45e18626d8255cce40e32ee8c98e1507228228",
+    "dist/nunat-aqqinik-nalunaarsuiffik.csv": "30ff8b6ab13b3346f5572a956ca95341c2de821d140015bd6860d7b0b77ebe58",
+    "dist/reachability.ndjson": "33f74cdf40d18cc08cfdc59ef4739534513101e8ed24c7ae14c5eb3f740c7972",
+    "dist/reachability.json": "f21fe52e430109def636127657ef282d0945d9bbe3947164ad0e27cba17e9f45",
+    "dist/reachability.csv": "e7bcf8518985796cd336f6434da1c9d095b50d39326e5bd6a822ff6a35644b37",
+    "dist/decision-geography.db": "a2793b410697e39eb3550838b0a6d7176429f8ab1f6da4e0690a839815f40862"
+  },
+  "pending_source": true
+}

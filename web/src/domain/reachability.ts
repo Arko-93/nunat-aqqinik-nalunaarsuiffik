@@ -3,6 +3,19 @@ export type Seasonality = {
   months: ReadonlyArray<number>;
 };
 
+export type ReachabilityService = {
+  serviceId: string;
+  operator: string | null;
+  capabilities: ReadonlyArray<string>;
+  frequencyBand: string | null;
+  frequencyBasis: string | null;
+  seasonality: Seasonality;
+  status: string | null;
+  validFrom: string | null;
+  validTo: string | null;
+  sourceRefs: ReadonlyArray<{ source_id: string; record_id: string | null }>;
+};
+
 export type ReachabilityEdge = {
   id: string;
   fromPlaceId: string;
@@ -11,6 +24,9 @@ export type ReachabilityEdge = {
   toName: string;
   direction: string;
   mode: string;
+  /** All active services on this connection for the export. */
+  services: ReadonlyArray<ReachabilityService>;
+  /** Summary fields from the first active service (optional convenience). */
   operator: string | null;
   frequencyBand: string | null;
   seasonality: Seasonality;
@@ -59,15 +75,13 @@ export const seasonalityLabel = (seasonality: Seasonality): string => {
   return seasonality.kind || "Unknown seasonality";
 };
 
-export const linksFromOfficialName = (
+/** Structural reachability links for a canonical place id. */
+export const linksFromPlaceId = (
   graph: ReachabilityGraph | null,
-  officialName: string,
+  placeId: string | null | undefined,
 ): ReadonlyArray<ReachabilityLink> => {
-  if (!graph) return [];
-  const name = officialName.trim().toLocaleLowerCase("kl");
-  const node = graph.nodes.find(
-    (entry) => entry.officialName.toLocaleLowerCase("kl") === name,
-  );
+  if (!graph || placeId == null || placeId.length === 0) return [];
+  const node = graph.nodes.find((entry) => entry.placeId === placeId);
   if (!node) return [];
 
   const links: ReachabilityLink[] = [];
@@ -96,19 +110,15 @@ export const linksFromOfficialName = (
 
 export const reachabilityLineCollection = (
   graph: ReachabilityGraph | null,
-  officialName: string,
+  placeId: string | null | undefined,
 ): GeoJSON.FeatureCollection<GeoJSON.LineString> => {
-  const links = linksFromOfficialName(graph, officialName);
-  if (!graph || links.length === 0) {
+  const links = linksFromPlaceId(graph, placeId);
+  if (!graph || links.length === 0 || placeId == null) {
     return { type: "FeatureCollection", features: [] };
   }
 
   const byId = new Map(graph.nodes.map((node) => [node.placeId, node]));
-  const origin = graph.nodes.find(
-    (node) =>
-      node.officialName.toLocaleLowerCase("kl") ===
-      officialName.trim().toLocaleLowerCase("kl"),
-  );
+  const origin = byId.get(placeId);
   if (!origin) return { type: "FeatureCollection", features: [] };
 
   return {
@@ -123,6 +133,7 @@ export const reachabilityLineCollection = (
             id: link.edge.id,
             mode: link.edge.mode,
             otherName: link.otherName,
+            otherPlaceId: link.otherPlaceId,
             seasonLabel: link.seasonLabel,
           },
           geometry: {

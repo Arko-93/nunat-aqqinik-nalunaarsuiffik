@@ -29,8 +29,9 @@ SOURCE_NDJSON := $(SOURCE_DIR)/places.ndjson \
                  $(SOURCE_DIR)/sources.ndjson
 
 NUNAGIS_AUTHORITY := reconciliation/authority/oqaasileriffik-nunagis.ndjson
+RELEASE_ID ?= 2026.08.01.1
 
-.PHONY: all validate test publish-check reconcile fetch-nunagis normalize-nunagis build clean
+.PHONY: all validate test publish-check reconcile fetch-nunagis normalize-nunagis build clean release register-snapshot
 
 all: validate build
 
@@ -43,11 +44,15 @@ test:
 	$(PYTHON) $(SCRIPTS_DIR)/validate.py --mode test --source-dir $(SOURCE_DIR)
 	$(PYTHON) $(SCRIPTS_DIR)/test_reconciliation.py
 	$(PYTHON) $(SCRIPTS_DIR)/test_build.py
+	$(PYTHON) $(SCRIPTS_DIR)/test_schema_meta.py
+	$(PYTHON) $(SCRIPTS_DIR)/test_release.py
 
 publish-check:
 	$(PYTHON) $(SCRIPTS_DIR)/validate.py --mode publish-check --source-dir $(SOURCE_DIR)
 	$(PYTHON) $(SCRIPTS_DIR)/test_reconciliation.py
 	$(PYTHON) $(SCRIPTS_DIR)/test_build.py
+	$(PYTHON) $(SCRIPTS_DIR)/test_schema_meta.py
+	$(PYTHON) $(SCRIPTS_DIR)/test_release.py
 
 fetch-nunagis:
 	$(PYTHON) $(SCRIPTS_DIR)/fetch_nunagis_placenames.py
@@ -61,6 +66,16 @@ reconcile:
 		authority_args="--authority $(NUNAGIS_AUTHORITY)"; \
 	fi; \
 	$(PYTHON) $(SCRIPTS_DIR)/reconcile_places.py $$authority_args
+
+register-snapshot:
+	$(PYTHON) $(SCRIPTS_DIR)/register_snapshot.py
+
+release: build register-snapshot
+	@if [ -d "releases/$(RELEASE_ID)" ]; then \
+		echo "Release releases/$(RELEASE_ID) already exists; skipping build_release"; \
+	else \
+		$(PYTHON) $(SCRIPTS_DIR)/build_release.py --release-id $(RELEASE_ID); \
+	fi
 
 # --- Build distributions ---
 

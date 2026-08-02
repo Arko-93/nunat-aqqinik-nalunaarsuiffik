@@ -4,11 +4,18 @@
 
 This document is the product and implementation source of truth.
 
-- Current stage: Phase 2 in progress; Phase 4 tracer bullet proven; Phase 5 projection foundation complete
+- Current stage: Product plan Phases 0–2, Phase 4 API scaffold, and Phase 5 quiet UI landed; Phase 3 locality spine blocked on confirmed joins
 - Current data: 15 place identities, 15 classification assertions, 28 names, 15 geometries, 15 memberships, 2 connections, and 2 service assertions
 - Publication status: not authoritative; `publish-check` reports expected pending-provenance blockers while `src_legacy_seed` remains
-- First operational extension: structural reachability
-- Immediate work: grow identity provenance (Asiaq + confirmed `plc_` joins); map Phase B serves the full official gazetteer
+- First operational extension: structural reachability (joins by `placeId`; multi-service export preserved)
+- Immediate work: Phase 3 — confirm NunaGIS→`plc_` identities (no auto-merge); replace `src_legacy_seed`; Asiaq geometry still waiting
+- Identity crosswalk: release-mounted `identity-crosswalk.json` — 15 candidate mappings (0 canonical `xid_` yet)
+- Selected release: `data/releases/CURRENT` → `2026.08.01.1` (web mounts via `scripts/sync-web-release.sh`)
+- Read API: `api/` on `:8787` (`make api-dev`)
+- Phase 5 UI: list–map–dossier shell, mobile bottom sheet, KL/DA/EN switch (KL first; KL copy provisional), full-index search, place result cards, release/offline status; no Google Fonts
+- Locality inclusion rule: `docs/LOCALITY_SPINE_INCLUSION.md`
+- Implementation ledger: `docs/IMPLEMENTATION_LEDGER.md`
+- Product plan: `docs/nunat-decision-geography-product-implementation-plan.md`
 - Product map: Omarchy `:3457` serves the official-names map (`web/`), not the old static review HTML
 - Map data: NunaGIS PlacenamesRegisterSearch midpoint layer (`MapServer/1`), 30,542 midpoints with locality filter (Type 21/23 → 74)
 - Authority requests: Oqaasileriffik replied 2026-07-30 pointing to NunaGIS; Asiaq reply still pending
@@ -102,7 +109,9 @@ Canonical NDJSON source records generate consumer-friendly JSON, GeoJSON, CSV, a
 6. `data/dist/` — generated consumer artefacts
 7. `README.md` — orientation, not a competing specification
 
-Raw upstream material belongs under `data/raw/<source_id>/<retrieved_at>/` when licensing permits. If raw material cannot be committed, store a manifest containing its URL, retrieval timestamp, media type, checksum when available, licence, and access notes.
+Raw upstream material belongs under `data/snapshots/<source>/<timestamp>/` when licensing permits (legacy copies may remain under `data/raw/`). If raw material cannot be committed, store a manifest containing its URL, retrieval timestamp, media type, checksum when available, licence, and access notes.
+
+Named consumer releases live under `data/releases/<release_id>/`. Production web/API builds must consume the selected release recorded in `data/releases/CURRENT`, not live upstream or mutable `data/dist/`.
 
 ## Authority policy
 
@@ -466,12 +475,17 @@ Exit condition met. `make -C data validate` and `make -C data test` pass.
 
 ### Phase 2 — Establish authoritative place provenance
 
-Status: in progress; Oqaasileriffik public extract acquired via NunaGIS; Asiaq still pending.
+Status: in progress; immutable snapshot and named-release foundation complete; authoritative reconciliation still open.
 
 - Acquire or register the Oqaasileriffik official-name register or decision records
 - Acquire or register Asiaq geometry and upstream geodata identifiers separately
 - Oqaasileriffik bulk-export request sent 2026-07-26; reply 2026-07-30 directed to NunaGIS PlacenamesRegisterPublic (`MapServer/0`)
-- Dated attributes-only seed-name snapshot stored under `data/raw/nunagis_placenames/2026-08-01/` with manifest checksum
+- Dated attributes-only seed-name snapshot stored under `data/snapshots/nunagis_placenames/2026-08-01/` (legacy mirror: `data/raw/nunagis_placenames/2026-08-01/`) with checksum and `licence_status: unknown`
+- Phase 2 metadata schemas: `source-dataset`, `source-snapshot`, `import-run`, `change-event`, `release-manifest` under `data/schema/`
+- Named release `2026.08.01.1` built under `data/releases/` with manifest, changes, source-health, and dist artefact copies; `data/releases/CURRENT` points at it
+- `make -C data release` builds a named release; `make -C data register-snapshot` imports raw evidence into `data/snapshots/`
+- Fetch adapters write to `data/snapshots/` by default (`fetch_nunagis_placenames.py`); use `--legacy-raw-dir` to mirror into `data/raw/`
+- Release `publication_blockers` record pending provenance (`src_legacy_seed`) and unknown redistribution (`licence_status: unknown` on NunaGIS snapshot)
 - Normalized Type 21/23 locality rows written to `data/reconciliation/authority/oqaasileriffik-nunagis.ndjson` (`make -C data fetch-nunagis normalize-nunagis`)
 - Source registered as `src_nunagis_placenames_register` (verified retrieval; licence null on service metadata; not geometry authority)
 - Asiaq data-access request sent 2026-07-26 for download/service endpoint, field dictionary, licence, update cadence, and stable feature identifiers — reply still pending

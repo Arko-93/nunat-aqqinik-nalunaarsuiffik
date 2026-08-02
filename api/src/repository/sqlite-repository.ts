@@ -1,0 +1,446 @@
+import { DatabaseSync } from "node:sqlite";
+import type {
+  ConnectionEdge,
+  ConnectionService,
+  ExternalIdentifier,
+  PlaceDetail,
+  PlaceName,
+  PlaceSummary,
+  ResolveCandidate,
+  ResolveIdentifierInput,
+  ResolveResult,
+  SourceRef,
+} from "../contracts/common.js";
+
+const parseJson = <T>(value: string | null | undefined, fallback: T): T => {
+  if (!value) return fallback;
+  return JSON.parse(value) as T;
+};
+
+const serviceFromRow = (row: Record<string, unknown>): ConnectionService => ({
+  id: row.service_id as string,
+  operator: (row.operator as string | null) ?? null,
+  capabilities: parseJson<string[]>(row.capabilities_json as string, []),
+  seasonality: parseJson<Record<string, unknown>>(
+    row.seasonality_json as string,
+    {},
+  ),
+  frequency_band: row.frequency_band as string,
+  frequency_basis: row.frequency_basis as string,
+  status: row.service_status as string,
+  valid_from: (row.service_valid_from as string | null) ?? null,
+  valid_to: (row.service_valid_to as string | null) ?? null,
+  source_refs: parseJson<SourceRef[]>(row.service_source_refs_json as string, []),
+});
+
+export class SqliteRepository {
+  constructor(private readonly db: DatabaseSync) {}
+
+  close(): void {
+    this.db.close();
+  }
+
+  searchPlaces(params: {
+    q: string;
+    language?: string;
+    limit?: number;
+  }): PlaceSummary[] {
+    const trimmed = params.q.trim();
+    if (!trimmed) {
+      return this.listPlaces(params.limit ?? 50);
+    }
+
+    const like = `%${trimmed}%`;
+    const limit = params.limit ?? 50;
+
+    if (trimmed.startsWith("plc_")) {
+      const byId = this.db
+        .prepare(
+          `
+          SELECT
+            id AS place_id,
+            canonical_name_kl,
+            feature_type,
+            municipality,
+            municipality_id
+          FROM current_places
+          WHERE id = ?
+          LIMIT 1
+        `,
+        )
+        .all(trimmed) as PlaceSummary[];
+      if (byId.length > 0) return byId;
+    }
+
+    const languageClause = params.language
+      ? "AND pn.language = @language"
+      : "";
+
+    const namedParams: Record<string, string | number> = {
+      like,
+      exact: trimmed,
+      limit,
+    };
+    if (params.language) {
+      namedParams.language = params.language;
+    }
+
+    // LIKE search across current names; FTS5 is a planned follow-up.
+    const rows = this.db
+      .prepare(
+        `
+        SELECT DISTINCT
+          cp.id AS place_id,
+          cp.canonical_name_kl,
+          cp.feature_type,
+          cp.municipality,
+          cp.municipality_id,
+          pn.value AS matched_name,
+          pn.language AS matched_language,
+          pn.kind AS matched_kind
+        FROM current_places cp
+        JOIN place_names pn ON pn.place_id = cp.id AND pn.valid_to IS NULL
+        WHERE pn.value LIKE @like COLLATE NOCASE
+          ${languageClause}
+        ORDER BY
+          CASE WHEN LOWER(pn.value) = LOWER(@exact) THEN 0 ELSE 1 END,
+          cp.canonical_name_kl
+        LIMIT @limit
+      `,
+      )
+      .all(namedParams) as PlaceSummary[];
+
+    return rows;
+  }
+
+  listPlaces(limit = 50): PlaceSummary[] {
+    return this.db
+      .prepare(
+        `
+        SELECT
+          id AS place_id,
+          canonical_name_kl,
+          feature_type,
+          municipality,
+          municipality_id
+        FROM current_places
+        ORDER BY canonical_name_kl
+        LIMIT ?
+      `,
+      )
+      .all(limit) as PlaceSummary[];
+  }
+
+  getPlaceById(placeId: string): PlaceDetail | null {
+    const row = this.db
+      .prepare(
+        `
+        SELECT
+          cp.id AS place_id,
+          cp.canonical_name_kl,
+          cp.feature_type,
+          cp.municipality,
+          cp.municipality_id,
+          cp.status,
+          cp.created_at,
+          cp.geometry_json,
+          p.source_refs_json
+        FROM current_places cp
+        JOIN places p ON p.id = cp.id
+        WHERE cp.id = ?
+      `,
+      )
+      .get(placeId) as
+      | (PlaceSummary & {
+          status: string;
+          created_at: string;
+          geometry_json: string | null;
+          source_refs_json: string;
+        })
+      | undefined;
+
+    if (!row) return null;
+
+    const names = this.db
+      .prepare(
+        `
+        SELECT id, value, language, kind, valid_from, valid_to, source_refs_json
+        FROM place_names
+        WHERE place_id = ? AND valid_to IS NULL
+        ORDER BY kind, language, value
+      `,
+      )
+      .all(placeId) as Array<{
+        id: string;
+        value: string;
+        language: string;
+        kind: string;
+        valid_from: string | null;
+        valid_to: string | null;
+        source_refs_json: string;
+      }>;
+
+    return {
+      place_id: row.place_id,
+      canonical_name_kl: row.canonical_name_kl,
+      feature_type: row.feature_type,
+      municipality: row.municipality,
+      municipality_id: row.municipality_id,
+      status: row.status,
+      created_at: row.created_at,
+      geometry: row.geometry_json
+        ? (JSON.parse(row.geometry_json) as PlaceDetail["geometry"])
+        : null,
+      names: names.map(
+        (name): PlaceName => ({
+          id: name.id,
+          value: name.value,
+          language: name.language,
+          kind: name.kind,
+          valid_from: name.valid_from,
+          valid_to: name.valid_to,
+          source_refs: parseJson<SourceRef[]>(name.source_refs_json, []),
+        }),
+      ),
+      source_refs: parseJson<SourceRef[]>(row.source_refs_json, []),
+    };
+  }
+
+  getPlaceIdentifiers(placeId: string): ExternalIdentifier[] {
+    return (
+      this.db
+        .prepare(
+          `
+          SELECT id, namespace, value, valid_from, valid_to, source_refs_json
+          FROM external_identifiers
+          WHERE entity_type = 'place'
+            AND entity_id = ?
+            AND (valid_to IS NULL OR valid_to >= date('now'))
+          ORDER BY namespace, value
+        `,
+        )
+        .all(placeId) as Array<{
+          id: string;
+          namespace: string;
+          value: string;
+          valid_from: string | null;
+          valid_to: string | null;
+          source_refs_json: string;
+        }>
+    ).map((row) => ({
+      id: row.id,
+      namespace: row.namespace,
+      value: row.value,
+      valid_from: row.valid_from,
+      valid_to: row.valid_to,
+      source_refs: parseJson<SourceRef[]>(row.source_refs_json, []),
+    }));
+  }
+
+  getPlaceConnections(placeId: string, at: string): ConnectionEdge[] {
+    const rows = this.db
+      .prepare(
+        `
+        SELECT
+          c.id AS connection_id,
+          c.origin_place_id,
+          c.destination_place_id,
+          c.direction,
+          c.mode,
+          cs.id AS service_id,
+          cs.operator,
+          cs.capabilities_json,
+          cs.seasonality_json,
+          cs.frequency_band,
+          cs.frequency_basis,
+          cs.status AS service_status,
+          cs.valid_from AS service_valid_from,
+          cs.valid_to AS service_valid_to,
+          cs.source_refs_json AS service_source_refs_json
+        FROM connections c
+        LEFT JOIN connection_services cs ON cs.connection_id = c.id
+        WHERE c.retired_at IS NULL
+          AND (c.origin_place_id = @placeId OR c.destination_place_id = @placeId)
+          AND (
+            cs.id IS NULL
+            OR (
+              (cs.valid_from IS NULL OR cs.valid_from <= @at)
+              AND (cs.valid_to IS NULL OR cs.valid_to >= @at)
+            )
+          )
+        ORDER BY c.mode, c.id
+      `,
+      )
+      .all({ placeId, at }) as Array<Record<string, unknown>>;
+
+    return rows.map((row) => {
+      const originPlaceId = row.origin_place_id as string;
+      const destinationPlaceId = row.destination_place_id as string;
+      const role: ConnectionEdge["role"] =
+        originPlaceId === placeId ? "origin" : "destination";
+      const peerPlaceId =
+        role === "origin" ? destinationPlaceId : originPlaceId;
+
+      return {
+        connection_id: row.connection_id as string,
+        origin_place_id: originPlaceId,
+        destination_place_id: destinationPlaceId,
+        direction: row.direction as string,
+        mode: row.mode as string,
+        role,
+        peer_place_id: peerPlaceId,
+        service: row.service_id ? serviceFromRow(row) : null,
+      };
+    });
+  }
+
+  resolvePlace(input: {
+    identifiers?: ResolveIdentifierInput[];
+    name?: string;
+    municipalityCode?: number;
+  }): { result: ResolveResult; candidates: ResolveCandidate[] } {
+    const candidateMap = new Map<string, ResolveCandidate>();
+
+    const addCandidate = (
+      placeId: string,
+      confidence: number,
+      reason: string,
+    ) => {
+      const existing = candidateMap.get(placeId);
+      if (existing) {
+        if (!existing.reasons.includes(reason)) {
+          existing.reasons.push(reason);
+        }
+        existing.confidence = Math.max(existing.confidence, confidence);
+        return;
+      }
+      candidateMap.set(placeId, {
+        place_id: placeId,
+        confidence,
+        reasons: [reason],
+      });
+    };
+
+    for (const identifier of input.identifiers ?? []) {
+      const matches = this.db
+        .prepare(
+          `
+          SELECT entity_id AS place_id
+          FROM external_identifiers
+          WHERE entity_type = 'place'
+            AND namespace = ?
+            AND value = ?
+            AND (valid_to IS NULL OR valid_to >= date('now'))
+        `,
+        )
+        .all(identifier.namespace, identifier.value) as Array<{ place_id: string }>;
+
+      for (const match of matches) {
+        addCandidate(match.place_id, 1.0, "external_identifier_exact");
+      }
+    }
+
+    if (input.name?.trim()) {
+      const exactName = input.name.trim();
+      const exactMatches = this.db
+        .prepare(
+          `
+          SELECT DISTINCT pn.place_id
+          FROM place_names pn
+          JOIN current_places cp ON cp.id = pn.place_id
+          WHERE pn.valid_to IS NULL
+            AND LOWER(pn.value) = LOWER(?)
+        `,
+        )
+        .all(exactName) as Array<{ place_id: string }>;
+
+      for (const match of exactMatches) {
+        addCandidate(match.place_id, 0.95, "official_name_exact");
+      }
+
+      if (exactMatches.length === 0) {
+        const partialMatches = this.db
+          .prepare(
+            `
+            SELECT DISTINCT pn.place_id
+            FROM place_names pn
+            JOIN current_places cp ON cp.id = pn.place_id
+            WHERE pn.valid_to IS NULL
+              AND pn.value LIKE ? COLLATE NOCASE
+            LIMIT 10
+          `,
+          )
+          .all(`%${exactName}%`) as Array<{ place_id: string }>;
+
+        for (const match of partialMatches) {
+          addCandidate(match.place_id, 0.6, "name_partial");
+        }
+      }
+    }
+
+    if (input.municipalityCode !== undefined) {
+      const municipalityMatches = this.db
+        .prepare(
+          `
+          SELECT cp.id AS place_id
+          FROM current_places cp
+          JOIN administrative_areas aa ON aa.id = cp.municipality_id
+          WHERE aa.name LIKE ?
+        `,
+        )
+        .all(`%${input.municipalityCode}%`) as Array<{ place_id: string }>;
+
+      for (const match of municipalityMatches) {
+        addCandidate(match.place_id, 0.5, "municipality_hint");
+      }
+    }
+
+    const candidates = [...candidateMap.values()].sort(
+      (a, b) => b.confidence - a.confidence,
+    );
+
+    if (candidates.length === 0) {
+      return { result: "not_found", candidates: [] };
+    }
+
+    const top = candidates[0];
+    if (
+      candidates.length === 1 &&
+      top.confidence >= 0.95 &&
+      top.reasons.includes("external_identifier_exact")
+    ) {
+      return { result: "resolved", candidates };
+    }
+
+    if (candidates.length > 1) {
+      return { result: "ambiguous", candidates };
+    }
+
+    return { result: "candidate", candidates };
+  }
+
+  latestObservedAt(): string | null {
+    const row = this.db
+      .prepare(
+        `
+        SELECT MAX(observed_at) AS last_observed_at
+        FROM (
+          SELECT observed_at FROM place_names
+          UNION ALL SELECT observed_at FROM place_classifications
+          UNION ALL SELECT observed_at FROM connection_services
+        )
+      `,
+      )
+      .get() as { last_observed_at: string | null } | undefined;
+
+    return row?.last_observed_at ?? null;
+  }
+}
+
+export const openRepository = (dbPath: string): SqliteRepository => {
+  const db = new DatabaseSync(dbPath, {
+    readOnly: true,
+    enableForeignKeyConstraints: true,
+  });
+  return new SqliteRepository(db);
+};

@@ -1,11 +1,20 @@
 import { Schema } from "effect";
 import {
+  crosswalkByGlobalId,
+  featureIdFromGlobalId,
+  resolveIdentity,
+  type IdentityCrosswalk,
+  type IdentityStatus,
+} from "./identity.ts";
+import {
   rankForType,
   typeLabel,
   zoomBandFor,
   type ZoomBand,
 } from "./importance.ts";
 import { isLocalityNameShadow } from "./near-duplicate.ts";
+
+export type { IdentityStatus } from "./identity.ts";
 
 export const LOCALITY_TYPE_CODES = [21, 23] as const;
 
@@ -82,8 +91,19 @@ export const cleanOptionalName = (
   return trimmed.length === 0 ? null : trimmed;
 };
 
+export const IdentityStatusSchema = Schema.Literals([
+  "canonical",
+  "candidate",
+  "upstream_only",
+]).annotate({ identifier: "PlacenameIdentityStatus" });
+
 /** Normalized placename used by the map product. */
 export const Placename = Schema.Struct({
+  /** Source-scoped stable feature identity (never a place-name FK). */
+  featureId: Schema.String,
+  /** Canonical place id when reconciled; null for upstream-only geography. */
+  placeId: Schema.NullOr(Schema.String),
+  identityStatus: IdentityStatusSchema,
   globalId: Schema.String,
   recordId: Schema.Number,
   officialName: Schema.String,
@@ -172,6 +192,7 @@ export interface ArcGisQueryResponse
 
 export const toPlacename = (
   feature: ArcGisPlacenameFeature,
+  crosswalk: IdentityCrosswalk | null = null,
 ): Placename | null => {
   const { attributes, geometry } = feature;
   const officialName = cleanOptionalName(attributes.PlacenameOfficial);
@@ -196,8 +217,13 @@ export const toPlacename = (
   const municipalityCode = attributes.MunicipalityCode;
   const isLocality = isLocalityType(typeCode);
   const ranked = withMapRank({ typeCode, isLocality });
+  const globalId = stripGlobalId(globalIdRaw);
+  const identity = resolveIdentity(globalId, crosswalkByGlobalId(crosswalk));
   return Schema.decodeUnknownSync(Placename)({
-    globalId: stripGlobalId(globalIdRaw),
+    featureId: identity.featureId,
+    placeId: identity.placeId,
+    identityStatus: identity.identityStatus,
+    globalId,
     recordId,
     officialName,
     danishName: cleanOptionalName(attributes.PlacenameDanish),
@@ -221,8 +247,11 @@ export const toPlacename = (
   });
 };
 
-/** Enrich a loaded GeoJSON property bag that may predate ranking fields. */
-export const enrichPlacename = (raw: Placename | Record<string, unknown>): Placename => {
+/** Enrich a loaded GeoJSON property bag that may predate ranking/identity fields. */
+export const enrichPlacename = (
+  raw: Placename | Record<string, unknown>,
+  crosswalk: IdentityCrosswalk | null = null,
+): Placename => {
   const typeCode = Number(raw.typeCode);
   const isLocality =
     raw.isLocality === true ||
@@ -233,8 +262,35 @@ export const enrichPlacename = (raw: Placename | Record<string, unknown>): Place
     raw.municipalityCode == null || raw.municipalityCode === ""
       ? null
       : Number(raw.municipalityCode);
+  const globalId = String(raw.globalId);
+  const byGlobalId = crosswalkByGlobalId(crosswalk);
+  const resolved = resolveIdentity(globalId, byGlobalId);
+  // Prefer explicit baked identity when present and crosswalk has no hit.
+  const bakedStatus = raw.identityStatus;
+  const bakedPlaceId =
+    raw.placeId === undefined || raw.placeId === null || raw.placeId === ""
+      ? null
+      : String(raw.placeId);
+  const hasCrosswalkHit = byGlobalId.has(globalId.toUpperCase());
+  const identityStatus: IdentityStatus = hasCrosswalkHit
+    ? resolved.identityStatus
+    : bakedStatus === "canonical" ||
+        bakedStatus === "candidate" ||
+        bakedStatus === "upstream_only"
+      ? bakedStatus
+      : resolved.identityStatus;
+  const placeId = hasCrosswalkHit
+    ? resolved.placeId
+    : (bakedPlaceId ?? resolved.placeId);
+  const featureId =
+    typeof raw.featureId === "string" && raw.featureId.length > 0
+      ? raw.featureId
+      : featureIdFromGlobalId(globalId);
   return Schema.decodeUnknownSync(Placename)({
-    globalId: String(raw.globalId),
+    featureId: hasCrosswalkHit ? resolved.featureId : featureId,
+    placeId,
+    identityStatus,
+    globalId,
     recordId: Number(raw.recordId),
     officialName: String(raw.officialName),
     danishName: cleanOptionalName(raw.danishName as string | null | undefined),
@@ -284,9 +340,10 @@ export const placenamesToFeatureCollection = (
 
 export const enrichCollection = (
   collection: GeoJSON.FeatureCollection<GeoJSON.Point, Placename>,
+  crosswalk: IdentityCrosswalk | null = null,
 ): GeoJSON.FeatureCollection<GeoJSON.Point, Placename> => {
   const enriched = collection.features.map((feature) =>
-    enrichPlacename(feature.properties),
+    enrichPlacename(feature.properties, crosswalk),
   );
   const localities = enriched.filter((place) => place.isLocality);
 

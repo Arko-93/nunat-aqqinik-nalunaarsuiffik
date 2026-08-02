@@ -3,13 +3,14 @@
 
 import hashlib
 import json
+import os
 import sqlite3
 import sys
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent.parent
-SOURCE_DIR = DATA_DIR / "source"
-DIST_DIR = DATA_DIR / "dist"
+SOURCE_DIR = Path(os.environ.get("DECISION_GEOGRAPHY_SOURCE_DIR", DATA_DIR / "source"))
+DIST_DIR = Path(os.environ.get("DECISION_GEOGRAPHY_DIST_DIR", DATA_DIR / "dist"))
 DB_PATH = DIST_DIR / "decision-geography.db"
 
 

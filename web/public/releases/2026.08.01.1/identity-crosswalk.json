@@ -1,0 +1,111 @@
+{
+  "generatedFrom": "data/source/external-identifiers.ndjson + data/reconciliation/place-seeds.ndjson",
+  "note": "candidate entries come from exact-name reconciliation candidates; they are not confirmed identity merges. Promote via external-identifiers.",
+  "entries": [
+    {
+      "featureId": "nunagis:D471042F-CCA6-43FA-AB08-72CC869A845E",
+      "placeId": "plc_0c776092-d46f-4076-a0e4-37a3f32bcc30",
+      "identityStatus": "candidate",
+      "globalId": "D471042F-CCA6-43FA-AB08-72CC869A845E",
+      "officialName": "Ittoqqortoormiit"
+    },
+    {
+      "featureId": "nunagis:48E53DD3-31AA-4005-8886-E66AE947EA44",
+      "placeId": "plc_1c06718f-c482-4102-bd9d-9e01a1441459",
+      "identityStatus": "candidate",
+      "globalId": "48E53DD3-31AA-4005-8886-E66AE947EA44",
+      "officialName": "Kangerlussuaq"
+    },
+    {
+      "featureId": "nunagis:C4BFEC59-DF0D-4F7C-9437-B744C0859150",
+      "placeId": "plc_2e957e7e-3814-4e34-9e07-262eceb32584",
+      "identityStatus": "candidate",
+      "globalId": "C4BFEC59-DF0D-4F7C-9437-B744C0859150",
+      "officialName": "Paamiut"
+    },
+    {
+      "featureId": "nunagis:D9EDDC06-B039-4591-B737-D9D47DD2FDBC",
+      "placeId": "plc_4122e504-40d9-49a4-9e91-dbd13280ac75",
+      "identityStatus": "candidate",
+      "globalId": "D9EDDC06-B039-4591-B737-D9D47DD2FDBC",
+      "officialName": "Uummannaq"
+    },
+    {
+      "featureId": "nunagis:C9EE223C-C726-4335-80F8-E401E5480001",
+      "placeId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "identityStatus": "candidate",
+      "globalId": "C9EE223C-C726-4335-80F8-E401E5480001",
+      "officialName": "Nuuk"
+    },
+    {
+      "featureId": "nunagis:3151E3D0-67E9-47BA-B000-01EE34DBF2D1",
+      "placeId": "plc_6bbbde6c-8ce0-4627-a72b-d1187126d4c6",
+      "identityStatus": "candidate",
+      "globalId": "3151E3D0-67E9-47BA-B000-01EE34DBF2D1",
+      "officialName": "Aasiaat"
+    },
+    {
+      "featureId": "nunagis:18C24C85-F067-4938-92DD-BA3BE3FC4708",
+      "placeId": "plc_7fd60259-8b40-4dc0-947f-cdcdb16b9e42",
+      "identityStatus": "candidate",
+      "globalId": "18C24C85-F067-4938-92DD-BA3BE3FC4708",
+      "officialName": "Ilulissat"
+    },
+    {
+      "featureId": "nunagis:1E277A93-A540-487C-9798-0A31F37B08D7",
+      "placeId": "plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864",
+      "identityStatus": "candidate",
+      "globalId": "1E277A93-A540-487C-9798-0A31F37B08D7",
+      "officialName": "Nanortalik"
+    },
+    {
+      "featureId": "nunagis:2143A8A6-2F9E-40F9-8487-7E358E3FAAC8",
+      "placeId": "plc_a0c38659-994b-4e7e-8ba6-9a8e1f86653f",
+      "identityStatus": "candidate",
+      "globalId": "2143A8A6-2F9E-40F9-8487-7E358E3FAAC8",
+      "officialName": "Narsaq"
+    },
+    {
+      "featureId": "nunagis:2F9867A2-BBA4-4EAF-AA86-07528C852555",
+      "placeId": "plc_b5089ce8-becf-4195-b632-71175c2d0ada",
+      "identityStatus": "candidate",
+      "globalId": "2F9867A2-BBA4-4EAF-AA86-07528C852555",
+      "officialName": "Maniitsoq"
+    },
+    {
+      "featureId": "nunagis:3A2CE14E-1266-454B-8D3B-009D040F6D9B",
+      "placeId": "plc_bc0c50c0-552d-4f4b-8c9f-c65fcc33bf3b",
+      "identityStatus": "candidate",
+      "globalId": "3A2CE14E-1266-454B-8D3B-009D040F6D9B",
+      "officialName": "Sisimiut"
+    },
+    {
+      "featureId": "nunagis:2B5229E9-BE95-4FAE-A974-6F9453C4058C",
+      "placeId": "plc_d60fc5a9-ee06-4aed-96c9-b6231af88aa6",
+      "identityStatus": "candidate",
+      "globalId": "2B5229E9-BE95-4FAE-A974-6F9453C4058C",
+      "officialName": "Tasiilaq"
+    },
+    {
+      "featureId": "nunagis:ABF9E527-311B-4DD4-8792-07E110AFF91D",
+      "placeId": "plc_d82ad42c-d2b6-4236-ae32-16ace9a0ffbd",
+      "identityStatus": "candidate",
+      "globalId": "ABF9E527-311B-4DD4-8792-07E110AFF91D",
+      "officialName": "Kulusuk"
+    },
+    {
+      "featureId": "nunagis:42ADC6C5-744D-4FB5-90D5-12F043799D69",
+      "placeId": "plc_e707fa48-b27a-4eac-baf2-e100c32288b7",
+      "identityStatus": "candidate",
+      "globalId": "42ADC6C5-744D-4FB5-90D5-12F043799D69",
+      "officialName": "Qaanaaq"
+    },
+    {
+      "featureId": "nunagis:8D51E029-9CFE-45DD-9EFC-5DF154A9E8D8",
+      "placeId": "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722",
+      "identityStatus": "candidate",
+      "globalId": "8D51E029-9CFE-45DD-9EFC-5DF154A9E8D8",
+      "officialName": "Qaqortoq"
+    }
+  ]
+}
