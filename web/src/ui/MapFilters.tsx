@@ -1,7 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@cloudflare/kumo/components/button";
-import { Select } from "@cloudflare/kumo/components/select";
-import { Tabs } from "@cloudflare/kumo/components/tabs";
 import { Text } from "@cloudflare/kumo/components/text";
 import {
   defaultLayerState,
@@ -40,6 +37,7 @@ const isDefaultFilters = (layers: LayerState): boolean => {
   return true;
 };
 
+/** Always-visible map content controls for the right rail. */
 export function MapFilters({
   layers,
   onLensChange,
@@ -48,35 +46,16 @@ export function MapFilters({
   onReset,
 }: Props) {
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
-  const panelId = useId();
-  const rootRef = useRef<HTMLDivElement>(null);
   const dirty = !isDefaultFilters(layers);
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("mousedown", onPointer);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
 
   const municipalityItems = [
     { value: "all", label: t.municipalityAll },
-    ...Object.entries(MUNICIPALITY_BY_CODE).map(([code, label]) => ({
-      value: code,
-      label,
-    })),
+    ...Object.entries(MUNICIPALITY_BY_CODE)
+      .map(([code, label]) => ({
+        value: code,
+        label,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label, "da")),
     { value: "outside", label: t.municipalityOutside },
   ];
 
@@ -87,87 +66,77 @@ export function MapFilters({
   ] as const;
 
   return (
-    <div className={`map-filters${open ? " is-open" : ""}`} ref={rootRef}>
-      <Button
-        type="button"
-        size="sm"
-        variant={dirty || open ? "primary" : "outline"}
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={() => setOpen((current) => !current)}
-      >
-        {open ? t.closeFilters : t.openFilters}
-        {dirty && !open ? " ·" : ""}
-      </Button>
+    <section className="map-filters-rail" aria-label={t.mapFilters}>
+      <Text as="h3" variant="heading3">
+        {t.mapContent}
+      </Text>
 
-      {open ? (
-        <div
-          id={panelId}
-          className="map-filters-panel"
-          role="dialog"
-          aria-label={t.mapFilters}
+      <div className="lens-toggle" role="group" aria-label={t.mapContent}>
+        <button
+          type="button"
+          className={`lens-btn${layers.lens === "inhabited" ? " is-active" : ""}`}
+          aria-pressed={layers.lens === "inhabited"}
+          onClick={() => onLensChange("inhabited")}
         >
-          <Text as="h3" variant="heading3">
-            {t.mapContent}
-          </Text>
-          <Tabs
-            variant="segmented"
-            size="sm"
-            value={layers.lens}
-            onValueChange={(value) => {
-              if (value === "inhabited" || value === "geography") {
-                onLensChange(value);
-              }
-            }}
-            tabs={[
-              { value: "inhabited", label: t.inhabitedPlaces },
-              { value: "geography", label: t.geography },
-            ]}
-          />
+          {t.inhabitedPlaces}
+        </button>
+        <button
+          type="button"
+          className={`lens-btn${layers.lens === "geography" ? " is-active" : ""}`}
+          aria-pressed={layers.lens === "geography"}
+          onClick={() => onLensChange("geography")}
+        >
+          {t.geography}
+        </button>
+      </div>
 
-          {layers.lens === "geography" ? (
-            <div className="chips" role="group" aria-label={t.geography}>
-              {geographyChips.map(([group, label]) => {
-                const active = layers.geography.has(group);
-                return (
-                  <Button
-                    key={group}
-                    type="button"
-                    size="sm"
-                    variant={active ? "primary" : "outline"}
-                    aria-pressed={active}
-                    onClick={() => onToggleGeography(group)}
-                  >
-                    {label}
-                  </Button>
-                );
-              })}
-            </div>
-          ) : null}
-
-          <Select
-            label={t.municipality}
-            hideLabel={false}
-            value={toKey(layers.municipalityFilter)}
-            onValueChange={(next) => {
-              if (typeof next === "string") onMunicipalityChange(fromKey(next));
-            }}
-            items={municipalityItems}
-          >
-            {municipalityItems.map((option) => (
-              <Select.Option key={option.value} value={option.value}>
-                {option.label}
-              </Select.Option>
-            ))}
-          </Select>
-
-          {dirty ? (
-            <Button type="button" size="sm" variant="ghost" onClick={onReset}>
-              {t.clearFilters}
-            </Button>
-          ) : null}
-        </div>
+      {layers.lens === "geography" ? (
+        <>
+          <p className="lens-hint">{t.geographyZoomHint}</p>
+          <div className="chips" role="group" aria-label={t.geography}>
+            {geographyChips.map(([group, label]) => {
+              const active = layers.geography.has(group);
+              return (
+                <Button
+                  key={group}
+                  type="button"
+                  size="sm"
+                  variant={active ? "primary" : "outline"}
+                  aria-pressed={active}
+                  onClick={() => onToggleGeography(group)}
+                >
+                  {label}
+                </Button>
+              );
+            })}
+          </div>
+        </>
       ) : null}
-    </div>
+
+      <label className="filter-field" htmlFor="municipality-filter">
+        <span className="filter-field-label">{t.municipality}</span>
+        <select
+          id="municipality-filter"
+          className="filter-select"
+          value={toKey(layers.municipalityFilter)}
+          aria-label={t.municipality}
+          onChange={(event) => {
+            onMunicipalityChange(fromKey(event.target.value));
+          }}
+        >
+          {municipalityItems.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      {dirty ? (
+        <Button type="button" size="sm" variant="ghost" onClick={onReset}>
+          {t.clearFilters}
+        </Button>
+      ) : null}
+    </section>
   );
 }

@@ -38,7 +38,7 @@ export type LayerState = {
 
 export const defaultLayerState = (): LayerState => ({
   lens: "inhabited",
-  geography: new Set<GeographyGroup>(["waters", "islands"]),
+  geography: new Set<GeographyGroup>(["waters", "islands", "landforms"]),
   municipalityFilter: null,
 });
 
@@ -78,7 +78,10 @@ export const placeVisible = (
     return place.isLocality;
   }
 
-  if (place.isLocality) return true;
+  // Geography lens: keep towns as anchors; show named geography groups.
+  // Settlements stay on the inhabited lens so the modes feel different.
+  if (place.featureKind === "town") return true;
+  if (place.isLocality) return false;
   const group = geographyGroupFor(place);
   return group != null && layers.geography.has(group);
 };

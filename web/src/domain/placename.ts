@@ -19,7 +19,8 @@ export type { IdentityStatus } from "./identity.ts";
 export const LOCALITY_TYPE_CODES = [21, 23] as const;
 
 export const ZoomBandSchema = Schema.Literals([
-  "locality",
+  "town",
+  "settlement",
   "major",
   "regional",
   "local",
@@ -145,7 +146,7 @@ export const withMapRank = <
     typeLabel: typeLabel(place.typeCode),
     importance: rank.importance,
     minZoom: rank.minZoom,
-    zoomBand: zoomBandFor(rank.importance, place.isLocality),
+    zoomBand: zoomBandFor(rank.importance, place.isLocality, place.typeCode),
   };
 };
 

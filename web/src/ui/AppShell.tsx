@@ -10,10 +10,10 @@ type Props = {
   statusText: string;
   mobileView: MobileView;
   onMobileViewChange: (view: MobileView) => void;
-  listPanel: ReactNode;
+  /** Search results or place dossier open — widen the right rail. */
+  railExpanded: boolean;
   mapPanel: ReactNode;
-  dossierPanel: ReactNode;
-  mapChrome: ReactNode;
+  railPanel: ReactNode;
   mobileSheet: ReactNode;
 };
 
@@ -22,20 +22,19 @@ export function AppShell({
   statusText,
   mobileView,
   onMobileViewChange,
-  listPanel,
+  railExpanded,
   mapPanel,
-  dossierPanel,
-  mapChrome,
+  railPanel,
   mobileSheet,
 }: Props) {
   const { t } = useI18n();
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${railExpanded ? " rail-expanded" : ""}`}>
       <header className="shell-header">
         <div className="shell-brand">
-          <p className="shell-kicker">{t.testBranch}</p>
           <h1 className="shell-title">{t.appTitle}</h1>
+          <p className="shell-tagline">{t.appTagline}</p>
         </div>
         <div className="shell-header-tools">
           <div className="shell-mobile-toggle" role="group" aria-label="View">
@@ -63,15 +62,11 @@ export function AppShell({
       </header>
 
       <div className={`shell-body mobile-view-${mobileView}`}>
-        <aside className="shell-list" aria-label={t.placesList}>
-          {listPanel}
-        </aside>
         <main className="shell-map" aria-label={t.viewMap}>
           {mapPanel}
-          <div className="map-chrome">{mapChrome}</div>
         </main>
-        <aside className="shell-dossier" aria-label={t.overview}>
-          {dossierPanel}
+        <aside className="shell-rail" aria-label={t.placesList}>
+          {railPanel}
         </aside>
       </div>
 

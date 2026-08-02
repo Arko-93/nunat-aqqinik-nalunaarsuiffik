@@ -85,9 +85,9 @@ export const TYPE_LABEL_DA: Readonly<Record<number, string>> = {
 const TYPE_RANK: Readonly<
   Record<number, { importance: number; minZoom: number }>
 > = {
-  // Inhabited places — visible from country scale
-  21: { importance: 1000, minZoom: 2.6 }, // By
-  23: { importance: 920, minZoom: 3.6 }, // Bygd
+  // Inhabited places — towns stay on from country scale; bygder wait for closer zoom
+  21: { importance: 1000, minZoom: 2.2 }, // By
+  23: { importance: 920, minZoom: 5.6 }, // Bygd
   22: { importance: 520, minZoom: 9.0 }, // Bydel
   68: { importance: 480, minZoom: 8.0 }, // Nedlagt bosted
 
@@ -147,13 +147,21 @@ export const rankForType = (
   TYPE_RANK[typeCode] ?? DEFAULT_RANK;
 
 /** MapLibre band for layer filters — progressive disclosure. */
-export type ZoomBand = "locality" | "major" | "regional" | "local" | "detail";
+export type ZoomBand =
+  | "town"
+  | "settlement"
+  | "major"
+  | "regional"
+  | "local"
+  | "detail";
 
 export const zoomBandFor = (
   importance: number,
   isLocality: boolean,
+  typeCode: number,
 ): ZoomBand => {
-  if (isLocality) return "locality";
+  if (typeCode === 21) return "town";
+  if (typeCode === 23 || isLocality) return "settlement";
   if (importance >= 650) return "major";
   if (importance >= 500) return "regional";
   if (importance >= 280) return "local";
@@ -161,9 +169,11 @@ export const zoomBandFor = (
 };
 
 export const BAND_MIN_ZOOM: Readonly<Record<ZoomBand, number>> = {
-  locality: 2.4,
-  major: 4.4,
-  regional: 6.2,
-  local: 8.4,
+  town: 2.2,
+  settlement: 5.6,
+  // Geography: hidden at country scale; denser names as the user zooms in.
+  major: 5.8,
+  regional: 7.0,
+  local: 8.6,
   detail: 10.6,
 };

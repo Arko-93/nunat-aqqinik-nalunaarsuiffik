@@ -5,6 +5,7 @@ import {
   stripGlobalId,
   toPlacename,
   whereClauseForScope,
+  withMapRank,
   type ArcGisPlacenameFeature,
 } from "./placename.ts";
 
@@ -39,6 +40,12 @@ describe("placename domain", () => {
     expect(isLocalityType(49)).toBe(false);
   });
 
+  it("puts bygder in the later settlement band", () => {
+    const settlement = withMapRank({ typeCode: 23, isLocality: true });
+    expect(settlement.zoomBand).toBe("settlement");
+    expect(settlement.minZoom).toBeGreaterThanOrEqual(5);
+  });
+
   it("builds scope where clauses", () => {
     expect(whereClauseForScope("localities")).toBe("Type IN (21,23)");
     expect(whereClauseForScope("all")).toBe("1=1");
@@ -56,7 +63,7 @@ describe("placename domain", () => {
     expect(place!.featureKind).toBe("town");
     expect(place!.isLocality).toBe(true);
     expect(place!.typeLabel).toBe("By");
-    expect(place!.zoomBand).toBe("locality");
+    expect(place!.zoomBand).toBe("town");
     expect(place!.importance).toBeGreaterThan(900);
     expect(place!.globalId).toBe("60CE7AA7-9FC8-4FB3-8D99-7DD77F94CF1E");
     expect(place!.featureId).toBe(

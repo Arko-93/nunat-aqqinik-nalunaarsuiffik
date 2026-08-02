@@ -1,29 +1,58 @@
 import { useEffect, useRef } from "react";
 import maplibregl, { type Map, type GeoJSONSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { BAND_MIN_ZOOM, type ZoomBand } from "../domain/importance.ts";
+import { disclosureMinZoom } from "../domain/disclosure.ts";
+import type { ZoomBand } from "../domain/importance.ts";
+import type {
+  ContentLens,
+  MunicipalityFilter,
+} from "../domain/layers.ts";
 import type { Placename } from "../domain/placename.ts";
 
 const SOURCE_ID = "placenames";
 const SELECTED_SOURCE_ID = "placenames-selected";
 const REACH_SOURCE_ID = "reachability";
 const REACH_LAYER_ID = "reachability-line";
+const ADMIN_SOURCE_ID = "administrative-areas";
+const ADMIN_FILL_ID = "administrative-areas-fill";
+const ADMIN_LINE_ID = "administrative-areas-outline";
 const SELECTED_HALO_ID = "placenames-selected-halo";
 const SELECTED_RING_ID = "placenames-selected-ring";
 const SELECTED_DOT_ID = "placenames-selected-dot";
 const SELECTED_LABEL_ID = "placenames-selected-label";
+
+/** Soft fills — readable at country scale without drowning town labels. */
+const ADMIN_FILL_COLOR: maplibregl.ExpressionSpecification = [
+  "match",
+  ["get", "municipalityCode"],
+  955,
+  "#d4b896",
+  956,
+  "#9ec4cf",
+  957,
+  "#b5c9a8",
+  959,
+  "#c2b3d4",
+  960,
+  "#a8c0d4",
+  999,
+  "#e6ebe8",
+  "#d8d2c4",
+];
 
 const EMPTY_POINTS: GeoJSON.FeatureCollection = {
   type: "FeatureCollection",
   features: [],
 };
 
+/** Geography first; settlements next; towns last so official By labels stay on top. */
 const BANDS: ReadonlyArray<ZoomBand> = [
-  "locality",
-  "major",
-  "regional",
-  "local",
   "detail",
+  "local",
+  "regional",
+  "major",
+  "settlement",
+  "town",
 ];
 
 const circleLayerId = (band: ZoomBand) => `placenames-circle-${band}`;
@@ -33,8 +62,82 @@ type Props = {
   collection: GeoJSON.FeatureCollection<GeoJSON.Point, Placename> | null;
   reachabilityLines: GeoJSON.FeatureCollection<GeoJSON.LineString> | null;
   selectedId: number | null;
+  lens: ContentLens;
+  municipalityFilter: MunicipalityFilter;
   onSelect: (place: Placename) => void;
 };
+
+function addAdministrativeLayers(map: Map) {
+  map.addSource(ADMIN_SOURCE_ID, {
+    type: "geojson",
+    promoteId: "municipalityCode",
+    data: {
+      type: "FeatureCollection",
+      features: [],
+    },
+  });
+
+  map.addLayer({
+    id: ADMIN_FILL_ID,
+    type: "fill",
+    source: ADMIN_SOURCE_ID,
+    paint: {
+      "fill-color": ADMIN_FILL_COLOR,
+      "fill-opacity": [
+        "case",
+        ["boolean", ["feature-state", "dimmed"], false],
+        0.04,
+        [
+          "match",
+          ["get", "kind"],
+          "national_park",
+          0.22,
+          "other",
+          0.14,
+          0.16,
+        ],
+      ],
+    },
+  });
+
+  map.addLayer({
+    id: ADMIN_LINE_ID,
+    type: "line",
+    source: ADMIN_SOURCE_ID,
+    paint: {
+      "line-color": [
+        "match",
+        ["get", "kind"],
+        "national_park",
+        "#6a7a72",
+        "#1c465a",
+      ],
+      "line-width": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        2.5,
+        0.7,
+        5,
+        1.15,
+        8,
+        1.6,
+      ],
+      "line-opacity": [
+        "case",
+        ["boolean", ["feature-state", "dimmed"], false],
+        0.2,
+        [
+          "match",
+          ["get", "kind"],
+          "national_park",
+          0.55,
+          0.7,
+        ],
+      ],
+    },
+  });
+}
 
 function sourceReady(map: Map): boolean {
   return Boolean(map.isStyleLoaded() && map.getSource(SOURCE_ID));
@@ -122,8 +225,7 @@ function parsePlacename(props: GeoJSON.GeoJsonProperties): Placename | null {
   };
 }
 
-function addBandLayers(map: Map, band: ZoomBand) {
-  const minzoom = BAND_MIN_ZOOM[band];
+function addBandLayers(map: Map, band: ZoomBand, minzoom: number) {
   const filter: maplibregl.FilterSpecification = [
     "==",
     ["get", "zoomBand"],
@@ -137,6 +239,7 @@ function addBandLayers(map: Map, band: ZoomBand) {
     minzoom,
     filter,
     paint: {
+      // Zoom expressions must be top-level step/interpolate only — no nesting.
       "circle-radius": [
         "case",
         ["boolean", ["feature-state", "selected"], false],
@@ -148,7 +251,7 @@ function addBandLayers(map: Map, band: ZoomBand) {
           6.5,
           "settlement",
           5.5,
-          ["interpolate", ["linear"], ["zoom"], minzoom, 2.2, minzoom + 3, 3.6],
+          3.0,
         ],
       ],
       "circle-stroke-width": [
@@ -211,9 +314,9 @@ function addBandLayers(map: Map, band: ZoomBand) {
         "match",
         ["get", "featureKind"],
         "town",
-        13.5,
+        13,
         "settlement",
-        12.5,
+        12,
         [
           "interpolate",
           ["linear"],
@@ -221,17 +324,29 @@ function addBandLayers(map: Map, band: ZoomBand) {
           180,
           10.5,
           800,
-          12.5,
+          12,
         ],
       ],
-      "text-offset": [0, 1.05],
-      "text-anchor": "top",
+      // Try alternate anchors so labels sit in open space instead of stacking.
+      "text-variable-anchor": [
+        "top",
+        "bottom",
+        "right",
+        "left",
+        "top-right",
+        "top-left",
+        "bottom-right",
+        "bottom-left",
+      ],
+      "text-radial-offset": band === "town" ? 0.95 : 0.85,
       "text-optional": true,
-      "text-padding": band === "locality" ? 2 : 6,
-      "text-max-width": 9,
-      // Higher importance keeps the label when names collide.
+      "text-padding": band === "town" ? 8 : 10,
+      "text-max-width": 8,
+      // Higher importance wins when two labels compete for the same space.
       "symbol-sort-key": ["get", "importance"],
+      // Never paint overlapping name tags — hide the loser until zoom frees space.
       "text-allow-overlap": false,
+      "text-ignore-placement": false,
       "icon-allow-overlap": false,
     },
     paint: {
@@ -252,20 +367,9 @@ function addBandLayers(map: Map, band: ZoomBand) {
         "case",
         ["boolean", ["feature-state", "selected"], false],
         0,
-        [
-          "case",
-          ["boolean", ["feature-state", "inactive"], false],
-          0.48,
-          [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            minzoom,
-            band === "locality" ? 1 : 0.55,
-            minzoom + 0.8,
-            1,
-          ],
-        ],
+        ["boolean", ["feature-state", "inactive"], false],
+        0.48,
+        band === "town" ? 1 : 0.92,
       ],
     },
   });
@@ -395,6 +499,8 @@ export function MapCanvas({
   collection,
   reachabilityLines,
   selectedId,
+  lens,
+  municipalityFilter,
   onSelect,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -402,10 +508,15 @@ export function MapCanvas({
   const onSelectRef = useRef(onSelect);
   const collectionRef = useRef(collection);
   const reachRef = useRef(reachabilityLines);
+  const lensRef = useRef(lens);
   const fittedRef = useRef(false);
+  const prevSelectedRef = useRef<number | null>(null);
+  const inactiveIdsRef = useRef<Set<number>>(new Set());
+  const adminCodesRef = useRef<number[]>([]);
   onSelectRef.current = onSelect;
   collectionRef.current = collection;
   reachRef.current = reachabilityLines;
+  lensRef.current = lens;
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -426,6 +537,9 @@ export function MapCanvas({
 
     const ensureLayers = () => {
       if (map.getSource(SOURCE_ID)) return;
+
+      // Administrative areas under places — country-scale kommune outlines.
+      addAdministrativeLayers(map);
 
       map.addSource(SOURCE_ID, {
         type: "geojson",
@@ -461,8 +575,9 @@ export function MapCanvas({
         },
       });
 
+      const mins = disclosureMinZoom(lensRef.current);
       for (const band of BANDS) {
-        addBandLayers(map, band);
+        addBandLayers(map, band, mins[band]);
       }
 
       // Selected marker/label paint above band layers and reach lines.
@@ -503,6 +618,25 @@ export function MapCanvas({
     map.on("load", () => {
       ensureLayers();
       bindInteractions();
+      void fetch("/data/administrative-areas.geojson")
+        .then(async (response) => {
+          if (!response.ok) return null;
+          return response.json() as Promise<GeoJSON.FeatureCollection>;
+        })
+        .then((admin) => {
+          if (!admin || !map.getSource(ADMIN_SOURCE_ID)) return;
+          const source = map.getSource(ADMIN_SOURCE_ID) as GeoJSONSource;
+          source.setData(admin);
+          adminCodesRef.current = admin.features.map((feature) =>
+            Number(
+              (feature.properties as { municipalityCode?: number } | null)
+                ?.municipalityCode ?? 0,
+            ),
+          );
+        })
+        .catch(() => {
+          /* basemap still usable without admin outlines */
+        });
       const data = collectionRef.current;
       if (data) {
         const source = map.getSource(SOURCE_ID) as GeoJSONSource;
@@ -533,6 +667,50 @@ export function MapCanvas({
       mapRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    return whenSourceReady(map, () => {
+      const mins = disclosureMinZoom(lens);
+      for (const band of BANDS) {
+        const circleId = circleLayerId(band);
+        const labelId = labelLayerId(band);
+        if (map.getLayer(circleId)) {
+          map.setLayerZoomRange(circleId, mins[band], 24);
+        }
+        if (map.getLayer(labelId)) {
+          map.setLayerZoomRange(labelId, mins[band], 24);
+        }
+      }
+    });
+  }, [lens]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    return whenSourceReady(map, () => {
+      if (!map.getSource(ADMIN_SOURCE_ID)) return;
+      const activeCode =
+        typeof municipalityFilter === "number"
+          ? municipalityFilter
+          : municipalityFilter === "outside"
+            ? 999
+            : null;
+      for (const code of adminCodesRef.current) {
+        const dimmed =
+          activeCode != null &&
+          code !== activeCode &&
+          !(activeCode === 999 && code === 0);
+        map.setFeatureState(
+          { source: ADMIN_SOURCE_ID, id: code },
+          { dimmed },
+        );
+      }
+    });
+  }, [municipalityFilter]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -569,18 +747,37 @@ export function MapCanvas({
       if (!sourceReady(map)) return;
       if (!map.getSource(SELECTED_SOURCE_ID)) return;
 
-      const hasSelection = selectedId != null;
-      for (const feature of collection.features) {
-        const id = feature.properties.recordId;
-        const isSelected = id === selectedId;
+      // Clear prior selection/inactive flags without walking every feature.
+      const clearId = (id: number) => {
         map.setFeatureState(
           { source: SOURCE_ID, id },
-          {
-            selected: isSelected,
-            inactive: hasSelection && !isSelected,
-          },
+          { selected: false, inactive: false },
         );
+      };
+      if (prevSelectedRef.current != null) clearId(prevSelectedRef.current);
+      for (const id of inactiveIdsRef.current) clearId(id);
+      inactiveIdsRef.current.clear();
+
+      if (selectedId != null) {
+        map.setFeatureState(
+          { source: SOURCE_ID, id: selectedId },
+          { selected: true, inactive: false },
+        );
+        // Soft-dim only nearby same-band peers would be ideal; skip mass-dim
+        // when the geography source is large (tens of thousands of points).
+        if (collection.features.length <= 400) {
+          for (const feature of collection.features) {
+            const id = feature.properties.recordId;
+            if (id === selectedId) continue;
+            map.setFeatureState(
+              { source: SOURCE_ID, id },
+              { selected: false, inactive: true },
+            );
+            inactiveIdsRef.current.add(id);
+          }
+        }
       }
+      prevSelectedRef.current = selectedId;
 
       const selectedSource = map.getSource(SELECTED_SOURCE_ID) as GeoJSONSource;
       selectedSource.setData(selectedCollection(collection, selectedId));
@@ -594,9 +791,8 @@ export function MapCanvas({
       const targetZoom = Math.max(
         map.getZoom(),
         selected.properties.minZoom + 1.2,
-        selected.properties.isLocality ? 6.2 : 8.5,
+        selected.properties.isLocality ? 6.2 : 7.4,
       );
-      // Occasional camera move — keep under 300ms feel with ease-out punch.
       map.easeTo({
         center,
         zoom: targetZoom,

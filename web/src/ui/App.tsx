@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Text } from "@cloudflare/kumo/components/text";
 import {
   defaultLayerState,
   placeVisible,
@@ -99,34 +98,27 @@ export function App() {
 
   const visibleCollection = useMemo((): Collection | null => {
     if (!collection) return null;
+    const selectedId = selected?.recordId ?? null;
     return {
       type: "FeatureCollection",
-      features: collection.features.filter((feature) =>
-        placeVisible(feature.properties, layers),
-      ),
+      features: collection.features.filter((feature) => {
+        if (selectedId != null && feature.properties.recordId === selectedId) {
+          return true;
+        }
+        return placeVisible(feature.properties, layers);
+      }),
     };
-  }, [collection, layers]);
+  }, [collection, layers, selected?.recordId]);
 
   const allPlaces = useMemo(
     () => collection?.features.map((feature) => feature.properties) ?? [],
     [collection],
   );
 
-  const visiblePlaces = useMemo(
-    () =>
-      visibleCollection?.features.map((feature) => feature.properties) ?? [],
-    [visibleCollection],
-  );
-
   const results = useMemo(
     () => searchPlacenames(allPlaces, query, 24),
     [allPlaces, query],
   );
-
-  const listFallback = useMemo(() => {
-    const localities = visiblePlaces.filter((place) => place.isLocality);
-    return localities.length > 0 ? localities : visiblePlaces;
-  }, [visiblePlaces]);
 
   const canShowOperations = selected
     ? hasOperationalIdentity(selected)
@@ -167,7 +159,6 @@ export function App() {
 
   const selectPlace = (place: Placename) => {
     setSelected(place);
-    setQuery(place.officialName);
     setSheet("half");
     setMobileView("map");
   };
@@ -187,14 +178,22 @@ export function App() {
   };
 
   const queryActive = query.trim().length >= 2;
+  const railExpanded = queryActive || selected != null;
+
+  const geoOnMap =
+    visibleCollection == null
+      ? 0
+      : visibleCollection.features.filter(
+          (feature) => !feature.properties.isLocality,
+        ).length;
 
   const statusText =
     collection && release
-      ? `${visiblePlaces.length} ${t.shownCount}${
-          layers.municipalityFilter != null || layers.lens !== "inhabited"
-            ? ` · ${t.filtered}`
-            : ""
-        } · ${release.releaseId}`
+      ? layers.lens === "geography"
+        ? `${t.geography} · ${geoOnMap.toLocaleString("en")} · ${release.releaseId}`
+        : `${t.releaseLabel} ${release.releaseId}${
+            layers.municipalityFilter != null ? ` · ${t.filtered}` : ""
+          }`
       : t.loading;
 
   return (
@@ -203,50 +202,48 @@ export function App() {
       statusText={statusText}
       mobileView={mobileView}
       onMobileViewChange={setMobileView}
-      listPanel={
-        <PlaceList
-          query={query}
-          onQueryChange={setQuery}
-          hits={results}
-          fallbackPlaces={listFallback}
-          selectedId={selected?.recordId ?? null}
-          onSelect={selectPlace}
-          queryActive={queryActive}
-        />
-      }
+      railExpanded={railExpanded}
       mapPanel={
         <MapCanvas
           collection={visibleCollection}
           reachabilityLines={reachLines}
           selectedId={selected?.recordId ?? null}
+          lens={layers.lens}
+          municipalityFilter={layers.municipalityFilter}
           onSelect={selectPlace}
         />
       }
-      mapChrome={
-        <MapFilters
-          layers={layers}
-          onLensChange={setLens}
-          onToggleGeography={toggleGeography}
-          onMunicipalityChange={setMunicipalityFilter}
-          onReset={() => setLayers(defaultLayerState())}
-        />
-      }
-      dossierPanel={
-        selected ? (
-          <PlaceDossier
-            place={selected}
-            release={release}
-            reachLinks={reachLinks}
-            onSelectPlaceId={selectByPlaceId}
-            onClose={() => setSelected(null)}
+      railPanel={
+        <div className="shell-rail-stack">
+          <MapFilters
+            layers={layers}
+            onLensChange={setLens}
+            onToggleGeography={toggleGeography}
+            onMunicipalityChange={setMunicipalityFilter}
+            onReset={() => setLayers(defaultLayerState())}
           />
-        ) : (
-          <div className="place-panel-empty">
-            <Text as="p" variant="secondary" size="sm">
-              {t.selectPlaceHint}
-            </Text>
+          <div className="shell-rail-scroll">
+            <PlaceList
+              query={query}
+              onQueryChange={setQuery}
+              hits={results}
+              selectedId={selected?.recordId ?? null}
+              onSelect={selectPlace}
+              queryActive={queryActive}
+            />
+            {selected ? (
+              <div className="shell-rail-dossier">
+                <PlaceDossier
+                  place={selected}
+                  release={release}
+                  reachLinks={reachLinks}
+                  onSelectPlaceId={selectByPlaceId}
+                  onClose={() => setSelected(null)}
+                />
+              </div>
+            ) : null}
           </div>
-        )
+        </div>
       }
       mobileSheet={
         <MobilePlaceSheet
