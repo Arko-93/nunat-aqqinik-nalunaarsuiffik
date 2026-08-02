@@ -1,8 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Badge } from "@cloudflare/kumo/components/badge";
-import { Button } from "@cloudflare/kumo/components/button";
-import { LayerCard } from "@cloudflare/kumo/components/layer-card";
-import { Tabs } from "@cloudflare/kumo/components/tabs";
 import { Text } from "@cloudflare/kumo/components/text";
 import {
   defaultLayerState,
@@ -12,19 +8,30 @@ import {
   type MunicipalityFilter,
 } from "../domain/layers.ts";
 import {
-  enrichCollection,
-  responsibilityLabel,
-  type Placename,
-} from "../domain/placename.ts";
+  hasOperationalIdentity,
+  type IdentityCrosswalk,
+} from "../domain/identity.ts";
+import { enrichCollection, type Placename } from "../domain/placename.ts";
 import {
-  linksFromOfficialName,
+  linksFromPlaceId,
   reachabilityLineCollection,
   type ReachabilityGraph,
 } from "../domain/reachability.ts";
 import { searchPlacenames } from "../domain/search.ts";
+import { useI18n } from "../i18n/I18nContext.tsx";
+import {
+  loadSelectedRelease,
+  type LoadedRelease,
+} from "../services/release.ts";
+import { AppShell, type MobileView } from "./AppShell.tsx";
 import { MapCanvas } from "./MapCanvas.tsx";
-import { MunicipalityMenu } from "./MunicipalityMenu.tsx";
-import { PlaceSearch } from "./PlaceSearch.tsx";
+import { MapFilters } from "./MapFilters.tsx";
+import {
+  MobilePlaceSheet,
+  type SheetState,
+} from "./MobilePlaceSheet.tsx";
+import { PlaceDossier } from "./PlaceDossier.tsx";
+import { PlaceList } from "./PlaceList.tsx";
 
 type Collection = GeoJSON.FeatureCollection<GeoJSON.Point, Placename>;
 
@@ -33,44 +40,50 @@ const EMPTY_LINES: GeoJSON.FeatureCollection<GeoJSON.LineString> = {
   features: [],
 };
 
-const LENS_TABS = [
-  { value: "inhabited", label: "Inhabited" },
-  { value: "geography", label: "+ Geography" },
-] as const;
-
-const GEOGRAPHY_CHIPS = [
-  ["waters", "Waters"],
-  ["islands", "Islands"],
-  ["landforms", "Landforms"],
-] as const;
-
 export function App() {
+  const { t } = useI18n();
   const [collection, setCollection] = useState<Collection | null>(null);
   const [graph, setGraph] = useState<ReachabilityGraph | null>(null);
+  const [release, setRelease] = useState<LoadedRelease | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Placename | null>(null);
   const [layers, setLayers] = useState<LayerState>(() => defaultLayerState());
+  const [mobileView, setMobileView] = useState<MobileView>("map");
+  const [sheet, setSheet] = useState<SheetState>("half");
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      fetch("/data/placenames.geojson").then(async (response) => {
-        if (!response.ok) {
-          throw new Error(`Failed to load placenames (${response.status})`);
-        }
-        return response.json() as Promise<Collection>;
-      }),
-      fetch("/data/reachability-graph.json").then(async (response) => {
-        if (!response.ok) {
-          throw new Error(`Failed to load reachability (${response.status})`);
-        }
-        return response.json() as Promise<ReachabilityGraph>;
-      }),
-    ])
-      .then(([places, reachability]) => {
+    loadSelectedRelease()
+      .then(async (selectedRelease) => {
+        const base = selectedRelease.basePath;
+        const [places, reachability, crosswalk] = await Promise.all([
+          fetch("/data/placenames.geojson").then(async (response) => {
+            if (!response.ok) {
+              throw new Error(`Failed to load placenames (${response.status})`);
+            }
+            return response.json() as Promise<Collection>;
+          }),
+          fetch(`${base}/reachability-graph.json`).then(async (response) => {
+            if (!response.ok) {
+              throw new Error(
+                `Failed to load reachability (${response.status})`,
+              );
+            }
+            return response.json() as Promise<ReachabilityGraph>;
+          }),
+          fetch(`${base}/identity-crosswalk.json`).then(async (response) => {
+            if (!response.ok) {
+              throw new Error(
+                `Failed to load identity crosswalk (${response.status})`,
+              );
+            }
+            return response.json() as Promise<IdentityCrosswalk>;
+          }),
+        ]);
         if (cancelled) return;
-        setCollection(enrichCollection(places));
+        setRelease(selectedRelease);
+        setCollection(enrichCollection(places, crosswalk));
         setGraph(reachability);
         setError(null);
       })
@@ -94,29 +107,45 @@ export function App() {
     };
   }, [collection, layers]);
 
-  const places = useMemo(
+  const allPlaces = useMemo(
+    () => collection?.features.map((feature) => feature.properties) ?? [],
+    [collection],
+  );
+
+  const visiblePlaces = useMemo(
     () =>
       visibleCollection?.features.map((feature) => feature.properties) ?? [],
     [visibleCollection],
   );
 
   const results = useMemo(
-    () => searchPlacenames(places, query, 12),
-    [places, query],
+    () => searchPlacenames(allPlaces, query, 24),
+    [allPlaces, query],
   );
+
+  const listFallback = useMemo(() => {
+    const localities = visiblePlaces.filter((place) => place.isLocality);
+    return localities.length > 0 ? localities : visiblePlaces;
+  }, [visiblePlaces]);
+
+  const canShowOperations = selected
+    ? hasOperationalIdentity(selected)
+    : false;
 
   const reachLinks = useMemo(
     () =>
-      selected ? linksFromOfficialName(graph, selected.officialName) : [],
-    [graph, selected],
+      selected && canShowOperations
+        ? linksFromPlaceId(graph, selected.placeId)
+        : [],
+    [graph, selected, canShowOperations],
   );
 
   const reachLines = useMemo(
     () =>
-      selected
-        ? reachabilityLineCollection(graph, selected.officialName)
+      selected && canShowOperations
+        ? reachabilityLineCollection(graph, selected.placeId)
         : EMPTY_LINES,
-    [graph, selected],
+    [graph, selected, canShowOperations],
   );
 
   const setLens = (lens: LayerState["lens"]) => {
@@ -139,181 +168,100 @@ export function App() {
   const selectPlace = (place: Placename) => {
     setSelected(place);
     setQuery(place.officialName);
+    setSheet("half");
+    setMobileView("map");
   };
 
-  const selectByOfficialName = (name: string) => {
+  const selectByPlaceId = (placeId: string) => {
     const match =
       collection?.features.find(
         (feature) =>
-          feature.properties.isLocality &&
-          feature.properties.officialName.toLocaleLowerCase("kl") ===
-            name.toLocaleLowerCase("kl"),
-      )?.properties ?? null;
+          feature.properties.placeId === placeId &&
+          feature.properties.isLocality,
+      )?.properties ??
+      collection?.features.find(
+        (feature) => feature.properties.placeId === placeId,
+      )?.properties ??
+      null;
     if (match) selectPlace(match);
   };
 
-  const areaLabel = selected
-    ? responsibilityLabel(
-        selected.municipalityCode,
-        selected.municipalityName,
-      )
-    : null;
+  const queryActive = query.trim().length >= 2;
+
+  const statusText =
+    collection && release
+      ? `${visiblePlaces.length} ${t.shownCount}${
+          layers.municipalityFilter != null || layers.lens !== "inhabited"
+            ? ` · ${t.filtered}`
+            : ""
+        } · ${release.releaseId}`
+      : t.loading;
 
   return (
-    <div className="app">
-      <MapCanvas
-        collection={visibleCollection}
-        reachabilityLines={reachLines}
-        selectedId={selected?.recordId ?? null}
-        onSelect={selectPlace}
-      />
-
-      <header className="brand">
-        <Badge variant="beta">Test branch · not main</Badge>
-        <h1>Nunat Aqqinik Nalunaarsuiffik</h1>
-        <p>Place identity lenses for Greenland decisions</p>
-      </header>
-
-      <div className="controls">
-        <LayerCard className="chrome-field chrome-field-pad" data-chrome="lens">
-          <Tabs
-            variant="segmented"
-            size="sm"
-            value={layers.lens}
-            onValueChange={(value) => {
-              if (value === "inhabited" || value === "geography") {
-                setLens(value);
-              }
-            }}
-            tabs={[...LENS_TABS]}
-          />
-        </LayerCard>
-
-        {layers.lens === "geography" ? (
-          <LayerCard
-            className="chrome-field chrome-field-pad"
-            data-chrome="geography"
-          >
-            <div className="chips" role="group" aria-label="Geography groups">
-              {GEOGRAPHY_CHIPS.map(([group, label]) => {
-                const active = layers.geography.has(group);
-                return (
-                  <Button
-                    key={group}
-                    type="button"
-                    size="sm"
-                    variant={active ? "primary" : "outline"}
-                    aria-pressed={active}
-                    onClick={() => toggleGeography(group)}
-                  >
-                    {label}
-                  </Button>
-                );
-              })}
-            </div>
-          </LayerCard>
-        ) : null}
-
-        <MunicipalityMenu
-          value={layers.municipalityFilter}
-          onChange={setMunicipalityFilter}
-        />
-
-        <PlaceSearch
+    <AppShell
+      error={error}
+      statusText={statusText}
+      mobileView={mobileView}
+      onMobileViewChange={setMobileView}
+      listPanel={
+        <PlaceList
           query={query}
-          results={results}
-          selectedId={selected?.recordId ?? null}
           onQueryChange={setQuery}
+          hits={results}
+          fallbackPlaces={listFallback}
+          selectedId={selected?.recordId ?? null}
+          onSelect={selectPlace}
+          queryActive={queryActive}
+        />
+      }
+      mapPanel={
+        <MapCanvas
+          collection={visibleCollection}
+          reachabilityLines={reachLines}
+          selectedId={selected?.recordId ?? null}
           onSelect={selectPlace}
         />
-
-        {selected ? (
-          <LayerCard
-            className="place-panel"
-            data-chrome="place"
-            aria-live="polite"
-          >
-            <LayerCard.Secondary className="place-panel-meta">
-              <Badge variant="secondary">{selected.typeLabel}</Badge>
-              {areaLabel ? (
-                <Badge variant="outline">{areaLabel}</Badge>
-              ) : null}
-            </LayerCard.Secondary>
-            <LayerCard.Primary>
-              <Text as="h2" variant="heading2">
-                {selected.officialName}
-              </Text>
-
-              <dl className="names">
-                <div>
-                  <dt>Official</dt>
-                  <dd>{selected.officialName}</dd>
-                </div>
-                {selected.danishName &&
-                selected.danishName !== selected.officialName ? (
-                  <div>
-                    <dt>Danish</dt>
-                    <dd>{selected.danishName}</dd>
-                  </div>
-                ) : null}
-                {selected.oldOfficialName &&
-                selected.oldOfficialName !== selected.officialName ? (
-                  <div>
-                    <dt>Historical</dt>
-                    <dd>{selected.oldOfficialName}</dd>
-                  </div>
-                ) : null}
-              </dl>
-
-              {reachLinks.length > 0 ? (
-                <div className="reach">
-                  <Text as="h3" variant="heading3">
-                    Reachable from here
-                  </Text>
-                  <ul>
-                    {reachLinks.map((link) => (
-                      <li key={link.edge.id}>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          className="reach-link"
-                          onClick={() => selectByOfficialName(link.otherName)}
-                        >
-                          <span className="reach-name">{link.otherName}</span>
-                          <Text as="span" variant="secondary" size="xs">
-                            {link.edge.mode}
-                            {link.edge.operator
-                              ? ` · ${link.edge.operator}`
-                              : ""}
-                            {` · ${link.seasonLabel}`}
-                          </Text>
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : selected.isLocality ? (
-                <p className="hint">
-                  <Text as="span" variant="secondary" size="sm">
-                    No structural connections in the seed graph yet for this
-                    locality.
-                  </Text>
-                </p>
-              ) : null}
-            </LayerCard.Primary>
-          </LayerCard>
-        ) : null}
-      </div>
-
-      <div className={`status${error ? " error" : ""}`}>
-        {error
-          ? error
-          : collection
-            ? `${places.length} shown · ${layers.lens}${
-                layers.municipalityFilter != null ? " · filtered" : ""
-              }`
-            : "Loading map lenses…"}
-      </div>
-    </div>
+      }
+      mapChrome={
+        <MapFilters
+          layers={layers}
+          onLensChange={setLens}
+          onToggleGeography={toggleGeography}
+          onMunicipalityChange={setMunicipalityFilter}
+          onReset={() => setLayers(defaultLayerState())}
+        />
+      }
+      dossierPanel={
+        selected ? (
+          <PlaceDossier
+            place={selected}
+            release={release}
+            reachLinks={reachLinks}
+            onSelectPlaceId={selectByPlaceId}
+            onClose={() => setSelected(null)}
+          />
+        ) : (
+          <div className="place-panel-empty">
+            <Text as="p" variant="secondary" size="sm">
+              {t.selectPlaceHint}
+            </Text>
+          </div>
+        )
+      }
+      mobileSheet={
+        <MobilePlaceSheet
+          place={selected}
+          release={release}
+          reachLinks={reachLinks}
+          sheet={sheet}
+          onSheetChange={setSheet}
+          onSelectPlaceId={selectByPlaceId}
+          onClose={() => {
+            setSelected(null);
+            setSheet("collapsed");
+          }}
+        />
+      }
+    />
   );
 }

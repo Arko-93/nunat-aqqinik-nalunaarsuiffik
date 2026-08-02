@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit --pretty false",
     "test": "vitest run",
     "fetch:placenames": "tsx scripts/fetch-placenames.ts",
-    "fetch:localities": "tsx scripts/fetch-placenames.ts localities"
+    "fetch:localities": "tsx scripts/fetch-placenames.ts localities",
+    "build:identity-crosswalk": "python3 scripts/build-identity-crosswalk.py"
   },
   "dependencies": {
     "@cloudflare/kumo": "2.9.0",

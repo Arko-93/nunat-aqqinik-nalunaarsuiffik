@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:decision-geography:schema:change-event",
+  "title": "Decision Geography import or release change event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "kind",
+    "entity_type",
+    "summary",
+    "observed_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^chg_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "import_run_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^(imp_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})?$"
+    },
+    "release_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^(\\d{4}\\.\\d{2}\\.\\d{2}\\.\\d+)?$"
+    },
+    "kind": {
+      "enum": [
+        "added",
+        "modified",
+        "removed",
+        "conflicted",
+        "remapped"
+      ]
+    },
+    "entity_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entity_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "upstream_record_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date"
+    }
+  }
+}

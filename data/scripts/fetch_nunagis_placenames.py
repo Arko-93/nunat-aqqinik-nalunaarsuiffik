@@ -105,6 +105,11 @@ def write_json(path: Path, payload: object) -> None:
         file.write("\n")
 
 
+def read_json(path: Path) -> object:
+    with path.open(encoding="utf-8") as file:
+        return json.load(file)
+
+
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as file:
@@ -131,7 +136,12 @@ def main() -> None:
         "--output-dir",
         type=Path,
         default=None,
-        help="Override output directory (default: data/raw/nunagis_placenames/<date>)",
+        help="Override output directory (default: data/snapshots/nunagis_placenames/<date>)",
+    )
+    parser.add_argument(
+        "--legacy-raw-dir",
+        action="store_true",
+        help="Also mirror output to data/raw/nunagis_placenames/<date>",
     )
     args = parser.parse_args()
 
@@ -139,7 +149,7 @@ def main() -> None:
     features = fetch_features(names)
 
     output_dir = args.output_dir or (
-        DATA_DIR / "raw" / "nunagis_placenames" / args.retrieved_at
+        DATA_DIR / "snapshots" / "nunagis_placenames" / args.retrieved_at
     )
     features_path = output_dir / "seed-name-query.json"
     write_json(
@@ -169,18 +179,25 @@ def main() -> None:
             }
         )
     )
-    manifest = {
-        "source_id": "src_nunagis_placenames_register",
-        "title": "NunaGIS PlacenamesRegisterPublic seed-name query",
-        "publisher": "NunaGIS / Oqaasileriffik",
+    retrieved_at_iso = (
+        f"{args.retrieved_at}T00:00:00Z"
+        if "T" not in args.retrieved_at
+        else args.retrieved_at
+    )
+    snapshot_id = f"snp_nunagis_placenames_{args.retrieved_at.replace('-', '_')}"
+    storage_path = str(output_dir.relative_to(DATA_DIR))
+    snapshot_manifest = {
+        "id": snapshot_id,
+        "source_dataset_id": "dsd_nunagis_placenames_register",
         "url": LAYER_URL,
-        "query_url": query_url,
-        "retrieved_at": args.retrieved_at,
+        "retrieved_at": retrieved_at_iso,
         "media_type": "application/json",
         "checksum": f"sha256:{checksum}",
-        "licence": None,
+        "schema_fingerprint": None,
+        "licence_status": "unknown",
+        "storage_path": storage_path,
+        "byte_size": features_path.stat().st_size,
         "record_count": len(features),
-        "seed_official_names": names,
         "notes": (
             "Public ArcGIS REST extract of Stednavneregister offentlig. "
             "Oqaasileriffik (Tino Didriksen) pointed Ole to this endpoint on "
@@ -188,7 +205,31 @@ def main() -> None:
             "Attributes only; geometry omitted. Licence not stated on service metadata."
         ),
     }
-    write_json(output_dir / "manifest.json", manifest)
+    write_json(output_dir / "manifest.json", snapshot_manifest)
+
+    if args.legacy_raw_dir:
+        legacy_dir = DATA_DIR / "raw" / "nunagis_placenames" / args.retrieved_at
+        if legacy_dir != output_dir:
+            legacy_dir.mkdir(parents=True, exist_ok=True)
+            write_json(legacy_dir / "seed-name-query.json", load_json(features_path))
+            write_json(
+                legacy_dir / "manifest.json",
+                {
+                    "source_id": "src_nunagis_placenames_register",
+                    "title": "NunaGIS PlacenamesRegisterPublic seed-name query",
+                    "publisher": "NunaGIS / Oqaasileriffik",
+                    "url": LAYER_URL,
+                    "query_url": query_url,
+                    "retrieved_at": args.retrieved_at,
+                    "media_type": "application/json",
+                    "checksum": f"sha256:{checksum}",
+                    "licence": None,
+                    "record_count": len(features),
+                    "seed_official_names": names,
+                    "notes": snapshot_manifest["notes"],
+                },
+            )
+
     print(
         f"Wrote {len(features)} features for {len(names)} seed names to {output_dir}"
     )

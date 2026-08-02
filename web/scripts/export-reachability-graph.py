@@ -22,6 +22,21 @@ def load_ndjson(path: Path) -> list[dict]:
     return rows
 
 
+def service_payload(row: dict) -> dict:
+    return {
+        "serviceId": row["id"],
+        "operator": row.get("operator"),
+        "capabilities": row.get("capabilities") or [],
+        "frequencyBand": row.get("frequency_band"),
+        "frequencyBasis": row.get("frequency_basis"),
+        "seasonality": row.get("seasonality") or {"kind": "unknown", "months": []},
+        "status": row.get("status"),
+        "validFrom": row.get("valid_from"),
+        "validTo": row.get("valid_to"),
+        "sourceRefs": row.get("source_refs") or [],
+    }
+
+
 def main() -> None:
     places = {row["id"]: row for row in load_ndjson(SOURCE / "places.ndjson")}
     names = load_ndjson(SOURCE / "place-names.ndjson")
@@ -87,11 +102,9 @@ def main() -> None:
             for svc in services_by_connection.get(connection["id"], [])
             if svc.get("status") == "active" and svc.get("valid_to") is None
         ]
-        seasonality = (
-            active[0].get("seasonality")
-            if active
-            else {"kind": "unknown", "months": []}
-        )
+        # Preserve every applicable service; do not collapse to the first only.
+        service_rows = [service_payload(svc) for svc in active]
+        primary = service_rows[0] if service_rows else None
         edges.append(
             {
                 "id": connection["id"],
@@ -101,9 +114,15 @@ def main() -> None:
                 "toName": official[destination],
                 "direction": connection.get("direction", "bidirectional"),
                 "mode": connection["mode"],
-                "operator": active[0].get("operator") if active else None,
-                "frequencyBand": active[0].get("frequency_band") if active else None,
-                "seasonality": seasonality,
+                "services": service_rows,
+                # Convenience fields from the first active service (UI summary).
+                "operator": primary["operator"] if primary else None,
+                "frequencyBand": primary["frequencyBand"] if primary else None,
+                "seasonality": (
+                    primary["seasonality"]
+                    if primary
+                    else {"kind": "unknown", "months": []}
+                ),
             }
         )
 

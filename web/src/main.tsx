@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@cloudflare/kumo/styles/standalone";
+import { I18nProvider } from "./i18n/I18nContext.tsx";
 import { App } from "./ui/App.tsx";
 import "./ui/app.css";
 
@@ -11,6 +12,8 @@ if (!root) {
 
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <I18nProvider>
+      <App />
+    </I18nProvider>
   </StrictMode>,
 );

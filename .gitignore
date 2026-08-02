@@ -8,4 +8,8 @@ preview/dist/
 preview/data/
 web/node_modules/
 web/dist/
+api/node_modules/
+api/dist/
+*.db-shm
+*.db-wal
 *.log

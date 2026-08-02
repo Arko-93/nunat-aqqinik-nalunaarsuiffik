@@ -59,9 +59,30 @@ describe("placename domain", () => {
     expect(place!.zoomBand).toBe("locality");
     expect(place!.importance).toBeGreaterThan(900);
     expect(place!.globalId).toBe("60CE7AA7-9FC8-4FB3-8D99-7DD77F94CF1E");
+    expect(place!.featureId).toBe(
+      "nunagis:60CE7AA7-9FC8-4FB3-8D99-7DD77F94CF1E",
+    );
+    expect(place!.placeId).toBeNull();
+    expect(place!.identityStatus).toBe("upstream_only");
     expect(place!.municipalityName).toBe("Qeqqata kommunia");
     expect(place!.longitude).toBeCloseTo(-53.64957, 4);
     expect(place!.latitude).toBeCloseTo(66.94287, 4);
+  });
+
+  it("attaches candidate placeId from crosswalk", () => {
+    const place = toPlacename(sample, {
+      generatedFrom: "test",
+      entries: [
+        {
+          featureId: "nunagis:60CE7AA7-9FC8-4FB3-8D99-7DD77F94CF1E",
+          placeId: "plc_bc0c50c0-552d-4f4b-8c9f-c65fcc33bf3b",
+          identityStatus: "candidate",
+          globalId: "60CE7AA7-9FC8-4FB3-8D99-7DD77F94CF1E",
+        },
+      ],
+    });
+    expect(place!.placeId).toBe("plc_bc0c50c0-552d-4f4b-8c9f-c65fcc33bf3b");
+    expect(place!.identityStatus).toBe("candidate");
   });
 
   it("drops features with null official names", () => {

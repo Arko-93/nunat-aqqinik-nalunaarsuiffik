@@ -21,6 +21,9 @@ const place = (partial: {
   });
   return {
     ...ranked,
+    featureId: `nunagis:${partial.globalId}`,
+    placeId: null,
+    identityStatus: "upstream_only",
     globalId: partial.globalId,
     recordId: partial.recordId,
     officialName: partial.officialName,

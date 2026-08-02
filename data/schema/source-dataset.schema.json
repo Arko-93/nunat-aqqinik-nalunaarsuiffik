@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:decision-geography:schema:source-dataset",
+  "title": "Decision Geography upstream source dataset",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "authority_scope",
+    "access_method"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^dsd_[a-z0-9_]+$|^dsd_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "publisher": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "authority_scope": {
+      "type": "string",
+      "minLength": 1
+    },
+    "access_method": {
+      "enum": [
+        "rest_api",
+        "bulk_export",
+        "manual",
+        "partner_feed"
+      ]
+    },
+    "terms_url": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "licence": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "expected_cadence": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

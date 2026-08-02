@@ -67,8 +67,25 @@ function parsePlacename(props: GeoJSON.GeoJsonProperties): Placename | null {
     props.isLocality === true ||
     props.isLocality === "true" ||
     props.isLocality === 1;
+  const globalId = String(props.globalId ?? "");
+  const identityStatus =
+    props.identityStatus === "canonical" ||
+    props.identityStatus === "candidate" ||
+    props.identityStatus === "upstream_only"
+      ? props.identityStatus
+      : "upstream_only";
   return {
     ...(props as Placename),
+    featureId:
+      typeof props.featureId === "string" && props.featureId.length > 0
+        ? props.featureId
+        : `nunagis:${globalId}`,
+    placeId:
+      props.placeId == null || props.placeId === ""
+        ? null
+        : String(props.placeId),
+    identityStatus,
+    globalId,
     isLocality,
     isLocalityShadow:
       props.isLocalityShadow === true ||

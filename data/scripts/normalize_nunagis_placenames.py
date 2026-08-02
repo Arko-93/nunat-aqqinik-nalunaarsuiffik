@@ -66,17 +66,21 @@ def write_ndjson(path: Path, rows: list[dict]) -> None:
             )
 
 
-def latest_raw_snapshot(raw_root: Path) -> Path:
-    if not raw_root.exists():
-        raise SystemExit(f"raw snapshot root missing: {raw_root}")
+def latest_snapshot(root: Path, payload_name: str = "seed-name-query.json") -> Path:
+    if not root.exists():
+        raise SystemExit(f"snapshot root missing: {root}")
     candidates = sorted(
         path
-        for path in raw_root.iterdir()
-        if path.is_dir() and (path / "seed-name-query.json").exists()
+        for path in root.iterdir()
+        if path.is_dir() and (path / payload_name).exists()
     )
     if not candidates:
-        raise SystemExit(f"no seed-name-query.json snapshots under {raw_root}")
+        raise SystemExit(f"no {payload_name} snapshots under {root}")
     return candidates[-1]
+
+
+def latest_raw_snapshot(raw_root: Path) -> Path:
+    return latest_snapshot(raw_root)
 
 
 def main() -> None:
@@ -96,10 +100,12 @@ def main() -> None:
 
     input_path = args.input
     if input_path is None:
-        input_path = (
-            latest_raw_snapshot(DATA_DIR / "raw" / "nunagis_placenames")
-            / "seed-name-query.json"
-        )
+        snapshot_root = DATA_DIR / "snapshots" / "nunagis_placenames"
+        raw_root = DATA_DIR / "raw" / "nunagis_placenames"
+        if snapshot_root.exists() and list(snapshot_root.iterdir()):
+            input_path = latest_snapshot(snapshot_root) / "seed-name-query.json"
+        else:
+            input_path = latest_raw_snapshot(raw_root) / "seed-name-query.json"
     payload = read_json(input_path)
     features = payload.get("features")
     if not isinstance(features, list):
