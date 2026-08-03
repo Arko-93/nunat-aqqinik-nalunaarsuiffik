@@ -1,0 +1,14 @@
+{
+  "id": "ice_mock_uummannaq_2026-08-03",
+  "kind": "sea_ice",
+  "source": "POC fixture — replace with DMI/Copernicus snapshot",
+  "issuedAt": "2026-08-02T18:00:00Z",
+  "retrievedAt": "2026-08-03T09:00:00Z",
+  "validFrom": "2026-08-02T18:00:00Z",
+  "validTo": "2026-08-03T18:00:00Z",
+  "summary": {
+    "concentration": "open_water_with_scattered_bergy_bits",
+    "confidence": "low"
+  },
+  "disclaimer": "Absence of mapped ice is not a safe-passage signal."
+}

@@ -1,0 +1,48 @@
+{
+  "version": 8,
+  "name": "uummannaq-qaarsut-companion",
+  "metadata": {
+    "nunat:safety": "not-for-navigation",
+    "nunat:corridor": "corridor_uummannaq_qaarsut_2026-08-01"
+  },
+  "sources": {
+    "corridor-places": {
+      "type": "geojson",
+      "data": "places.geojson"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#0b1c28"
+      }
+    },
+    {
+      "id": "places-circle",
+      "type": "circle",
+      "source": "corridor-places",
+      "paint": {
+        "circle-radius": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          6,
+          2.5,
+          12,
+          5.5
+        ],
+        "circle-color": [
+          "case",
+          ["==", ["get", "isLocality"], true],
+          "#f0c674",
+          "#8fb8c9"
+        ],
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#041018",
+        "circle-opacity": 0.92
+      }
+    }
+  ]
+}

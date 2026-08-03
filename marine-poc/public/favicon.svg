@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Nunat Marine">
+  <rect width="64" height="64" rx="12" fill="#0b1c28"/>
+  <path d="M8 40c8-10 16-14 24-14s16 4 24 14" fill="none" stroke="#8fb8c9" stroke-width="3"/>
+  <circle cx="34" cy="28" r="4" fill="#e3a23a"/>
+  <path d="M18 46h28" stroke="#6fbf8a" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,17 @@
+{
+  "id": "weather_mock_uummannaq_2026-08-03",
+  "kind": "weather",
+  "source": "POC fixture — replace with DMI HARMONIE snapshot",
+  "issuedAt": "2026-08-03T12:00:00Z",
+  "retrievedAt": "2026-08-03T12:05:00Z",
+  "validFrom": "2026-08-03T12:00:00Z",
+  "validTo": "2026-08-03T18:00:00Z",
+  "summary": {
+    "windMs": 6.2,
+    "windDirDeg": 320,
+    "gustMs": 9.1,
+    "visibilityKm": 12,
+    "airTempC": 4.5
+  },
+  "disclaimer": "Model/fixture context only. Not a local sea-condition guarantee."
+}

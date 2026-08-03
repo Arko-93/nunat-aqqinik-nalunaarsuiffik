@@ -2,7 +2,7 @@
 
 SHELL := /bin/bash
 
-.PHONY: preview-assemble map-fetch map-build map-omarchy preview-omarchy api-install api-typecheck api-test api-dev
+.PHONY: preview-assemble map-fetch map-build map-omarchy preview-omarchy api-install api-typecheck api-test api-dev marine-install marine-test marine-build marine-omarchy
 
 map-fetch:
 	bash scripts/sync-web-release.sh
@@ -41,3 +41,16 @@ api-test:
 
 api-dev: api-install
 	pnpm --dir api dev
+
+marine-install:
+	pnpm --dir marine-poc install
+
+marine-test: marine-install
+	pnpm --dir marine-poc test
+
+marine-build: marine-install
+	pnpm --dir marine-poc build
+
+# Omarchy marine POC on :3458 (does not replace place-names map on :3457)
+marine-omarchy: marine-build
+	bash scripts/deploy-omarchy-marine.sh
