@@ -727,11 +727,12 @@ def write_style(
         beach_fill,
         land_outline,
     ]
-    insert_at = 1
+    # Ocean bands above background, below land; water above land-fill.
     if has_ocean_bands:
         sources["ocean-bands"] = {"type": "geojson", "data": "ocean-bands.geojson"}
+        bg_idx = next(i for i, layer in enumerate(layers) if layer["id"] == "background")
         layers.insert(
-            insert_at,
+            bg_idx + 1,
             {
                 "id": "ocean-shelf",
                 "type": "fill",
@@ -744,7 +745,7 @@ def write_style(
             },
         )
         layers.insert(
-            insert_at + 1,
+            bg_idx + 2,
             {
                 "id": "ocean-nearshore",
                 "type": "fill",
@@ -756,11 +757,13 @@ def write_style(
                 },
             },
         )
-        insert_at += 2
     if has_water:
         sources["water"] = {"type": "geojson", "data": "water.geojson"}
+        land_fill_idx = next(
+            i for i, layer in enumerate(layers) if layer["id"] == "land-fill"
+        )
         layers.insert(
-            insert_at + 1,  # after land-fill
+            land_fill_idx + 1,
             {
                 "id": "water-fill",
                 "type": "fill",

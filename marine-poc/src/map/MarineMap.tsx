@@ -333,39 +333,56 @@ const ZOOM_VISIBLE_FILTER: maplibregl.FilterSpecification = [
   ["zoom"],
 ];
 
-const fallbackStyle = (packageBaseUrl: string): StyleSpecification => ({
-  version: 8,
-  glyphs: GLYPHS_URL,
-  sources: {
-    land: {
-      type: "geojson",
-      data: `${packageBaseUrl}/land.geojson`,
+const fallbackStyle = (
+  packageBaseUrl: string,
+  preferLandPmtiles = false,
+): StyleSpecification => {
+  const landSource: StyleSpecification["sources"][string] = preferLandPmtiles
+    ? {
+        type: "vector",
+        url: `pmtiles://${absolutePackageUrl(packageBaseUrl, "land.pmtiles")}`,
+        attribution: "© OpenStreetMap contributors",
+      }
+    : {
+        type: "geojson",
+        data: `${packageBaseUrl}/land.geojson`,
+      };
+  const landLayerExtra = preferLandPmtiles
+    ? ({ "source-layer": "land" } as const)
+    : {};
+  return {
+    version: 8,
+    glyphs: GLYPHS_URL,
+    sources: {
+      land: landSource,
+      "corridor-places": {
+        type: "geojson",
+        data: `${packageBaseUrl}/places.geojson`,
+      },
     },
-    "corridor-places": {
-      type: "geojson",
-      data: `${packageBaseUrl}/places.geojson`,
-    },
-  },
-  layers: [
-    {
-      id: "background",
-      type: "background",
-      paint: { "background-color": "#0b1c28" },
-    },
-    {
-      id: "land-fill",
-      type: "fill",
-      source: "land",
-      paint: { "fill-color": "#1d3a2f", "fill-opacity": 0.92 },
-    },
-    {
-      id: "land-outline",
-      type: "line",
-      source: "land",
-      paint: { "line-color": "#3d6b57", "line-width": 1.2 },
-    },
-  ],
-});
+    layers: [
+      {
+        id: "background",
+        type: "background",
+        paint: { "background-color": "#0b1c28" },
+      },
+      {
+        id: "land-fill",
+        type: "fill",
+        source: "land",
+        ...landLayerExtra,
+        paint: { "fill-color": "#1d3a2f", "fill-opacity": 0.92 },
+      },
+      {
+        id: "land-outline",
+        type: "line",
+        source: "land",
+        ...landLayerExtra,
+        paint: { "line-color": "#3d6b57", "line-width": 1.2 },
+      },
+    ],
+  };
+};
 
 const ensureGlyphs = (style: StyleSpecification): StyleSpecification => {
   if (style.glyphs) return style;
@@ -450,7 +467,20 @@ export function MarineMap({
       } catch {
         // ignore — fallback below
       }
-      if (!packageStyle) packageStyle = ensureGlyphs(fallbackStyle(packageBaseUrl));
+      if (!packageStyle) {
+        let preferLandPmtiles = false;
+        try {
+          const probe = await fetch(`${packageBaseUrl}/land.pmtiles`, {
+            method: "HEAD",
+          });
+          preferLandPmtiles = probe.ok;
+        } catch {
+          preferLandPmtiles = false;
+        }
+        packageStyle = ensureGlyphs(
+          fallbackStyle(packageBaseUrl, preferLandPmtiles),
+        );
+      }
 
       let style = packageStyle;
       let basemapMode: BasemapMode = "offline";
