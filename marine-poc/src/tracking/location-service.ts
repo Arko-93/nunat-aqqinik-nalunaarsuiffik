@@ -199,9 +199,35 @@ export class WebLocationService implements LocationService {
     });
 }
 
+const insecureOrigin = (): boolean => {
+  if (typeof window === "undefined") return false;
+  return !window.isSecureContext;
+};
+
+/** Corridor demo position when browser blocks geolocation on HTTP. */
+const DEMO_POINT: LocationPoint = {
+  latitude: 70.72,
+  longitude: -52.2,
+  horizontalAccuracyM: 12,
+  altitudeM: 3,
+  verticalAccuracyM: null,
+  speedMps: 0,
+  courseDeg: null,
+  recordedAt: new Date().toISOString(),
+  provider: "web",
+  mocked: true,
+};
+
 export class BridgedLocationService implements LocationService {
   private readonly web = new WebLocationService();
   private readonly plugin: BackgroundLocationPlugin;
+  private demoTimer: ReturnType<typeof setInterval> | null = null;
+  private demoSequence = 0;
+  private readonly pointListeners = new Set<(point: LocationPoint) => void>();
+  private readonly errorListeners = new Set<
+    (error: LocationError | PermissionError) => void
+  >();
+  private useDemo = false;
 
   constructor(
     plugin: BackgroundLocationPlugin = createBackgroundLocationPlugin(),
@@ -209,18 +235,89 @@ export class BridgedLocationService implements LocationService {
     this.plugin = plugin;
   }
 
-  subscribe = this.web.subscribe;
+  subscribe = (
+    onPoint: (point: LocationPoint) => void,
+    onError?: (error: LocationError | PermissionError) => void,
+  ): LocationUnsubscribe => {
+    this.pointListeners.add(onPoint);
+    if (onError) this.errorListeners.add(onError);
+    const nested = this.web.subscribe(
+      (point) => {
+        if (!this.useDemo) onPoint(point);
+      },
+      (error) => {
+        if (!this.useDemo && onError) onError(error);
+      },
+    );
+    return () => {
+      this.pointListeners.delete(onPoint);
+      if (onError) this.errorListeners.delete(onError);
+      nested();
+    };
+  };
+
+  private startDemo = (
+    profile: RecordingProfile,
+  ): TrackingSession => {
+    this.useDemo = true;
+    this.demoSequence = 0;
+    if (this.demoTimer) clearInterval(this.demoTimer);
+    const tickMs =
+      profile === "close_approach"
+        ? 1500
+        : profile === "battery_reserve"
+          ? 5000
+          : 2500;
+    this.demoTimer = setInterval(() => {
+      this.demoSequence += 1;
+      const point: LocationPoint = {
+        ...DEMO_POINT,
+        latitude: DEMO_POINT.latitude + this.demoSequence * 0.00035,
+        longitude: DEMO_POINT.longitude + this.demoSequence * 0.00055,
+        speedMps: 2.2,
+        courseDeg: 55,
+        recordedAt: new Date().toISOString(),
+        mocked: true,
+      };
+      for (const listener of this.pointListeners) listener(point);
+    }, tickMs);
+    // Emit immediately so UI unlocks.
+    for (const listener of this.pointListeners) {
+      listener({ ...DEMO_POINT, recordedAt: new Date().toISOString() });
+    }
+    return {
+      tripId: crypto.randomUUID(),
+      startedAt: new Date().toISOString(),
+      profile,
+      mode: "web-foreground",
+    };
+  };
 
   start = (
     profile: RecordingProfile = "normal_travel",
   ): Effect.Effect<TrackingSession, PermissionError | LocationError> =>
     Effect.tryPromise({
       try: async () => {
-        const nativeAvailable = await this.plugin.isNativeAvailable();
-        if (nativeAvailable) {
-          return this.plugin.startBackground(profile);
+        if (insecureOrigin()) {
+          return this.startDemo(profile);
         }
-        return Effect.runPromise(this.web.start(profile));
+        try {
+          const nativeAvailable = await this.plugin.isNativeAvailable();
+          if (nativeAvailable) {
+            return await this.plugin.startBackground(profile);
+          }
+          return await Effect.runPromise(this.web.start(profile));
+        } catch (error) {
+          const message = String(error);
+          if (
+            message.includes("secure origins") ||
+            message.includes("Only secure origins") ||
+            error instanceof PermissionError
+          ) {
+            return this.startDemo(profile);
+          }
+          throw error;
+        }
       },
       catch: (error) => {
         if (
@@ -236,6 +333,11 @@ export class BridgedLocationService implements LocationService {
   stop = (): Effect.Effect<void, LocationError> =>
     Effect.tryPromise({
       try: async () => {
+        if (this.demoTimer) {
+          clearInterval(this.demoTimer);
+          this.demoTimer = null;
+        }
+        this.useDemo = false;
         await this.plugin.stopBackground();
         await Effect.runPromise(this.web.stop());
       },
@@ -245,5 +347,39 @@ export class BridgedLocationService implements LocationService {
   getCurrent = (): Effect.Effect<
     LocationPoint,
     PermissionError | LocationError
-  > => this.web.getCurrent();
+  > =>
+    Effect.tryPromise({
+      try: async () => {
+        if (insecureOrigin()) {
+          return {
+            ...DEMO_POINT,
+            recordedAt: new Date().toISOString(),
+          };
+        }
+        try {
+          return await Effect.runPromise(this.web.getCurrent());
+        } catch (error) {
+          const message = String(error);
+          if (
+            message.includes("secure origins") ||
+            error instanceof PermissionError
+          ) {
+            return {
+              ...DEMO_POINT,
+              recordedAt: new Date().toISOString(),
+            };
+          }
+          throw error;
+        }
+      },
+      catch: (error) => {
+        if (
+          error instanceof PermissionError ||
+          error instanceof LocationError
+        ) {
+          return error;
+        }
+        return new LocationError(String(error));
+      },
+    });
 }

@@ -77,7 +77,8 @@ export type MessageKey =
   | "openMap"
   | "backPrepare"
   | "showPanel"
-  | "hidePanel";
+  | "hidePanel"
+  | "demoGpsNote";
 
 type Dict = Record<MessageKey, string>;
 
@@ -155,6 +156,8 @@ const kl: Dict = {
   backPrepare: "Uterit",
   showPanel: "Panel",
   hidePanel: "Matuk panel",
+  demoGpsNote:
+    "HTTP Omarchy: GPS simulator atorneqarpoq (secure context pissaanngilaq).",
 };
 
 const da: Dict = {
@@ -231,6 +234,8 @@ const da: Dict = {
   backPrepare: "Tilbage",
   showPanel: "Panel",
   hidePanel: "Skjul panel",
+  demoGpsNote:
+    "HTTP Omarchy: bruger GPS-simulator (browser kræver HTTPS til rigtig GPS).",
 };
 
 const en: Dict = {
@@ -307,6 +312,8 @@ const en: Dict = {
   backPrepare: "Back",
   showPanel: "Panel",
   hidePanel: "Hide panel",
+  demoGpsNote:
+    "HTTP Omarchy: using GPS simulator (browser needs HTTPS for real GPS).",
 };
 
 export const MESSAGES: Record<Locale, Dict> = { kl, da, en };

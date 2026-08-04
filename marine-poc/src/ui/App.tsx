@@ -94,6 +94,7 @@ export function App() {
   const [showWaypointSheet, setShowWaypointSheet] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [placeScope, setPlaceScope] = useState<PlaceScope>("localities");
   const [selectedPlace, setSelectedPlace] = useState<CorridorPlace | null>(
     null,
@@ -220,10 +221,12 @@ export function App() {
 
   const ensureGps = async () => {
     setGpsState("requesting");
+    setError(null);
     try {
       const point = await Effect.runPromise(location.getCurrent());
       setPosition(point);
       setGpsState("ready");
+      setNotice(point.mocked ? t("demoGpsNote") : null);
       await Effect.runPromise(location.start(profile));
     } catch (err) {
       setError(String(err));
@@ -697,6 +700,7 @@ export function App() {
           ) : (
             <p className="meta">{t("clickPlaceHint")}</p>
           )}
+          {notice ? <p className="caution">{notice}</p> : null}
           {error ? <div className="stale-banner">{error}</div> : null}
           <button
             className="secondary"
