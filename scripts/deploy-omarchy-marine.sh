@@ -4,7 +4,7 @@ set -euo pipefail
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 remote_host="${OMARCHY_HOST:-omarchy}"
 remote_dir="${OMARCHY_MARINE_REMOTE_DIR:-/home/oolsvig/apps/nunat-marine-poc}"
-preview_port="${OMARCHY_MARINE_PORT:-3458}"
+preview_port="${OMARCHY_MARINE_PORT:-3459}"
 container_name="nunat-marine-poc"
 image_name="${container_name}:latest"
 
@@ -50,14 +50,14 @@ fi
 docker run --detach \
 	--restart unless-stopped \
 	--name "$container_name" \
-	--publish "$tailscale_ip:$preview_port:3458" \
+	--publish "$tailscale_ip:$preview_port:3459" \
 	"$image_name" >/dev/null
 
 if command -v ufw >/dev/null 2>&1; then
 	sudo -n ufw route allow \
 		in on tailscale0 \
 		out on docker0 \
-		to any port 3458 \
+		to any port 3459 \
 		proto tcp \
 		comment "Nunat Marine POC" >/dev/null || true
 fi

@@ -14,7 +14,7 @@ FROM nginx:1.27-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 
-EXPOSE 3458
+EXPOSE 3459
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:3458/healthz >/dev/null || exit 1
+  CMD wget -qO- http://127.0.0.1:3459/healthz >/dev/null || exit 1

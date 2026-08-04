@@ -30,7 +30,7 @@ Open `http://127.0.0.1:5180`.
 make marine-omarchy
 ```
 
-Serves on Tailscale port **3458** (place-names map stays on **3457**).
+Serves on Tailscale port **3459** (place-names map stays on **3457**).
 
 ## Native tracking
 

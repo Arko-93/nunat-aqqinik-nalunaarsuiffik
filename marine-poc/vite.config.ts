@@ -39,7 +39,7 @@ export default defineConfig({
   },
   preview: {
     host: "127.0.0.1",
-    port: 3458,
+    port: 3459,
   },
   test: {
     environment: "node",

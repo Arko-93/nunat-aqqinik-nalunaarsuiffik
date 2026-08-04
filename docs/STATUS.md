@@ -17,7 +17,7 @@ This document is the product and implementation source of truth.
 - Implementation ledger: `docs/IMPLEMENTATION_LEDGER.md`
 - Product plan: `docs/nunat-decision-geography-product-implementation-plan.md`
 - Product map: Omarchy `:3457` serves the official-names map (`web/`), not the old static review HTML
-- Marine POC: `marine-poc/` private trip notebook (Uummannaq–Qaarsut); Omarchy `:3458` via `make marine-omarchy`; does not write into `data/source/`
+- Marine POC: `marine-poc/` private trip notebook (Uummannaq–Qaarsut); Omarchy `:3459` via `make marine-omarchy`; does not write into `data/source/`
 - Map data: NunaGIS PlacenamesRegisterSearch midpoint layer (`MapServer/1`), 30,542 midpoints with locality filter (Type 21/23 → 74)
 - Authority requests: Oqaasileriffik replied 2026-07-30 pointing to NunaGIS; Asiaq reply still pending
 - Reconciliation (data ops): 0 matched, 0 conflicting, 0 missing, 15 unresolved overall; Oqaasileriffik `candidate_exact_name` ×15; Asiaq `waiting_for_export` ×15

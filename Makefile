@@ -51,6 +51,6 @@ marine-test: marine-install
 marine-build: marine-install
 	pnpm --dir marine-poc build
 
-# Omarchy marine POC on :3458 (does not replace place-names map on :3457)
+# Omarchy marine POC on :3459 (does not replace place-names map on :3457)
 marine-omarchy: marine-build
 	bash scripts/deploy-omarchy-marine.sh
