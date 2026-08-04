@@ -26,7 +26,11 @@ describe("qaarsut-naajaat sea route", () => {
     expect(pointOnLand(from.longitude, from.latitude, mask)).toBe(true);
     expect(pointOnLand(to.longitude, to.latitude, mask)).toBe(true);
 
-    const plan = planBoatRoutes(from, to, mask, { biases: ["shortest"] });
+    const plan = planBoatRoutes(from, to, mask, {
+      biases: ["shortest"],
+      budgetMs: 15_000,
+      precise: true,
+    });
     const route = plan.routes[0]!;
     expect(route.mode).toBe("water");
     expect(route.coordinates.length).toBeGreaterThan(2);

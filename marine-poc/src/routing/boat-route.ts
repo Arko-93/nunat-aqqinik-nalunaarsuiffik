@@ -97,18 +97,21 @@ export type LandMask = {
   polygons: PolygonRings[];
   /** Spatial hash for fast point-in-land queries. */
   cellDeg: number;
-  cells: Map<string, number[]>;
+  /** Packed cell key → polygon indices (numeric keys; faster than strings). */
+  cells: Map<number, number[]>;
 };
 
 const CELL_DEG = 0.25;
 
-const cellKey = (c: number, r: number) => `${c},${r}`;
+/** Pack spatial-hash coordinates into one number (supports negative cells). */
+const cellKey = (c: number, r: number): number =>
+  (c + 10_000) * 100_003 + (r + 10_000);
 
 export const buildLandMask = (
   polygons: PolygonRings[],
   cellDeg = CELL_DEG,
 ): LandMask => {
-  const cells = new Map<string, number[]>();
+  const cells = new Map<number, number[]>();
   polygons.forEach((poly, index) => {
     const c0 = Math.floor(poly.minLon / cellDeg);
     const c1 = Math.floor(poly.maxLon / cellDeg);
@@ -205,6 +208,41 @@ export const pointOnLand = (
     if (poly && polygonContains(longitude, latitude, poly)) return true;
   }
   return false;
+};
+
+/**
+ * Nearest water sample around a point (spiral search).
+ * Used to put boat A/B on the shore instead of a town midpoint on land.
+ */
+export const nearestWaterPoint = (
+  longitude: number,
+  latitude: number,
+  land: LandMask | ReadonlyArray<PolygonRings>,
+  options: { maxRadiusDeg?: number; stepDeg?: number } = {},
+): LonLat | null => {
+  if (!pointOnLand(longitude, latitude, land)) {
+    return { longitude, latitude };
+  }
+  const maxRadius = options.maxRadiusDeg ?? 0.35;
+  const step = options.stepDeg ?? 0.008;
+  let best: LonLat | null = null;
+  let bestD = Number.POSITIVE_INFINITY;
+  for (let radius = step; radius <= maxRadius; radius += step) {
+    const samples = Math.max(12, Math.ceil((Math.PI * 2 * radius) / step));
+    for (let i = 0; i < samples; i += 1) {
+      const angle = (i / samples) * Math.PI * 2;
+      const lon = longitude + Math.cos(angle) * radius;
+      const lat = latitude + Math.sin(angle) * radius;
+      if (pointOnLand(lon, lat, land)) continue;
+      const d = Math.hypot(lon - longitude, lat - latitude);
+      if (d < bestD) {
+        bestD = d;
+        best = { longitude: lon, latitude: lat };
+      }
+    }
+    if (best) return best;
+  }
+  return best;
 };
 
 /**
@@ -476,7 +514,7 @@ let lastRouteFail: string | null = null;
 
 export const getLastRouteFail = () => lastRouteFail;
 
-type RouteQuality = "fast" | "precise";
+type RouteQuality = "coarse" | "fast" | "precise";
 
 const tryWaterRoute = (
   from: LonLat,
@@ -485,7 +523,12 @@ const tryWaterRoute = (
   pad: number,
   bias: RouteBias,
   quality: RouteQuality = "fast",
+  deadlineMs: number | null = null,
 ): BoatRoute | null => {
+  if (deadlineMs != null && performance.now() > deadlineMs) {
+    lastRouteFail = "deadline";
+    return null;
+  }
   lastRouteFail = null;
   const west = Math.min(from.longitude, to.longitude) - pad;
   const east = Math.max(from.longitude, to.longitude) + pad;
@@ -496,24 +539,58 @@ const tryWaterRoute = (
     filterPolygonsInBBox(full.polygons, west, south, east, north),
   );
 
-  // Keep steps small enough that neighbor edges do not jump islands.
+  // Coarse-first grids stay small; precise uses a tighter step but grid edge tests
+  // (not polygon PIP) so A* stays fast.
   const width = Math.max(east - west, 0.01);
   const height = Math.max(north - south, 0.01);
-  const maxStep = quality === "precise" ? 0.015 : 0.02;
-  const maxDim = quality === "precise" ? 280 : 180;
-  const cols = Math.min(maxDim, Math.max(64, Math.ceil(width / maxStep) + 1));
-  const rows = Math.min(maxDim, Math.max(64, Math.ceil(height / maxStep) + 1));
+  const spanBox = Math.max(width, height);
+  const longHaul = spanBox >= 8;
+  const mediumHaul = !longHaul && spanBox >= 4;
+  const maxStep =
+    quality === "precise"
+      ? 0.018
+      : quality === "coarse"
+        ? longHaul
+          ? 0.06
+          : 0.04
+        : longHaul
+          ? 0.05
+          : mediumHaul
+            ? 0.03
+            : 0.022;
+  const maxDim =
+    quality === "precise"
+      ? 220
+      : quality === "coarse"
+        ? longHaul
+          ? 110
+          : 140
+        : longHaul
+          ? 140
+          : mediumHaul
+            ? 180
+            : 160;
+  const cols = Math.min(maxDim, Math.max(48, Math.ceil(width / maxStep) + 1));
+  const rows = Math.min(maxDim, Math.max(48, Math.ceil(height / maxStep) + 1));
   const dLon = width / (cols - 1);
   const dLat = height / (rows - 1);
   const midLat = (from.latitude + to.latitude) / 2;
 
   const idx = (c: number, r: number) => r * cols + c;
   const water = new Uint8Array(cols * rows);
+  // Center-only fill (1 PIP/cell). Edge-safe A* keeps routes off land.
   for (let r = 0; r < rows; r += 1) {
+    if (
+      deadlineMs != null &&
+      r % 16 === 0 &&
+      performance.now() > deadlineMs
+    ) {
+      lastRouteFail = `deadline-fill pad=${pad.toFixed(2)} grid=${cols}x${rows}`;
+      return null;
+    }
     const lat = south + r * dLat;
     for (let c = 0; c < cols; c += 1) {
       const lon = west + c * dLon;
-      // Center sample only — keep corridors connected; repair clips after A*.
       water[idx(c, r)] = pointOnLand(lon, lat, mask) ? 0 : 1;
     }
   }
@@ -582,29 +659,74 @@ const tryWaterRoute = (
     return delta > 0 ? 1.55 : 0.92;
   };
 
+  // Lazy edge memo: 0 unknown, 1 clear, 2 blocked. Avoids re-PIP on A* revisits.
+  const canRight = new Uint8Array(cols * rows);
+  const canUp = new Uint8Array(cols * rows);
+  const edgeClear = (c0: number, r0: number, c1: number, r1: number): boolean => {
+    const lon0 = west + c0 * dLon;
+    const lat0 = south + r0 * dLat;
+    const lon1 = west + c1 * dLon;
+    const lat1 = south + r1 * dLat;
+    for (const t of [0.25, 0.5, 0.75] as const) {
+      if (
+        pointOnLand(
+          lon0 + (lon1 - lon0) * t,
+          lat0 + (lat1 - lat0) * t,
+          mask,
+        )
+      ) {
+        return false;
+      }
+    }
+    return true;
+  };
+  const linkClear = (c0: number, r0: number, c1: number, r1: number): boolean => {
+    if (r1 === r0 && c1 === c0 + 1) {
+      const i = idx(c0, r0);
+      if (canRight[i] === 0) canRight[i] = edgeClear(c0, r0, c1, r1) ? 1 : 2;
+      return canRight[i] === 1;
+    }
+    if (r1 === r0 && c1 === c0 - 1) {
+      const i = idx(c1, r1);
+      if (canRight[i] === 0) canRight[i] = edgeClear(c1, r1, c0, r0) ? 1 : 2;
+      return canRight[i] === 1;
+    }
+    if (c1 === c0 && r1 === r0 + 1) {
+      const i = idx(c0, r0);
+      if (canUp[i] === 0) canUp[i] = edgeClear(c0, r0, c1, r1) ? 1 : 2;
+      return canUp[i] === 1;
+    }
+    if (c1 === c0 && r1 === r0 - 1) {
+      const i = idx(c1, r1);
+      if (canUp[i] === 0) canUp[i] = edgeClear(c1, r1, c0, r0) ? 1 : 2;
+      return canUp[i] === 1;
+    }
+    return false;
+  };
+
   const open = new MinHeap();
-  open.push({ ...startW, f: heuristic(startW), g: 0 });
+  // Weighted A* (ε>1): fewer expansions, slightly longer corridors — fine for POC.
+  const epsilon = quality === "precise" ? 1.15 : quality === "fast" ? 1.4 : 1.65;
+  open.push({ ...startW, f: heuristic(startW) * epsilon, g: 0 });
   const cameFrom = new Map<number, number>();
   const gScore = new Map<number, number>([[key(startW), 0]]);
   const closed = new Uint8Array(cols * rows);
-  // Orthogonal + diagonal (diagonals need both side cells + clear segment).
+  // Orthogonal steps only — diagonals clip thin islands between cell centers.
   const neighbors = [
     [1, 0, 1],
     [-1, 0, 1],
     [0, 1, 1],
     [0, -1, 1],
-    [1, 1, 1.414],
-    [1, -1, 1.414],
-    [-1, 1, 1.414],
-    [-1, -1, 1.414],
   ] as const;
 
   let found = false;
   let guard = 0;
-  const maxExpand = cols * rows * 5;
-  const edgeSample = Math.max(0.007, Math.min(dLon, dLat) * 0.6);
-  const checkEdges = quality === "precise";
+  const maxExpand = cols * rows * (longHaul ? 3 : mediumHaul ? 4 : 5);
   while (open.size > 0 && guard < maxExpand) {
+    if (deadlineMs != null && guard % 4096 === 0 && performance.now() > deadlineMs) {
+      lastRouteFail = `deadline pad=${pad.toFixed(2)} grid=${cols}x${rows}`;
+      return null;
+    }
     guard += 1;
     const current = open.pop()!;
     const ck = key(current);
@@ -614,37 +736,25 @@ const tryWaterRoute = (
       found = true;
       break;
     }
-    const lon0 = west + current.c * dLon;
-    const lat0 = south + current.r * dLat;
     for (const [dc, dr, stepCost] of neighbors) {
       const nc = current.c + dc;
       const nr = current.r + dr;
       if (nc < 0 || nr < 0 || nc >= cols || nr >= rows) continue;
       const nk = idx(nc, nr);
       if (water[nk] !== 1 || closed[nk] === 1) continue;
-      if (dc !== 0 && dr !== 0) {
-        if (
-          water[idx(current.c + dc, current.r)] !== 1 ||
-          water[idx(current.c, current.r + dr)] !== 1
-        ) {
-          continue;
-        }
-      }
-      const lon1 = west + nc * dLon;
+      if (!linkClear(current.c, current.r, nc, nr)) continue;
       const lat1 = south + nr * dLat;
-      if (
-        checkEdges &&
-        segmentCrossesLand(lon0, lat0, lon1, lat1, mask, edgeSample)
-      ) {
-        continue;
-      }
       const tentative =
         (gScore.get(ck) ?? Infinity) + stepCost * biasCost(lat1);
       if (tentative >= (gScore.get(nk) ?? Infinity)) continue;
       cameFrom.set(nk, ck);
       gScore.set(nk, tentative);
       const node = { c: nc, r: nr };
-      open.push({ ...node, g: tentative, f: tentative + heuristic(node) });
+      open.push({
+        ...node,
+        g: tentative,
+        f: tentative + heuristic(node) * epsilon,
+      });
     }
   }
 
@@ -665,21 +775,56 @@ const tryWaterRoute = (
     (cell) =>
       [west + cell.c * dLon, south + cell.r * dLat] as [number, number],
   );
-  // Full path: town → harbor water → sea corridor → harbor water → town.
+
+  // Edge-safe A* corridor + shore stubs. Skip heavy repairLandCuts (slow).
   const raw: Array<[number, number]> = [
     [from.longitude, from.latitude],
     ...waterCoords,
     [to.longitude, to.latitude],
   ];
-  const repaired = repairLandCuts(raw, mask, { allowHarborEnds: true });
-  if (!repaired) {
-    lastRouteFail = `repair-fail pad=${pad.toFixed(2)} q=${quality} cells=${cells.length}`;
-    return null;
+  let chosen = raw;
+  if (pathCrossesLand(chosen, mask, { allowHarborEnds: true })) {
+    const fixSeg = (
+      a: [number, number],
+      b: [number, number],
+      depth: number,
+    ): Array<[number, number]> | null => {
+      if (!segmentCrossesLand(a[0], a[1], b[0], b[1], mask, 0.004)) {
+        return [a, b];
+      }
+      if (depth <= 0) return null;
+      const wet = nearestWaterPoint((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, mask, {
+        maxRadiusDeg: Math.max(dLon, dLat) * 3,
+        stepDeg: Math.min(dLon, dLat) * 0.3,
+      });
+      if (!wet) return null;
+      const mid: [number, number] = [wet.longitude, wet.latitude];
+      const left = fixSeg(a, mid, depth - 1);
+      const right = fixSeg(mid, b, depth - 1);
+      if (!left || !right) return null;
+      return [...left, ...right.slice(1)];
+    };
+    const densify = (
+      coords: Array<[number, number]>,
+    ): Array<[number, number]> | null => {
+      const out: Array<[number, number]> = [coords[0]!];
+      for (let i = 1; i < coords.length; i += 1) {
+        const fixed = fixSeg(out[out.length - 1]!, coords[i]!, 4);
+        if (!fixed) return null;
+        out.push(...fixed.slice(1));
+      }
+      return out;
+    };
+    chosen = densify(raw) ?? densify(waterCoords);
+    if (!chosen || pathCrossesLand(chosen, mask, { allowHarborEnds: true })) {
+      lastRouteFail = `repair-fail pad=${pad.toFixed(2)} q=${quality} cells=${cells.length}`;
+      return null;
+    }
   }
-  const simplified = simplifyWaterPath(repaired, mask);
-  const chosen = pathCrossesLand(simplified, mask, { allowHarborEnds: true })
-    ? repaired
-    : simplified;
+  const simplified = simplifyWaterPath(chosen, mask);
+  if (!pathCrossesLand(simplified, mask, { allowHarborEnds: true })) {
+    chosen = simplified;
+  }
 
   if (pathCrossesLand(chosen, mask, { allowHarborEnds: true })) {
     lastRouteFail = `validate-fail pad=${pad.toFixed(2)} q=${quality} pts=${chosen.length}`;
@@ -704,13 +849,52 @@ const routeWithPads = (
   land: LandQuery,
   bias: RouteBias,
   basePad: number,
+  options: {
+    deadlineMs?: number | null;
+    precise?: boolean;
+    /** Endpoint span in degrees — used to pick quality ladder. */
+    spanDeg?: number;
+  } = {},
 ): BoatRoute | null => {
-  // Keep pads moderate — huge pads make cells so coarse that every edge clips land.
-  const pads = [basePad, basePad * 1.7, basePad * 2.6];
-  // Prefer precise (edge-safe). Fall back to fast+repair if needed.
-  for (const quality of ["precise", "fast"] as const) {
-    for (const pad of pads) {
-      const route = tryWaterRoute(from, to, land, pad, bias, quality);
+  const deadlineMs = options.deadlineMs ?? null;
+  const spanDeg = options.spanDeg ?? 0;
+  // Keep the search box in the medium-haul regime when possible.
+  // Over-wide pads force a coarse long-haul grid that fails edge-safe A*.
+  const pads =
+    spanDeg >= 2 && spanDeg < 5
+      ? [basePad, basePad * 1.7, basePad * 2.4]
+      : [basePad * 1.35, basePad, basePad * 2.1];
+  // Coarse-first for medium/long coastal hops; precise only if needed.
+  let qualities: RouteQuality[];
+  if (options.precise === false) {
+    qualities = ["coarse", "fast"];
+  } else if (spanDeg >= 1.0) {
+    qualities = ["coarse", "fast", "precise"];
+  } else {
+    qualities = ["fast", "precise"];
+  }
+  for (const quality of qualities) {
+    const padList = quality === "precise" ? pads : pads.slice(0, 2);
+    for (const pad of padList) {
+      if (deadlineMs != null && performance.now() > deadlineMs) {
+        lastRouteFail = "deadline";
+        return null;
+      }
+      const attemptT0 = performance.now();
+      const route = tryWaterRoute(
+        from,
+        to,
+        land,
+        pad,
+        bias,
+        quality,
+        deadlineMs,
+      );
+      if (typeof process !== "undefined" && process.env?.ROUTE_DEBUG) {
+        console.error(
+          `[route] ${quality} pad=${pad.toFixed(2)} ${route ? "ok" : lastRouteFail} ${(performance.now() - attemptT0).toFixed(0)}ms`,
+        );
+      }
       if (route) return route;
     }
   }
@@ -760,6 +944,10 @@ export const planBoatRoute = (
 export type PlanBoatRoutesOptions = {
   /** Which corridors to search. Default: shortest + north + south. */
   biases?: ReadonlyArray<RouteBias>;
+  /** Wall-clock budget; after this, return best found or straight fallback. */
+  budgetMs?: number;
+  /** When false, skip precise (edge-safe) refinement. Default: auto by span. */
+  precise?: boolean;
 };
 
 /**
@@ -782,30 +970,67 @@ export const planBoatRoutes = (
     return { routes: [only], selectedIndex: 0 };
   }
 
-  const spanLon = Math.abs(to.longitude - from.longitude);
-  const spanLat = Math.abs(to.latitude - from.latitude);
+  // Town midpoints often sit inland — sail from the nearest shore water.
+  const fromShore =
+    nearestWaterPoint(from.longitude, from.latitude, mask) ?? from;
+  const toShore = nearestWaterPoint(to.longitude, to.latitude, mask) ?? to;
+
+  const spanLon = Math.abs(toShore.longitude - fromShore.longitude);
+  const spanLat = Math.abs(toShore.latitude - fromShore.latitude);
+  const span = Math.max(spanLon, spanLat);
   // Pad enough to leave fjords, but not so wide that the grid becomes coarse.
   const basePad = Math.min(
-    3.0,
-    Math.max(0.7, Math.max(spanLon, spanLat) * 0.55 + 0.25),
+    span >= 3 ? 2.2 : 3.0,
+    Math.max(0.7, span * 0.55 + 0.25),
   );
   const biases = options.biases ?? (["shortest", "north", "south"] as const);
+  // Coarse-first keeps medium hops interactive; worker still preferred in the UI.
+  const budgetMs =
+    options.budgetMs ?? (span >= 4 ? 8_000 : span >= 1 ? 14_000 : 5_000);
+  const deadlineMs = performance.now() + budgetMs;
+  const precise = options.precise ?? true;
+
+  const attachHarborStubs = (route: BoatRoute): BoatRoute => {
+    const start: [number, number] = [from.longitude, from.latitude];
+    const end: [number, number] = [to.longitude, to.latitude];
+    const head = route.coordinates[0]!;
+    const tail = route.coordinates[route.coordinates.length - 1]!;
+    const needHead = head[0] !== start[0] || head[1] !== start[1];
+    const needTail = tail[0] !== end[0] || tail[1] !== end[1];
+    if (!needHead && !needTail) return route;
+    const coords: Array<[number, number]> = [
+      ...(needHead ? [start] : []),
+      ...route.coordinates,
+      ...(needTail ? [end] : []),
+    ];
+    return {
+      ...route,
+      coordinates: coords,
+      distanceM: pathDistanceM(coords),
+    };
+  };
 
   const routes: BoatRoute[] = [];
   for (const bias of biases) {
+    if (performance.now() > deadlineMs) break;
     const pad = bias === "shortest" ? basePad : basePad * 1.2;
-    const route = routeWithPads(from, to, mask, bias, pad);
+    const route = routeWithPads(fromShore, toShore, mask, bias, pad, {
+      deadlineMs,
+      precise,
+      spanDeg: span,
+    });
     if (!route) continue;
+    const withStubs = attachHarborStubs(route);
     if (routes.length === 0) {
-      routes.push(route);
+      routes.push(withStubs);
       continue;
     }
     if (
       routes.every((existing) =>
-        routesAreDistinct(existing.coordinates, route.coordinates),
+        routesAreDistinct(existing.coordinates, withStubs.coordinates),
       )
     ) {
-      routes.push(route);
+      routes.push(withStubs);
     }
   }
 

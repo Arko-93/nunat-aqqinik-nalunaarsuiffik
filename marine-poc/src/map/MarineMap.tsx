@@ -13,6 +13,7 @@ import {
   type CorridorPlace,
   type PlaceScope,
 } from "../domain/place.ts";
+import type { TravelEndpoint } from "../domain/travel-point.ts";
 import type { LocationPoint, TrackPoint, Waypoint } from "../domain/types.ts";
 import {
   resolveMarineBasemap,
@@ -33,8 +34,8 @@ type Props = {
   selectedPlaceId: string | null;
   flyToPlace: CorridorPlace | null;
   fitPlaces: ReadonlyArray<CorridorPlace>;
-  pointA: CorridorPlace | null;
-  pointB: CorridorPlace | null;
+  pointA: TravelEndpoint | null;
+  pointB: TravelEndpoint | null;
   /** Coastal boat path [lon, lat] — empty uses straight A→B. */
   routeCoordinates: ReadonlyArray<readonly [number, number]>;
   /** Water path vs straight-line fallback (affects dash style). */
@@ -46,13 +47,19 @@ type Props = {
   selectedRouteIndex: number;
   /** Increment to fit the recorded track (return-along-track). */
   recenterToken: number;
+  /** Increment to fly the camera to the current GPS fix (Maps-style locate). */
+  locateMeToken: number;
+  /** True while water corridor is still computing (straight preview on screen). */
+  routeLoading: boolean;
   followPosition: boolean;
   onSelectPlace: (place: CorridorPlace | null) => void;
+  /** Empty-map tap (no place hit) — free A/B geolocation pin. */
+  onMapPick: (longitude: number, latitude: number) => void;
 };
 
 const travelPlanCollection = (
-  pointA: CorridorPlace | null,
-  pointB: CorridorPlace | null,
+  pointA: TravelEndpoint | null,
+  pointB: TravelEndpoint | null,
   routeCoordinates: ReadonlyArray<readonly [number, number]>,
   alternateRoutes: ReadonlyArray<{
     coordinates: ReadonlyArray<readonly [number, number]>;
@@ -94,7 +101,7 @@ const travelPlanCollection = (
   if (pointA) {
     features.push({
       type: "Feature",
-      properties: { kind: "A", label: `A · ${pointA.officialName}` },
+      properties: { kind: "A", label: `A · ${pointA.label}` },
       geometry: {
         type: "Point",
         coordinates: [pointA.longitude, pointA.latitude],
@@ -104,7 +111,7 @@ const travelPlanCollection = (
   if (pointB) {
     features.push({
       type: "Feature",
-      properties: { kind: "B", label: `B · ${pointB.officialName}` },
+      properties: { kind: "B", label: `B · ${pointB.label}` },
       geometry: {
         type: "Point",
         coordinates: [pointB.longitude, pointB.latitude],
@@ -116,8 +123,8 @@ const travelPlanCollection = (
 
 const fitTravel = (
   map: Map,
-  pointA: CorridorPlace | null,
-  pointB: CorridorPlace | null,
+  pointA: TravelEndpoint | null,
+  pointB: TravelEndpoint | null,
   routeCoordinates: ReadonlyArray<readonly [number, number]>,
 ) => {
   if (!pointA && !pointB) return;
@@ -384,20 +391,44 @@ export function MarineMap({
   alternateRoutes,
   selectedRouteIndex,
   recenterToken,
+  locateMeToken,
+  routeLoading,
   followPosition,
   onSelectPlace,
+  onMapPick,
 }: Props) {
   const lastFitKeyRef = useRef<string>("");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
   const placesRef = useRef<GeoJSON.FeatureCollection>(EMPTY_FC);
   const onSelectRef = useRef(onSelectPlace);
+  const onMapPickRef = useRef(onMapPick);
   const fittedRef = useRef(false);
   const followRef = useRef(followPosition);
   const basemapModeRef = useRef<BasemapMode>("offline");
+  const positionRef = useRef(position);
+  const travelRef = useRef({
+    pointA,
+    pointB,
+    routeCoordinates,
+    alternateRoutes,
+    selectedRouteIndex,
+    routeMode,
+  });
+  const gpsFramedRef = useRef(false);
   const [basemapMode, setBasemapMode] = useState<BasemapMode>("offline");
   onSelectRef.current = onSelectPlace;
+  onMapPickRef.current = onMapPick;
   followRef.current = followPosition;
+  positionRef.current = position;
+  travelRef.current = {
+    pointA,
+    pointB,
+    routeCoordinates,
+    alternateRoutes,
+    selectedRouteIndex,
+    routeMode,
+  };
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -630,7 +661,9 @@ export function MarineMap({
             const hits = map.queryRenderedFeatures(event.point, {
               layers: placeLayers,
             });
-            if (hits.length === 0) onSelectRef.current(null);
+            if (hits.length > 0) return;
+            // Empty map / water / land: free A/B pin (not a named place).
+            onMapPickRef.current(event.lngLat.lng, event.lngLat.lat);
           });
 
           if (!fittedRef.current && fitPlaces.length > 0) {
@@ -672,44 +705,14 @@ export function MarineMap({
           },
         });
 
-        map.addSource("accuracy", {
-          type: "geojson",
-          data: accuracyCollection(position),
-        });
-        map.addLayer({
-          id: "accuracy-fill",
-          type: "fill",
-          source: "accuracy",
-          paint: {
-            "fill-color": "rgba(111, 191, 138, 0.18)",
-            "fill-outline-color": "rgba(111, 191, 138, 0.75)",
-          },
-        });
-
-        map.addSource("position", {
-          type: "geojson",
-          data: positionCollection(position),
-        });
-        map.addLayer({
-          id: "position-puck",
-          type: "circle",
-          source: "position",
-          paint: {
-            "circle-radius": 7,
-            "circle-color": "#6fbf8a",
-            "circle-stroke-color": "#041018",
-            "circle-stroke-width": 2,
-          },
-        });
-
         map.addSource("travel-plan", {
           type: "geojson",
           data: travelPlanCollection(
-            pointA,
-            pointB,
-            routeCoordinates,
-            alternateRoutes,
-            selectedRouteIndex,
+            travelRef.current.pointA,
+            travelRef.current.pointB,
+            travelRef.current.routeCoordinates,
+            travelRef.current.alternateRoutes,
+            travelRef.current.selectedRouteIndex,
           ),
         });
         map.addLayer({
@@ -718,8 +721,8 @@ export function MarineMap({
           source: "travel-plan",
           filter: ["==", ["get", "kind"], "alt"],
           paint: {
-            "line-color": "#7eb6c9",
-            "line-width": 2.4,
+            "line-color": "#2f6f8f",
+            "line-width": 2.6,
             "line-opacity": 0.55,
             "line-dasharray": [1.4, 1.8],
           },
@@ -730,9 +733,9 @@ export function MarineMap({
           source: "travel-plan",
           filter: ["==", ["get", "kind"], "leg"],
           paint: {
-            "line-color": "#041018",
-            "line-width": 7,
-            "line-opacity": 0.55,
+            "line-color": lightUi ? "#ffffff" : "#041018",
+            "line-width": 8,
+            "line-opacity": 0.85,
           },
         });
         map.addLayer({
@@ -741,8 +744,8 @@ export function MarineMap({
           source: "travel-plan",
           filter: ["==", ["get", "kind"], "leg"],
           paint: {
-            "line-color": "#f0c674",
-            "line-width": 3.8,
+            "line-color": lightUi ? "#0b5fff" : "#f0c674",
+            "line-width": 4.2,
             "line-opacity": 0.98,
             "line-dasharray": [1, 0],
           },
@@ -762,12 +765,12 @@ export function MarineMap({
               "match",
               ["get", "kind"],
               "A",
-              "#6fbf8a",
+              "#1f9d55",
               "B",
               "#e3a23a",
               "#ffffff",
             ],
-            "circle-stroke-color": "#041018",
+            "circle-stroke-color": "#ffffff",
             "circle-stroke-width": 2.5,
           },
         });
@@ -792,6 +795,46 @@ export function MarineMap({
             "text-color": lightUi ? "#1a2a32" : "#f7efd8",
             "text-halo-color": lightUi ? "#f4f7f8" : "#0a1a22",
             "text-halo-width": 1.8,
+          },
+        });
+
+        // GPS last so the puck stays above basemap + A/B markers.
+        map.addSource("accuracy", {
+          type: "geojson",
+          data: accuracyCollection(positionRef.current),
+        });
+        map.addLayer({
+          id: "accuracy-fill",
+          type: "fill",
+          source: "accuracy",
+          paint: {
+            "fill-color": "rgba(0, 180, 90, 0.16)",
+            "fill-outline-color": "rgba(0, 140, 70, 0.85)",
+          },
+        });
+        map.addSource("position", {
+          type: "geojson",
+          data: positionCollection(positionRef.current),
+        });
+        map.addLayer({
+          id: "position-halo",
+          type: "circle",
+          source: "position",
+          paint: {
+            "circle-radius": 14,
+            "circle-color": "#ffffff",
+            "circle-opacity": 0.95,
+          },
+        });
+        map.addLayer({
+          id: "position-puck",
+          type: "circle",
+          source: "position",
+          paint: {
+            "circle-radius": 8,
+            "circle-color": "#00c853",
+            "circle-stroke-color": "#06301a",
+            "circle-stroke-width": 2,
           },
         });
       });
@@ -899,11 +942,23 @@ export function MarineMap({
       | undefined;
     accuracySource?.setData(accuracyCollection(position));
 
-    if (followRef.current && position) {
-      map.easeTo({
-        center: [position.longitude, position.latitude],
-        duration: 400,
-      });
+    if (position) {
+      // First fix: zoom in so the puck is not a 1px speck on all-Greenland view.
+      if (!gpsFramedRef.current) {
+        gpsFramedRef.current = true;
+        map.easeTo({
+          center: [position.longitude, position.latitude],
+          zoom: Math.max(map.getZoom(), 11),
+          duration: 700,
+        });
+      } else if (followRef.current) {
+        map.easeTo({
+          center: [position.longitude, position.latitude],
+          duration: 400,
+        });
+      }
+    } else {
+      gpsFramedRef.current = false;
     }
   }, [track, waypoints, position]);
 
@@ -912,6 +967,19 @@ export function MarineMap({
     if (!map || recenterToken === 0) return;
     fitTrack(map, track);
   }, [recenterToken, track]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || locateMeToken === 0) return;
+    const point = positionRef.current;
+    if (!point) return;
+    gpsFramedRef.current = true;
+    map.easeTo({
+      center: [point.longitude, point.latitude],
+      zoom: Math.max(map.getZoom(), 12.5),
+      duration: 750,
+    });
+  }, [locateMeToken]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -927,20 +995,36 @@ export function MarineMap({
       ),
     );
     if (map.getLayer("travel-leg")) {
+      const lightUi = basemapModeRef.current === "realistic";
+      const calculating =
+        routeLoading || routeMode === "straight-fallback";
       map.setPaintProperty(
         "travel-leg",
         "line-dasharray",
-        routeMode === "straight-fallback" ? [1.2, 1.6] : [1, 0],
+        calculating ? [1.4, 1.6] : [1, 0],
       );
       map.setPaintProperty(
         "travel-leg",
         "line-color",
-        routeMode === "straight-fallback" ? "#d08a5a" : "#f0c674",
+        routeLoading
+          ? lightUi
+            ? "#5b7cff"
+            : "#f0c674"
+          : routeMode === "straight-fallback"
+            ? "#c45c26"
+            : lightUi
+              ? "#0b5fff"
+              : "#f0c674",
+      );
+      map.setPaintProperty(
+        "travel-leg",
+        "line-opacity",
+        routeLoading ? 0.72 : 0.98,
       );
     }
     // Fit once per A/B pair (and when water routes first appear), not every alt tap.
     if (pointA && pointB && routeCoordinates.length >= 2) {
-      const fitKey = `${pointA.globalId}|${pointB.globalId}|${routeMode}|${alternateRoutes.length}`;
+      const fitKey = `${pointA.id}|${pointB.id}|${routeMode}|${alternateRoutes.length}`;
       if (lastFitKeyRef.current !== fitKey) {
         lastFitKeyRef.current = fitKey;
         const boundsCoords =
@@ -957,6 +1041,7 @@ export function MarineMap({
     pointB,
     routeCoordinates,
     routeMode,
+    routeLoading,
     alternateRoutes,
     selectedRouteIndex,
   ]);

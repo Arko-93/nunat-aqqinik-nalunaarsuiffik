@@ -135,7 +135,17 @@ export type MessageKey =
   | "routeOptions"
   | "routeShortest"
   | "routeNorth"
-  | "routeSouth";
+  | "routeSouth"
+  | "useGpsAsA"
+  | "useGpsAsB"
+  | "myLocation"
+  | "mapTapSetsPoint"
+  | "shoreStartHint"
+  | "gpsNeededForPoint"
+  | "pickDistinctPoints"
+  | "locateMe"
+  | "routingPreview"
+  | "routingDone";
 
 type Dict = Record<MessageKey, string>;
 
@@ -259,12 +269,13 @@ const kl: Dict = {
   stopDemoGps: "Demo GPS unitsinneq",
   demoGpsActive: "DEMO GPS · Uummannaq — illit nammineq najugaqanngilaq",
   gpsCoords: "GPS",
-  townsAreNotGps: "Nunaqarfiit NunaGIS midpoint (± km) — GPS fix nagga.",
-  pickingA: "Tuluttut A-mik aallartippaa",
-  pickingB: "Tuluttut B-mik aallartippaa",
-  searchPlace: "Nunaqarfik ujaruk…",
+  townsAreNotGps:
+    "Qorsuk = illit GPS. Aappaluttoq = nunaqarfik (NunaGIS midpoint, ± km) — GPS nagga.",
+  pickingA: "A: nunaqarfik, map-tap, imaluunniit GPS",
+  pickingB: "B: nunaqarfik, map-tap, imaluunniit GPS",
+  searchPlace: "Nunaqarfik / sini ujaruk…",
   searchNoResults: "Nassaarineqanngilaq",
-  routing: "Umiatsiami aqqut…",
+  routing: "Umiatsiami aqqut… (suli 10–40 sek.)",
   routeWater: "Imaq aqqutigalugu (ikkarliit aniguk)",
   routeStraightFallback: "Straight-line — water path nassaarineqanngilaq",
   companionRouteHint: "Ikiortissaavoq — soqqutinut taarsiutinngilaq",
@@ -273,6 +284,16 @@ const kl: Dict = {
   routeShortest: "Nanertoq",
   routeNorth: "Avannamut",
   routeSouth: "Kujammut",
+  useGpsAsA: "GPS → A",
+  useGpsAsB: "GPS → B",
+  myLocation: "Illit najugaq",
+  mapTapSetsPoint: "Map-imi tap = A/B pin (nunaqarfiit aamma OK)",
+  shoreStartHint: "Nunaqarfiit aqqutit sinaakkut aallarnerneqarput (imaq)",
+  gpsNeededForPoint: "GPS pisariaqarpoq — HTTPS/demo",
+  pickDistinctPoints: "A aamma B assigiinngitsut",
+  locateMe: "Najugaq",
+  routingPreview: "Straight preview · imarmi aqqut naammassivoq…",
+  routingDone: "Imaq aqqut ready",
 };
 
 const da: Dict = {
@@ -396,12 +417,12 @@ const da: Dict = {
   demoGpsActive: "DEMO-GPS · Uummannaq — ikke din rigtige position",
   gpsCoords: "GPS",
   townsAreNotGps:
-    "Bypositioner er NunaGIS-midtpunkter (± km). De er ikke GPS-fixes.",
-  pickingA: "Næste tryk sætter punkt A",
-  pickingB: "Næste tryk sætter punkt B",
-  searchPlace: "Søg by/bygd…",
+    "Grøn = din GPS. Rødbrun = by/bygd (NunaGIS-midtpunkt, ± km) — ikke GPS.",
+  pickingA: "A: by, kort-tryk eller GPS",
+  pickingB: "B: by, kort-tryk eller GPS",
+  searchPlace: "Søg by/sund…",
   searchNoResults: "Ingen resultater",
-  routing: "Beregner bådrute…",
+  routing: "Beregner bådrute… (kan tage 10–40 sek.)",
   routeWater: "Vandrute uden om land",
   routeStraightFallback: "Straight-line — ingen vandrute fundet",
   companionRouteHint: "Hjælperute — ikke til navigation",
@@ -410,6 +431,16 @@ const da: Dict = {
   routeShortest: "Korteste",
   routeNorth: "Nord om",
   routeSouth: "Syd om",
+  useGpsAsA: "GPS → A",
+  useGpsAsB: "GPS → B",
+  myLocation: "Min position",
+  mapTapSetsPoint: "Tryk på kortet = A/B-pin (byer og sunde også OK)",
+  shoreStartHint: "Byruter starter ved kysten (vand), ikke midt på land",
+  gpsNeededForPoint: "GPS kræves — HTTPS eller demo",
+  pickDistinctPoints: "A og B skal være forskellige",
+  locateMe: "Find mig",
+  routingPreview: "Straight preview · beregner vandrute…",
+  routingDone: "Vandrute klar",
 };
 
 const en: Dict = {
@@ -533,12 +564,12 @@ const en: Dict = {
   demoGpsActive: "DEMO GPS · Uummannaq crawl — not your real position",
   gpsCoords: "GPS",
   townsAreNotGps:
-    "Town positions come from NunaGIS midpoints (± km). They are not GPS fixes.",
-  pickingA: "Next tap sets Point A",
-  pickingB: "Next tap sets Point B",
-  searchPlace: "Search town or village…",
+    "Green = your GPS. Terracotta = town/village (NunaGIS midpoint, ± km) — not GPS.",
+  pickingA: "A: place, map tap, or GPS",
+  pickingB: "B: place, map tap, or GPS",
+  searchPlace: "Search town or sound…",
   searchNoResults: "No matches",
-  routing: "Calculating boat route…",
+  routing: "Calculating boat route… (may take 10–40s)",
   routeWater: "Water route around land",
   routeStraightFallback: "Straight line — no water path found",
   companionRouteHint: "Companion route — not for navigation",
@@ -547,6 +578,16 @@ const en: Dict = {
   routeShortest: "Shortest",
   routeNorth: "Around north",
   routeSouth: "Around south",
+  useGpsAsA: "GPS → A",
+  useGpsAsB: "GPS → B",
+  myLocation: "My location",
+  mapTapSetsPoint: "Tap the map = A/B pin (towns and sounds also OK)",
+  shoreStartHint: "Town routes start at the shore (water), not inland",
+  gpsNeededForPoint: "GPS needed — use HTTPS or demo GPS",
+  pickDistinctPoints: "A and B must be different",
+  locateMe: "Locate me",
+  routingPreview: "Straight preview · calculating water route…",
+  routingDone: "Water route ready",
 };
 
 export const MESSAGES: Record<Locale, Dict> = { kl, da, en };

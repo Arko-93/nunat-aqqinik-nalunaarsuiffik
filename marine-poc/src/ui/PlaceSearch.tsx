@@ -5,7 +5,8 @@ import { useI18n } from "../i18n/I18nContext.tsx";
 type Props = {
   label: string;
   places: ReadonlyArray<CorridorPlace>;
-  selected: CorridorPlace | null;
+  selectedLabel: string | null;
+  selectedType: string | null;
   onSelect: (place: CorridorPlace) => void;
   accent: "a" | "b";
 };
@@ -20,17 +21,18 @@ const normalize = (value: string): string =>
 export function PlaceSearch({
   label,
   places,
-  selected,
+  selectedLabel,
+  selectedType,
   onSelect,
   accent,
 }: Props) {
   const { t } = useI18n();
-  const [query, setQuery] = useState(selected?.officialName ?? "");
+  const [query, setQuery] = useState(selectedLabel ?? "");
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    setQuery(selected?.officialName ?? "");
-  }, [selected?.globalId, selected?.officialName]);
+    setQuery(selectedLabel ?? "");
+  }, [selectedLabel]);
 
   const results = useMemo(() => {
     const q = normalize(query);
@@ -57,24 +59,22 @@ export function PlaceSearch({
         <input
           type="search"
           value={query}
-          placeholder={selected?.officialName ?? t("searchPlace")}
+          placeholder={selectedLabel ?? t("searchPlace")}
           onChange={(event) => {
             setQuery(event.target.value);
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
           onBlur={() => {
-            // Allow click on results before closing.
             window.setTimeout(() => setOpen(false), 160);
           }}
           autoComplete="off"
           spellCheck={false}
         />
       </label>
-      {selected ? (
+      {selectedLabel && selectedType ? (
         <p className="place-search-selected">
-          <strong>{selected.officialName}</strong>
-          <span>{selected.typeLabel}</span>
+          <span>{selectedType}</span>
         </p>
       ) : null}
       {open ? (

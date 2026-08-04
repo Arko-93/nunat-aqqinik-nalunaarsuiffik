@@ -37,13 +37,23 @@ import {
   verifyInstalledPackage,
 } from "../packages/package-cache.ts";
 import {
-  extractLandMask,
-  planBoatRoutes,
+  travelEndpointFromGps,
+  travelEndpointFromMap,
+  travelEndpointFromPlace,
+  withShorePosition,
+  type TravelEndpoint,
+} from "../domain/travel-point.ts";
+import {
   routesAreDistinct,
   straightBoatRoute,
   type BoatRoute,
-  type LandMask,
 } from "../routing/boat-route.ts";
+import {
+  planBoatRoutesAsync,
+  prepareBoatRouter,
+  resetBoatRouter,
+  snapEndpointToShore,
+} from "../routing/boat-route-client.ts";
 import { IndexedDbMarineStore } from "../storage/repository.ts";
 import {
   BridgedLocationService,
@@ -141,17 +151,18 @@ export function App() {
   const [corridorPlaces, setCorridorPlaces] = useState<CorridorPlace[]>([]);
   const [panelOpen, setPanelOpen] = useState(false);
   const [recenterToken, setRecenterToken] = useState(0);
+  const [locateMeToken, setLocateMeToken] = useState(0);
   const [followPosition, setFollowPosition] = useState(false);
-  const [pointA, setPointA] = useState<CorridorPlace | null>(null);
-  const [pointB, setPointB] = useState<CorridorPlace | null>(null);
+  const [pointA, setPointA] = useState<TravelEndpoint | null>(null);
+  const [pointB, setPointB] = useState<TravelEndpoint | null>(null);
   const [picking, setPicking] = useState<PickingTarget>("A");
   const [demoGps, setDemoGps] = useState(false);
   const [routeOptions, setRouteOptions] = useState<BoatRoute[]>([]);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState(0);
   const [routeLoading, setRouteLoading] = useState(false);
-  const landMaskRef = useRef<LandMask | null>(null);
   const landLoadPromiseRef = useRef<Promise<void> | null>(null);
   const routePlanIdRef = useRef(0);
+  const endpointSeqRef = useRef(0);
   const sequenceRef = useRef(0);
   const boatRoute = routeOptions[selectedRouteIndex] ?? null;
 
@@ -160,6 +171,14 @@ export function App() {
       corridorPlaces
         .filter((place) => place.isLocality)
         .sort((a, b) => a.officialName.localeCompare(b.officialName)),
+    [corridorPlaces],
+  );
+  const searchablePlaces = useMemo(
+    () =>
+      [...corridorPlaces].sort((a, b) => {
+        if (a.isLocality !== b.isLocality) return a.isLocality ? -1 : 1;
+        return a.officialName.localeCompare(b.officialName);
+      }),
     [corridorPlaces],
   );
   const visiblePlaces = useMemo(
@@ -184,46 +203,93 @@ export function App() {
   }, [pointA, pointB]);
   const routeCoordinates = boatRoute?.coordinates ?? [];
 
-  const assignPointA = (place: CorridorPlace) => {
-    if (!place.isLocality) {
-      setNotice(t("pickTownForTravel"));
-      return;
+  const shoreSnapEndpoint = async (
+    endpoint: TravelEndpoint,
+  ): Promise<TravelEndpoint> => {
+    await ensureBoatRouter();
+    const shore = snapEndpointToShore({
+      longitude: endpoint.longitude,
+      latitude: endpoint.latitude,
+    });
+    if (
+      shore.longitude === endpoint.longitude &&
+      shore.latitude === endpoint.latitude
+    ) {
+      return endpoint;
     }
-    if (pointB?.globalId === place.globalId) setPointB(null);
-    setPointA(place);
-    setSelectedPlace(place);
-    setPicking("B");
-    setNotice(pointB ? t("routeReady") : t("pickingB"));
+    return withShorePosition(endpoint, shore.longitude, shore.latitude);
+  };
+
+  const commitEndpoint = (
+    target: PickingTarget,
+    endpoint: TravelEndpoint,
+    place: CorridorPlace | null,
+  ) => {
+    const seq = ++endpointSeqRef.current;
+    if (target === "A") {
+      if (pointB?.id === endpoint.id) setPointB(null);
+      setPointA(endpoint);
+      setPicking("B");
+      setNotice(pointB ? t("routeReady") : t("pickingB"));
+    } else {
+      if (pointA?.id === endpoint.id) {
+        setNotice(t("pickDistinctPoints"));
+        return;
+      }
+      setPointB(endpoint);
+      setPicking("A");
+      setNotice(pointA ? t("routeReady") : t("pickingA"));
+    }
+    if (place) setSelectedPlace(place);
+    // Move place / land pins out to the shore for boat legs.
+    void shoreSnapEndpoint(endpoint)
+      .then((snapped) => {
+        if (seq !== endpointSeqRef.current) return;
+        if (target === "A") setPointA(snapped);
+        else setPointB(snapped);
+        if (snapped.source === "place") setNotice(t("shoreStartHint"));
+      })
+      .catch(() => {
+        /* keep original pin; routing may still snap */
+      });
+  };
+
+  const assignPointA = (place: CorridorPlace) => {
+    commitEndpoint("A", travelEndpointFromPlace(place), place);
   };
 
   const assignPointB = (place: CorridorPlace) => {
-    if (!place.isLocality) {
-      setNotice(t("pickTownForTravel"));
-      return;
-    }
-    if (pointA?.globalId === place.globalId) {
-      setNotice(t("pickTownForTravel"));
-      return;
-    }
-    setPointB(place);
-    setSelectedPlace(place);
-    setPicking("A");
-    setNotice(pointA ? t("routeReady") : t("pickingA"));
+    commitEndpoint("B", travelEndpointFromPlace(place), place);
   };
 
   const handlePlacePick = (place: CorridorPlace | null) => {
     setSelectedPlace(place);
     if (!place) return;
-    if (!place.isLocality) {
-      setNotice(t("pickTownForTravel"));
-      return;
-    }
     if (picking === "A") assignPointA(place);
     else assignPointB(place);
   };
 
-  const ensureLandMask = () => {
-    if (landMaskRef.current) return Promise.resolve();
+  const handleMapPick = (longitude: number, latitude: number) => {
+    const label = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+    const endpoint = travelEndpointFromMap(longitude, latitude, label);
+    commitEndpoint(picking, endpoint, null);
+    setSelectedPlace(null);
+  };
+
+  const useGpsAsPoint = (target: PickingTarget) => {
+    if (!position) {
+      setNotice(t("gpsNeededForPoint"));
+      return;
+    }
+    const endpoint = travelEndpointFromGps(
+      position.longitude,
+      position.latitude,
+      t("myLocation"),
+    );
+    commitEndpoint(target, endpoint, null);
+  };
+
+  const ensureBoatRouter = () => {
     if (landLoadPromiseRef.current) return landLoadPromiseRef.current;
     landLoadPromiseRef.current = (async () => {
       const response = await fetch(`${packageBase}/land.geojson`);
@@ -231,7 +297,7 @@ export function App() {
         throw new Error(`land fetch failed (${response.status})`);
       }
       const land = (await response.json()) as GeoJSON.FeatureCollection;
-      landMaskRef.current = extractLandMask(land);
+      await prepareBoatRouter(land);
     })().catch((err) => {
       landLoadPromiseRef.current = null;
       throw err;
@@ -240,14 +306,14 @@ export function App() {
   };
 
   useEffect(() => {
-    landMaskRef.current = null;
     landLoadPromiseRef.current = null;
+    resetBoatRouter();
   }, [packageBase]);
 
-  // Preload land mask as soon as the package is ready (snappier A→B).
+  // Preload land mask / worker as soon as the package is ready.
   useEffect(() => {
     if (!packageReady) return;
-    void ensureLandMask().catch(() => {
+    void ensureBoatRouter().catch(() => {
       /* surfaced when planning */
     });
   }, [packageReady, packageBase]);
@@ -268,49 +334,45 @@ export function App() {
       longitude: pointB.longitude,
       latitude: pointB.latitude,
     };
-    // Instant straight preview while water corridors compute.
+    // Instant straight preview — never block the UI while water corridors compute.
     setRouteOptions([straightBoatRoute(from, to)]);
     setSelectedRouteIndex(0);
     setRouteLoading(true);
     setNotice(t("routing"));
     const planId = ++routePlanIdRef.current;
-    const yieldPaint = () =>
-      new Promise<void>((resolve) => {
-        window.setTimeout(resolve, 0);
-      });
-    (async () => {
-      try {
-        await ensureLandMask();
-        await yieldPaint();
-        if (cancelled || planId !== routePlanIdRef.current) return;
-        const mask = landMaskRef.current;
-        if (!mask) throw new Error("Land mask unavailable");
-
-        // 1) Shortest sea path first (snappy).
-        const primary = planBoatRoutes(from, to, mask, {
-          biases: ["shortest"],
-        });
-        if (cancelled || planId !== routePlanIdRef.current) return;
-        setRouteOptions(primary.routes);
-        setSelectedRouteIndex(0);
-        const chosen = primary.routes[0]!;
-        setNotice(
-          chosen.mode === "water"
-            ? t("routeWater")
-            : (chosen.warning ?? t("routeStraightFallback")),
-        );
-        if (chosen.mode !== "water") return;
-
-        // Alternate corridors only on shorter hops (long legs are already costly).
-        const span = Math.max(
-          Math.abs(from.longitude - to.longitude),
-          Math.abs(from.latitude - to.latitude),
-        );
-        if (chosen.mode === "water" && span < 1.8) {
-          await yieldPaint();
+    const span = Math.max(
+      Math.abs(from.longitude - to.longitude),
+      Math.abs(from.latitude - to.latitude),
+    );
+    // Debounce shore-snap / double commits so we do not cancel the water plan.
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          await ensureBoatRouter();
           if (cancelled || planId !== routePlanIdRef.current) return;
-          const alts = planBoatRoutes(from, to, mask, {
+          const fromShore = snapEndpointToShore(from);
+          const toShore = snapEndpointToShore(to);
+
+          const primary = await planBoatRoutesAsync(fromShore, toShore, {
+            biases: ["shortest"],
+            budgetMs: span >= 4 ? 8_000 : span >= 1 ? 14_000 : 5_000,
+            precise: true,
+          });
+          if (cancelled || planId !== routePlanIdRef.current) return;
+          setRouteOptions(primary.routes);
+          setSelectedRouteIndex(0);
+          const chosen = primary.routes[0]!;
+          setNotice(
+            chosen.mode === "water"
+              ? t("routeWater")
+              : (chosen.warning ?? t("routeStraightFallback")),
+          );
+          if (chosen.mode !== "water" || span >= 1.8) return;
+
+          const alts = await planBoatRoutesAsync(fromShore, toShore, {
             biases: ["north", "south"],
+            budgetMs: 2500,
+            precise: true,
           });
           if (cancelled || planId !== routePlanIdRef.current) return;
           const merged = [chosen];
@@ -327,19 +389,20 @@ export function App() {
           merged.sort((a, b) => a.distanceM - b.distanceM);
           setRouteOptions(merged);
           setSelectedRouteIndex(0);
+        } catch (err) {
+          if (!cancelled && planId === routePlanIdRef.current) {
+            setNotice(`${t("routeStraightFallback")} · ${String(err)}`);
+          }
+        } finally {
+          if (!cancelled && planId === routePlanIdRef.current) {
+            setRouteLoading(false);
+          }
         }
-      } catch (err) {
-        if (!cancelled) {
-          setError(String(err));
-        }
-      } finally {
-        if (!cancelled && planId === routePlanIdRef.current) {
-          setRouteLoading(false);
-        }
-      }
-    })();
+      })();
+    }, 180);
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
   }, [pointA, pointB, packageBase, t]);
 
@@ -362,8 +425,8 @@ export function App() {
 
   const ensureGps = async () => {
     if (!secureContext) {
-      setGpsState("denied");
-      setPosition(null);
+      // Never wipe an active demo/real fix on HTTP — that hid the green puck.
+      setGpsState(demoGps || position ? "ready" : "denied");
       setError(null);
       setNotice(t("httpsRequiredBanner"));
       return;
@@ -529,7 +592,8 @@ export function App() {
           );
           setWaypoints([...wps]);
           setGpsState(active.trip.status === "paused" ? "paused" : "recording");
-        } else if (!cancelled) {
+        } else if (!cancelled && secureContext) {
+          // HTTP: wait for explicit Demo GPS — ensureGps would clear the puck.
           void ensureGps();
         }
       } catch (err) {
@@ -955,22 +1019,34 @@ export function App() {
             </div>
           </div>
         ) : null}
-        <div className="travel-planner">
+        <div className="travel-planner compact">
           <div className="travel-planner-head">
             <strong>{t("travelPlanner")}</strong>
-            <button
-              type="button"
-              className="secondary chrome-btn"
-              onClick={() => setPanelOpen((value) => !value)}
-            >
-              {panelOpen ? t("hidePanel") : t("placeList")}
-            </button>
+            <div className="travel-planner-tools">
+              <button
+                type="button"
+                className="secondary chrome-btn slim"
+                disabled={!position}
+                onClick={() => useGpsAsPoint(picking)}
+                title={picking === "A" ? t("useGpsAsA") : t("useGpsAsB")}
+              >
+                {picking === "A" ? t("useGpsAsA") : t("useGpsAsB")}
+              </button>
+              <button
+                type="button"
+                className="secondary chrome-btn slim"
+                onClick={() => setPanelOpen((value) => !value)}
+              >
+                {panelOpen ? t("hidePanel") : t("placeList")}
+              </button>
+            </div>
           </div>
-          <div className="travel-search-grid">
+          <div className="travel-search-stack">
             <PlaceSearch
-              label={`${t("pointA")} · ${picking === "A" ? t("pickingA") : ""}`}
-              places={localities}
-              selected={pointA}
+              label={t("pointA")}
+              places={searchablePlaces}
+              selectedLabel={pointA?.label ?? null}
+              selectedType={pointA?.typeLabel ?? null}
               accent="a"
               onSelect={(place) => {
                 setPicking("A");
@@ -978,9 +1054,10 @@ export function App() {
               }}
             />
             <PlaceSearch
-              label={`${t("pointB")} · ${picking === "B" ? t("pickingB") : ""}`}
-              places={localities}
-              selected={pointB}
+              label={t("pointB")}
+              places={searchablePlaces}
+              selectedLabel={pointB?.label ?? null}
+              selectedType={pointB?.typeLabel ?? null}
               accent="b"
               onSelect={(place) => {
                 setPicking("B");
@@ -988,35 +1065,52 @@ export function App() {
               }}
             />
           </div>
-        </div>
-        <div className="travel-meta">
-          {routeLoading ? <span>{t("routing")}</span> : null}
           {pointA && pointB ? (
-            <>
-              <span>
-                {t("distance")}:{" "}
-                <strong>{formatDistanceKm(routeDistanceM)}</strong>
-              </span>
-              <span>
-                {t("bearing")}:{" "}
-                <strong>
-                  {routeBearing != null ? `${Math.round(routeBearing)}°` : "—"}
-                </strong>
-              </span>
-              <span className="meta">
-                {boatRoute?.mode === "water"
-                  ? t("routeWater")
-                  : routeLoading
-                    ? t("routing")
-                    : t("routeStraightFallback")}
-                {" · "}
-                {t("companionRouteHint")}
-              </span>
-            </>
+            <div
+              className={
+                routeLoading
+                  ? "route-status loading"
+                  : boatRoute?.mode === "water"
+                    ? "route-status ready"
+                    : "route-status fallback"
+              }
+              role="status"
+              aria-live="polite"
+            >
+              {routeLoading ? (
+                <>
+                  <span className="route-spinner" aria-hidden="true" />
+                  <span>
+                    <strong>{t("routingPreview")}</strong>
+                    <em>{t("routing")}</em>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span>
+                    <strong>
+                      {boatRoute?.mode === "water"
+                        ? t("routingDone")
+                        : t("routeStraightFallback")}
+                    </strong>
+                    <em>
+                      {formatDistanceKm(routeDistanceM)}
+                      {routeBearing != null
+                        ? ` · ${Math.round(routeBearing)}°`
+                        : ""}
+                    </em>
+                  </span>
+                </>
+              )}
+            </div>
           ) : (
-            <span>{picking === "A" ? t("pickingA") : t("pickingB")}</span>
+            <p className="meta travel-pick-hint">
+              {picking === "A" ? t("pickingA") : t("pickingB")}
+              {" · "}
+              {t("mapTapSetsPoint")}
+            </p>
           )}
-          {routeOptions.length > 1 ? (
+          {routeOptions.length > 1 && !routeLoading ? (
             <div className="route-options" role="group" aria-label={t("routeOptions")}>
               {routeOptions.map((route, index) => {
                 const label =
@@ -1043,22 +1137,6 @@ export function App() {
               })}
             </div>
           ) : null}
-          {position ? (
-            <span>
-              {t("gpsCoords")}:{" "}
-              <strong>
-                {position.latitude.toFixed(4)}, {position.longitude.toFixed(4)}
-              </strong>
-              {position.horizontalAccuracyM != null
-                ? ` ±${Math.round(position.horizontalAccuracyM)} m`
-                : ""}
-              {demoGps || position.mocked ? " · DEMO" : ""}
-            </span>
-          ) : (
-            <span>
-              {t("gpsCoords")}: <strong>—</strong>
-            </span>
-          )}
         </div>
       </div>
 
@@ -1075,7 +1153,7 @@ export function App() {
         placeScope={placeScope}
         selectedPlaceId={selectedPlace?.globalId ?? null}
         flyToPlace={selectedPlace}
-        fitPlaces={localities}
+        fitPlaces={localities.length <= 24 ? localities : []}
         pointA={pointA}
         pointB={pointB}
         routeCoordinates={routeCoordinates}
@@ -1083,9 +1161,45 @@ export function App() {
         alternateRoutes={routeOptions}
         selectedRouteIndex={selectedRouteIndex}
         recenterToken={recenterToken}
+        locateMeToken={locateMeToken}
+        routeLoading={routeLoading}
         followPosition={followPosition}
         onSelectPlace={handlePlacePick}
+        onMapPick={handleMapPick}
       />
+
+      <button
+        type="button"
+        className="locate-fab"
+        disabled={!position && !secureContext && !demoGps}
+        title={t("locateMe")}
+        aria-label={t("locateMe")}
+        onClick={() => {
+          setFollowPosition(true);
+          if (position) {
+            setLocateMeToken((token) => token + 1);
+            return;
+          }
+          if (secureContext) {
+            void ensureGps().then(() => {
+              window.setTimeout(
+                () => setLocateMeToken((token) => token + 1),
+                250,
+              );
+            });
+            return;
+          }
+          void startDemoGps().then(() => {
+            window.setTimeout(
+              () => setLocateMeToken((token) => token + 1),
+              350,
+            );
+          });
+        }}
+      >
+        <span className="locate-fab-ring" aria-hidden="true" />
+        <span className="locate-fab-dot" aria-hidden="true" />
+      </button>
 
       <div className="trip-dock travel-dock">
         {pointA && pointB ? (
@@ -1167,8 +1281,11 @@ export function App() {
           type="button"
           aria-pressed={followPosition}
           onClick={() => {
-            setFollowPosition((value) => !value);
-            if (!followPosition) void ensureGps();
+            const next = !followPosition;
+            setFollowPosition(next);
+            if (!next) return;
+            if (secureContext) void ensureGps();
+            else if (!position && !demoGps) void startDemoGps();
           }}
         >
           {t("followGps")}
@@ -1218,8 +1335,8 @@ export function App() {
               onClose={() => setSelectedPlace(null)}
               onSetPointA={assignPointA}
               onSetPointB={assignPointB}
-              pointAId={pointA?.globalId ?? null}
-              pointBId={pointB?.globalId ?? null}
+              pointAId={pointA?.placeGlobalId ?? null}
+              pointBId={pointB?.placeGlobalId ?? null}
             />
           ) : (
             <p className="meta">
@@ -1253,8 +1370,8 @@ export function App() {
             onClose={() => setSelectedPlace(null)}
             onSetPointA={assignPointA}
             onSetPointB={assignPointB}
-            pointAId={pointA?.globalId ?? null}
-            pointBId={pointB?.globalId ?? null}
+            pointAId={pointA?.placeGlobalId ?? null}
+            pointBId={pointB?.placeGlobalId ?? null}
           />
         </div>
       ) : null}

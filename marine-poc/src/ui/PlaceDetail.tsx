@@ -21,7 +21,6 @@ export function PlaceDetail({
   const { t } = useI18n();
   const isA = pointAId === place.globalId;
   const isB = pointBId === place.globalId;
-  const canTravel = place.isLocality;
 
   return (
     <section className="panel place-detail" aria-live="polite">
@@ -48,7 +47,7 @@ export function PlaceDetail({
         </p>
       ) : null}
 
-      {canTravel && onSetPointA && onSetPointB ? (
+      {onSetPointA && onSetPointB ? (
         <div className="btn-row place-ab-actions">
           <button
             className={isA ? "primary" : "secondary"}
@@ -65,9 +64,8 @@ export function PlaceDetail({
             {isB ? t("pointBSet") : t("setPointB")}
           </button>
         </div>
-      ) : (
-        <p className="meta">{t("pickTownForTravel")}</p>
-      )}
+      ) : null}
+      <p className="meta">{t("shoreStartHint")}</p>
     </section>
   );
 }
