@@ -4,10 +4,24 @@ import { useI18n } from "../i18n/I18nContext.tsx";
 type Props = {
   place: CorridorPlace;
   onClose: () => void;
+  onSetPointA?: (place: CorridorPlace) => void;
+  onSetPointB?: (place: CorridorPlace) => void;
+  pointAId?: string | null;
+  pointBId?: string | null;
 };
 
-export function PlaceDetail({ place, onClose }: Props) {
+export function PlaceDetail({
+  place,
+  onClose,
+  onSetPointA,
+  onSetPointB,
+  pointAId,
+  pointBId,
+}: Props) {
   const { t } = useI18n();
+  const isA = pointAId === place.globalId;
+  const isB = pointBId === place.globalId;
+  const canTravel = place.isLocality;
 
   return (
     <section className="panel place-detail" aria-live="polite">
@@ -19,16 +33,13 @@ export function PlaceDetail({ place, onClose }: Props) {
       </div>
       <p className="meta">
         {place.typeLabel || place.featureKind}
-        {place.isLocality ? ` · ${t("inhabitedPlace")}` : ` · ${t("geographicFeature")}`}
+        {place.isLocality
+          ? ` · ${t("inhabitedPlace")}`
+          : ` · ${t("geographicFeature")}`}
       </p>
       {place.danishName ? (
         <p>
           {t("danishName")}: {place.danishName}
-        </p>
-      ) : null}
-      {place.oldOfficialName ? (
-        <p className="meta">
-          {t("historicalName")}: {place.oldOfficialName}
         </p>
       ) : null}
       {place.municipalityName ? (
@@ -36,11 +47,27 @@ export function PlaceDetail({ place, onClose }: Props) {
           {t("municipality")}: {place.municipalityName}
         </p>
       ) : null}
-      <p className="meta">
-        {t("coordinates")}: {place.latitude.toFixed(5)},{" "}
-        {place.longitude.toFixed(5)}
-      </p>
-      <p className="meta">ID: {place.globalId}</p>
+
+      {canTravel && onSetPointA && onSetPointB ? (
+        <div className="btn-row place-ab-actions">
+          <button
+            className={isA ? "primary" : "secondary"}
+            type="button"
+            onClick={() => onSetPointA(place)}
+          >
+            {isA ? t("pointASet") : t("setPointA")}
+          </button>
+          <button
+            className={isB ? "primary" : "secondary"}
+            type="button"
+            onClick={() => onSetPointB(place)}
+          >
+            {isB ? t("pointBSet") : t("setPointB")}
+          </button>
+        </div>
+      ) : (
+        <p className="meta">{t("pickTownForTravel")}</p>
+      )}
     </section>
   );
 }

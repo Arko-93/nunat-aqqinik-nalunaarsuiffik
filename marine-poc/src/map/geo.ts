@@ -65,4 +65,27 @@ export const formatCourse = (courseDeg: number | null): string => {
   return `${Math.round(courseDeg)}°`;
 };
 
+/** Initial bearing degrees from point 1 → point 2 (0–360). */
+export const initialBearingDeg = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number => {
+  const φ1 = toRadians(lat1);
+  const φ2 = toRadians(lat2);
+  const Δλ = toRadians(lon2 - lon1);
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x =
+    Math.cos(φ1) * Math.sin(φ2) -
+    Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  return (((Math.atan2(y, x) * 180) / Math.PI) + 360) % 360;
+};
+
+export const formatDistanceKm = (meters: number | null): string => {
+  if (meters == null || !Number.isFinite(meters)) return "—";
+  if (meters < 1000) return `${Math.round(meters)} m`;
+  return `${(meters / 1000).toFixed(1)} km`;
+};
+
 export { haversineDistanceM };

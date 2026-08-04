@@ -13,7 +13,8 @@
     "preview": "vite preview --host 127.0.0.1 --port 3459",
     "typecheck": "tsc --noEmit --pretty false",
     "test": "vitest run",
-    "prepare:corridor": "python3 scripts/prepare-corridor.py"
+    "prepare:corridor": "python3 scripts/prepare-corridor.py",
+    "prepare:regions": ".venv/bin/python scripts/prepare-regions.py"
   },
   "dependencies": {
     "@capacitor/core": "^7.4.2",

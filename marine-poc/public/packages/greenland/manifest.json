@@ -1,0 +1,93 @@
+{
+  "id": "greenland_2026-08-04_marine",
+  "slug": "greenland",
+  "title": {
+    "kl": "Kalaallit Nunaat",
+    "da": "Gr\u00f8nland",
+    "en": "Greenland"
+  },
+  "description": "Whole Greenland companion map \u2014 not for navigation.",
+  "bbox": [
+    -75.0,
+    59.5,
+    -10.0,
+    84.0
+  ],
+  "minZoom": 3,
+  "maxZoom": 14,
+  "bytes": 14769605,
+  "sha256": "dc9e08fc849c808aad0e3f9ae46e3abc2fb012b435983e1ac98c04248b4461d9",
+  "createdAt": "2026-08-04T14:21:12Z",
+  "primaryFile": "places.geojson",
+  "primaryBytes": 3504890,
+  "primarySha256": "592ccedc5b2762ab443d77b9e0b0924da45747aec68341a85875d8bab9d2dbf3",
+  "files": [
+    {
+      "path": "places.geojson",
+      "bytes": 3504890,
+      "sha256": "592ccedc5b2762ab443d77b9e0b0924da45747aec68341a85875d8bab9d2dbf3"
+    },
+    {
+      "path": "land.geojson",
+      "bytes": 2762058,
+      "sha256": "680d469296da65ec259c20315b7d8fcd8647838cd119d04b1f38d352afd900f5"
+    },
+    {
+      "path": "ocean-bands.geojson",
+      "bytes": 4534643,
+      "sha256": "ebdfda05e1bcc5351269ab1d89aa779def5a77a5a0ea8fced52f661281722253"
+    },
+    {
+      "path": "water.geojson",
+      "bytes": 3964965,
+      "sha256": "56f6dd7a719a2aab0f13c4cc5801f41eb8327cf090f9155da198499d81a293a3"
+    },
+    {
+      "path": "style.json",
+      "bytes": 3049,
+      "sha256": "0641ea5e4e949c5c4f577878dbec2df7780eb98e769d0798255824e631b6233c"
+    }
+  ],
+  "stats": {
+    "localities": 73,
+    "geography": 6000
+  },
+  "layers": [
+    {
+      "id": "places",
+      "source": "NunaGIS/Oqaasileriffik via web placenames gazetteer",
+      "licence": "written-confirmation-required-for-commercial-redistribution",
+      "dataAsOf": "2026-08-01",
+      "file": "places.geojson",
+      "safety": "companion_only"
+    },
+    {
+      "id": "land",
+      "source": "OpenStreetMap simplified land polygons (ODbL) + OpenStreetMap water",
+      "licence": "ODbL",
+      "dataAsOf": "2026-08-04",
+      "file": "land.geojson",
+      "safety": "not-for-navigation"
+    },
+    {
+      "id": "bathymetry-context",
+      "source": "Derived nearshore/shelf bands from land buffer \u2014 NOT GEBCO/IBCAO soundings; companion context only",
+      "licence": "derived",
+      "dataAsOf": "2026-08-04",
+      "safety": "not-for-navigation",
+      "file": "ocean-bands.geojson"
+    }
+  ],
+  "style": "style.json",
+  "attributions": [
+    "Place names: Nunat Aqqinik Aalajangiisartut / Oqaasileriffik via NunaGIS",
+    "OpenStreetMap simplified land polygons (ODbL) + OpenStreetMap water",
+    "\u00a9 OpenStreetMap contributors (ODbL) when OSM land is used",
+    "Not an official nautical chart \u2014 companion context only"
+  ],
+  "warnings": [
+    "Whole-Greenland companion package \u2014 context only.",
+    "Not for navigation, depth clearance, or emergency decisions.",
+    "Browser storage can be evicted; export important trips."
+  ]
+}

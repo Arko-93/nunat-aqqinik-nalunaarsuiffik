@@ -6,14 +6,39 @@ import {
   verifyPackageFiles,
 } from "./manifest.ts";
 
-const CACHE_NAME = "nunat-marine-corridor-v1";
-const PACKAGE_BASE = "/packages/uummannaq-qaarsut";
+const CACHE_NAME = "nunat-marine-packages-v2";
 
 export type PackageInstallProgress = {
   path: string;
   loaded: number;
   total: number;
 };
+
+export type RegionCatalogEntry = {
+  id: string;
+  slug: string;
+  path: string;
+  title: { kl: string; da: string; en: string };
+  description: string;
+  bbox: [number, number, number, number];
+  bytes: number;
+  stats: { localities: number; geography: number };
+};
+
+export type RegionCatalog = {
+  version: number;
+  createdAt: string;
+  regions: RegionCatalogEntry[];
+};
+
+export type PackageInstallResult = {
+  manifest: CorridorPackageManifest;
+  /** True when files were stored in CacheStorage for offline reuse. */
+  cached: boolean;
+};
+
+const cacheApiAvailable = (): boolean =>
+  typeof globalThis !== "undefined" && "caches" in globalThis;
 
 const filePaths = (manifest: CorridorPackageManifest): string[] => {
   if (manifest.files && manifest.files.length > 0) {
@@ -22,17 +47,30 @@ const filePaths = (manifest: CorridorPackageManifest): string[] => {
   return [manifest.primaryFile ?? "places.geojson", manifest.style];
 };
 
-export const openPackageCache = (): Promise<Cache> => caches.open(CACHE_NAME);
+export const openPackageCache = (): Promise<Cache> => {
+  if (!cacheApiAvailable()) {
+    throw new PackageError("CacheStorage unavailable in this browser");
+  }
+  return caches.open(CACHE_NAME);
+};
+
+export const loadRegionCatalog = async (): Promise<RegionCatalog> => {
+  const response = await fetch("/packages/catalog.json", { cache: "no-store" });
+  if (!response.ok) {
+    throw new PackageError(`Failed to load region catalog (${response.status})`);
+  }
+  return (await response.json()) as RegionCatalog;
+};
 
 export const isPackageInstalled = async (
+  packageBase: string,
   packageId: string,
 ): Promise<boolean> => {
-  const cache = await openPackageCache();
-  const manifestResponse = await cache.match(
-    `${PACKAGE_BASE}/manifest.json`,
-  );
-  if (!manifestResponse) return false;
+  if (!cacheApiAvailable()) return false;
   try {
+    const cache = await openPackageCache();
+    const manifestResponse = await cache.match(`${packageBase}/manifest.json`);
+    if (!manifestResponse) return false;
     const manifest = parseManifest(await manifestResponse.json());
     return manifest.id === packageId;
   } catch {
@@ -40,46 +78,36 @@ export const isPackageInstalled = async (
   }
 };
 
-export const readCachedManifest = async (): Promise<
-  CorridorPackageManifest | null
-> => {
-  const cache = await openPackageCache();
-  const response = await cache.match(`${PACKAGE_BASE}/manifest.json`);
-  if (!response) return null;
-  return parseManifest(await response.json());
-};
-
-export const readCachedUrl = async (url: string): Promise<Response | null> => {
-  const cache = await openPackageCache();
-  return (await cache.match(url)) ?? null;
-};
-
-export const resolvePackageUrl = async (relativePath: string): Promise<string> => {
-  const url = `${PACKAGE_BASE}/${relativePath.replace(/^\.\//, "")}`;
-  const cached = await readCachedUrl(url);
-  if (cached) {
-    const blob = await cached.blob();
-    return URL.createObjectURL(blob);
+export const readCachedManifest = async (
+  packageBase: string,
+): Promise<CorridorPackageManifest | null> => {
+  if (!cacheApiAvailable()) return null;
+  try {
+    const cache = await openPackageCache();
+    const response = await cache.match(`${packageBase}/manifest.json`);
+    if (!response) return null;
+    return parseManifest(await response.json());
+  } catch {
+    return null;
   }
-  return url;
 };
 
+/** Prefetch + verify package files. Caches when CacheStorage exists. */
 export const installCorridorPackage = async (
+  packageBase: string,
   onProgress?: (progress: PackageInstallProgress) => void,
-): Promise<CorridorPackageManifest> => {
-  if (!("caches" in globalThis)) {
-    throw new PackageError("CacheStorage unavailable in this browser");
-  }
-
+): Promise<PackageInstallResult> => {
+  const base = packageBase.replace(/\/$/, "");
   const networkManifest = await loadManifestFromJson(
-    await fetch(`${PACKAGE_BASE}/manifest.json`, { cache: "no-store" }),
+    await fetch(`${base}/manifest.json`, { cache: "no-store" }),
   );
   const paths = filePaths(networkManifest);
-  const cache = await openPackageCache();
   const buffers = new Map<string, ArrayBuffer>();
+  const canCache = cacheApiAvailable();
+  const cache = canCache ? await openPackageCache() : null;
 
   for (const path of paths) {
-    const url = `${PACKAGE_BASE}/${path}`;
+    const url = `${base}/${path}`;
     const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) {
       throw new PackageError(`Failed to download ${path} (${response.status})`);
@@ -91,49 +119,66 @@ export const installCorridorPackage = async (
       total: buffer.byteLength,
     });
     buffers.set(path, buffer);
-    await cache.put(
-      url,
-      new Response(buffer.slice(0), {
-        headers: {
-          "Content-Type": contentTypeFor(path),
-          "Cache-Control": "public, max-age=31536000, immutable",
-        },
-      }),
-    );
+    if (cache) {
+      await cache.put(
+        url,
+        new Response(buffer.slice(0), {
+          headers: {
+            "Content-Type": contentTypeFor(path),
+            "Cache-Control": "public, max-age=31536000, immutable",
+          },
+        }),
+      );
+    }
   }
 
   await verifyPackageFiles(networkManifest, buffers);
 
-  const manifestBytes = new TextEncoder().encode(
-    JSON.stringify(networkManifest),
-  );
-  await cache.put(
-    `${PACKAGE_BASE}/manifest.json`,
-    new Response(manifestBytes, {
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
+  if (cache) {
+    const manifestBytes = new TextEncoder().encode(
+      JSON.stringify(networkManifest),
+    );
+    await cache.put(
+      `${base}/manifest.json`,
+      new Response(manifestBytes, {
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+  }
 
-  return networkManifest;
+  return { manifest: networkManifest, cached: Boolean(cache) };
 };
 
-export const deleteCorridorPackage = async (): Promise<void> => {
-  if (!("caches" in globalThis)) return;
-  await caches.delete(CACHE_NAME);
-};
-
-export const verifyInstalledPackage = async (): Promise<CorridorPackageManifest> => {
+export const deleteCorridorPackage = async (
+  packageBase: string,
+): Promise<void> => {
+  if (!cacheApiAvailable()) return;
+  const base = packageBase.replace(/\/$/, "");
   const cache = await openPackageCache();
-  const manifestResponse = await cache.match(
-    `${PACKAGE_BASE}/manifest.json`,
+  const keys = await cache.keys();
+  await Promise.all(
+    keys
+      .filter((request) => request.url.includes(`${base}/`))
+      .map((request) => cache.delete(request)),
   );
+};
+
+export const verifyInstalledPackage = async (
+  packageBase: string,
+): Promise<CorridorPackageManifest> => {
+  if (!cacheApiAvailable()) {
+    throw new PackageError("CacheStorage unavailable in this browser");
+  }
+  const base = packageBase.replace(/\/$/, "");
+  const cache = await openPackageCache();
+  const manifestResponse = await cache.match(`${base}/manifest.json`);
   if (!manifestResponse) {
-    throw new PackageError("No installed corridor package");
+    throw new PackageError("No installed coast package");
   }
   const manifest = parseManifest(await manifestResponse.json());
   const buffers = new Map<string, ArrayBuffer>();
   for (const path of filePaths(manifest)) {
-    const response = await cache.match(`${PACKAGE_BASE}/${path}`);
+    const response = await cache.match(`${base}/${path}`);
     if (!response) {
       throw new PackageError(`Missing cached file: ${path}`);
     }

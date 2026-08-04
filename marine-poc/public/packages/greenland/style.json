@@ -1,0 +1,166 @@
+{
+  "version": 8,
+  "name": "greenland-greenland",
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+  "metadata": {
+    "nunat:safety": "not-for-navigation",
+    "nunat:region": "greenland_2026-08-04_marine",
+    "nunat:bathymetry": "context-placeholder-not-for-navigation"
+  },
+  "sources": {
+    "land": {
+      "type": "geojson",
+      "data": "land.geojson"
+    },
+    "places": {
+      "type": "geojson",
+      "data": "places.geojson"
+    },
+    "ocean-bands": {
+      "type": "geojson",
+      "data": "ocean-bands.geojson"
+    },
+    "water": {
+      "type": "geojson",
+      "data": "water.geojson"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#020c14"
+      }
+    },
+    {
+      "id": "ocean-shelf",
+      "type": "fill",
+      "source": "ocean-bands",
+      "filter": [
+        "==",
+        [
+          "get",
+          "kind"
+        ],
+        "shelf"
+      ],
+      "paint": {
+        "fill-color": "#071f2e",
+        "fill-opacity": 0.92
+      }
+    },
+    {
+      "id": "ocean-nearshore",
+      "type": "fill",
+      "source": "ocean-bands",
+      "filter": [
+        "==",
+        [
+          "get",
+          "kind"
+        ],
+        "nearshore"
+      ],
+      "paint": {
+        "fill-color": "#0e3348",
+        "fill-opacity": 0.95
+      }
+    },
+    {
+      "id": "land-fill",
+      "type": "fill",
+      "source": "land",
+      "filter": [
+        "==",
+        [
+          "get",
+          "kind"
+        ],
+        "land"
+      ],
+      "paint": {
+        "fill-color": "#243a2f",
+        "fill-opacity": 0.98
+      }
+    },
+    {
+      "id": "water-fill",
+      "type": "fill",
+      "source": "water",
+      "paint": {
+        "fill-color": "#0b3144",
+        "fill-opacity": 0.82
+      }
+    },
+    {
+      "id": "beach-fill",
+      "type": "fill",
+      "source": "land",
+      "filter": [
+        "==",
+        [
+          "get",
+          "kind"
+        ],
+        "beach"
+      ],
+      "paint": {
+        "fill-color": "#b8995a",
+        "fill-opacity": 0.88
+      }
+    },
+    {
+      "id": "land-outline",
+      "type": "line",
+      "source": "land",
+      "filter": [
+        "==",
+        [
+          "get",
+          "kind"
+        ],
+        "land"
+      ],
+      "paint": {
+        "line-color": "#8ec9a8",
+        "line-width": 1.7
+      }
+    },
+    {
+      "id": "places-circle",
+      "type": "circle",
+      "source": "places",
+      "paint": {
+        "circle-radius": [
+          "case",
+          [
+            "==",
+            [
+              "get",
+              "isLocality"
+            ],
+            true
+          ],
+          3,
+          2
+        ],
+        "circle-color": [
+          "case",
+          [
+            "==",
+            [
+              "get",
+              "isLocality"
+            ],
+            true
+          ],
+          "#f0c674",
+          "#9ec4d4"
+        ],
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#041018"
+      }
+    }
+  ]
+}

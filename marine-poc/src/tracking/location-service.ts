@@ -27,6 +27,11 @@ export interface LocationService {
     LocationPoint,
     PermissionError | LocationError
   >;
+  /** Explicit demo only — never used as a silent fallback. */
+  readonly startDemo?: (
+    profile?: RecordingProfile,
+  ) => Effect.Effect<TrackingSession, LocationError>;
+  readonly isDemoActive?: () => boolean;
 }
 
 const profileToOptions = (profile: RecordingProfile): PositionOptions => {
@@ -60,8 +65,8 @@ export const positionToLocationPoint = (
     recordedAt: new Date(timestamp).toISOString(),
     provider: "web",
     mocked:
-      "mocked" in coords && typeof (coords as { mocked?: boolean }).mocked ===
-        "boolean"
+      "mocked" in coords &&
+      typeof (coords as { mocked?: boolean }).mocked === "boolean"
         ? (coords as { mocked: boolean }).mocked
         : null,
   };
@@ -92,21 +97,26 @@ const newId = (): string =>
     ? crypto.randomUUID()
     : `trip_${Date.now()}`;
 
-const insecureOrigin = (): boolean => {
+export const insecureOrigin = (): boolean => {
   if (typeof window === "undefined") return false;
   return !window.isSecureContext;
 };
 
-/** Explicit demo only: Uummannaq → Qaarsut corridor crawl (HTTP fallback). */
+/**
+ * Demo route is [latitude, longitude] WGS84 near Uummannaq→Qaarsut.
+ * Only used when the user explicitly starts demo mode.
+ */
 const DEMO_ROUTE: ReadonlyArray<[number, number]> = [
-  [70.6747, -52.1269], // Uummannaq
+  [70.6747, -52.1269],
   [70.689, -52.05],
   [70.705, -51.95],
   [70.72, -51.85],
   [70.732, -51.75],
   [70.742, -51.65],
-  [70.734, -51.55], // near Qaarsut
+  [70.734, -51.55],
 ];
+
+export const HTTPS_GPS_URL = "https://marine.sikumut.gl";
 
 export class WebLocationService implements LocationService {
   private watchId: number | null = null;
@@ -134,6 +144,11 @@ export class WebLocationService implements LocationService {
       try: async () => {
         if (!("geolocation" in navigator)) {
           throw new LocationError("Geolocation API unavailable");
+        }
+        if (insecureOrigin()) {
+          throw new LocationError(
+            `Real GPS needs HTTPS. Open ${HTTPS_GPS_URL} — do not use the HTTP demo host for location.`,
+          );
         }
         if (this.watchId !== null) {
           navigator.geolocation.clearWatch(this.watchId);
@@ -191,6 +206,14 @@ export class WebLocationService implements LocationService {
             reject(new LocationError("Geolocation API unavailable"));
             return;
           }
+          if (insecureOrigin()) {
+            reject(
+              new LocationError(
+                `Real GPS needs HTTPS. Open ${HTTPS_GPS_URL}`,
+              ),
+            );
+            return;
+          }
           navigator.geolocation.getCurrentPosition(
             (position) => resolve(positionToLocationPoint(position)),
             (error) => {
@@ -232,6 +255,8 @@ export class BridgedLocationService implements LocationService {
     this.plugin = plugin;
   }
 
+  isDemoActive = (): boolean => this.useDemo;
+
   subscribe = (
     onPoint: (point: LocationPoint) => void,
     onError?: (error: LocationError | PermissionError) => void,
@@ -257,9 +282,12 @@ export class BridgedLocationService implements LocationService {
     const index = Math.min(sequence, DEMO_ROUTE.length - 1);
     const [latitude, longitude] = DEMO_ROUTE[index]!;
     const next =
-      DEMO_ROUTE[Math.min(index + 1, DEMO_ROUTE.length - 1)] ?? DEMO_ROUTE[index]!;
+      DEMO_ROUTE[Math.min(index + 1, DEMO_ROUTE.length - 1)] ??
+      DEMO_ROUTE[index]!;
+    const dLat = next[0]! - latitude;
+    const dLon = next[1]! - longitude;
     const courseDeg =
-      (Math.atan2(next[1]! - longitude, next[0]! - latitude) * 180) / Math.PI;
+      (((Math.atan2(dLon, dLat) * 180) / Math.PI) + 360) % 360;
     return {
       latitude,
       longitude,
@@ -267,49 +295,51 @@ export class BridgedLocationService implements LocationService {
       altitudeM: 3,
       verticalAccuracyM: null,
       speedMps: 3.2,
-      courseDeg: (courseDeg + 360) % 360,
+      courseDeg,
       recordedAt: new Date().toISOString(),
       provider: "web",
       mocked: true,
     };
   };
 
-  private startDemo = (
-    profile: RecordingProfile,
-  ): TrackingSession => {
-    this.useDemo = true;
-    this.demoSequence = 0;
-    if (this.demoTimer) clearInterval(this.demoTimer);
-    const tickMs =
-      profile === "close_approach"
-        ? 1500
-        : profile === "battery_reserve"
-          ? 5000
-          : 2500;
-    this.demoTimer = setInterval(() => {
-      this.demoSequence += 1;
-      const point = this.demoPoint(this.demoSequence);
-      for (const listener of this.pointListeners) listener(point);
-    }, tickMs);
-    for (const listener of this.pointListeners) {
-      listener(this.demoPoint(0));
-    }
-    return {
-      tripId: crypto.randomUUID(),
-      startedAt: new Date().toISOString(),
-      profile,
-      mode: "web-foreground",
-    };
-  };
+  startDemo = (
+    profile: RecordingProfile = "normal_travel",
+  ): Effect.Effect<TrackingSession, LocationError> =>
+    Effect.sync(() => {
+      this.useDemo = true;
+      this.demoSequence = 0;
+      if (this.demoTimer) clearInterval(this.demoTimer);
+      const tickMs =
+        profile === "close_approach"
+          ? 1500
+          : profile === "battery_reserve"
+            ? 5000
+            : 2500;
+      this.demoTimer = setInterval(() => {
+        this.demoSequence += 1;
+        const point = this.demoPoint(this.demoSequence);
+        for (const listener of this.pointListeners) listener(point);
+      }, tickMs);
+      const first = this.demoPoint(0);
+      for (const listener of this.pointListeners) listener(first);
+      return {
+        tripId: crypto.randomUUID(),
+        startedAt: new Date().toISOString(),
+        profile,
+        mode: "web-foreground",
+      };
+    });
 
   start = (
     profile: RecordingProfile = "normal_travel",
   ): Effect.Effect<TrackingSession, PermissionError | LocationError> =>
     Effect.tryPromise({
       try: async () => {
-        // Demo GPS only on insecure HTTP. HTTPS/native must use real GNSS.
+        // Never silently fake GPS. HTTP must use startDemo() or HTTPS.
         if (insecureOrigin()) {
-          return this.startDemo(profile);
+          throw new LocationError(
+            `Real GPS needs HTTPS. Open ${HTTPS_GPS_URL}`,
+          );
         }
         const nativeAvailable = await this.plugin.isNativeAvailable();
         if (nativeAvailable) {
@@ -348,8 +378,13 @@ export class BridgedLocationService implements LocationService {
   > =>
     Effect.tryPromise({
       try: async () => {
+        if (this.useDemo) {
+          return this.demoPoint(this.demoSequence);
+        }
         if (insecureOrigin()) {
-          return this.demoPoint(0);
+          throw new LocationError(
+            `Real GPS needs HTTPS. Open ${HTTPS_GPS_URL}`,
+          );
         }
         return await Effect.runPromise(this.web.getCurrent());
       },

@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "createdAt": "2026-08-04T14:21:12Z",
+  "regions": [
+    {
+      "id": "greenland_2026-08-04_marine",
+      "slug": "greenland",
+      "path": "/packages/greenland",
+      "title": {
+        "kl": "Kalaallit Nunaat",
+        "da": "Gr\u00f8nland",
+        "en": "Greenland"
+      },
+      "description": "Whole Greenland companion map \u2014 not for navigation.",
+      "bbox": [
+        -75.0,
+        59.5,
+        -10.0,
+        84.0
+      ],
+      "bytes": 14769605,
+      "stats": {
+        "localities": 73,
+        "geography": 6000
+      }
+    }
+  ]
+}

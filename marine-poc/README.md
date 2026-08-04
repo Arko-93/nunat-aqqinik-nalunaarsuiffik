@@ -8,6 +8,12 @@ This is a local-knowledge and trip-recording companion. It is **not** an officia
 
 No GST chart/ENC content is included. Bathymetry is labelled context-only / not for navigation.
 
+## Basemap
+
+When online, the map uses **OpenFreeMap Liberty** (same family as the main nunat web app) plus **Open Waters Seascape** hillshade and depth contours. Depth is context only.
+
+When offline, the app falls back to the packaged flat GeoJSON style.
+
 Personal trips and waypoints stay on-device (IndexedDB + CacheStorage). Sync is off.
 
 ## Stack
@@ -50,13 +56,24 @@ Then open **https://marine.sikumut.gl** on the phone (keep the tunnel process ru
 Allow location → **Download** → **Open map**.  
 Do not use plain `http://omarchy…:3459` for GPS — browsers force a corridor simulator there.
 
-## Corridor package
+## Greenland package
 
-Built into `public/packages/uummannaq-qaarsut/`:
+One downloadable package at `public/packages/greenland/`:
 
-- `places.geojson` — repository place release clip
-- `land.geojson` — Natural Earth 10m land clip (PMTiles when tippecanoe is available)
-- `style.json` + `manifest.json` with per-file SHA-256
+- `places.geojson` — localities + higher-importance geography (NunaGIS midpoints)
+- `land.geojson` — OSM simplified land polygons (island-aware; NOT Natural Earth 10m)
+- `water.geojson` — simplified OSM inland/coastal water
+- `style.json` + `manifest.json` (SHA-256)
+
+Build validates that every town/village sits on/near the land fill.
+
+```sh
+# once: .venv with pyshp + shapely + pyproj
+python3 -m venv .venv && .venv/bin/pip install -r requirements-prepare.txt
+pnpm prepare:regions
+```
+
+Catalog: `public/packages/catalog.json`.
 
 ## Native tracking
 

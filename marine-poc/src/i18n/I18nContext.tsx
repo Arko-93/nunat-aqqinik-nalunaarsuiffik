@@ -7,6 +7,8 @@ import {
 } from "react";
 import { LOCALES, MESSAGES, type Locale, type MessageKey } from "./messages.ts";
 
+const LOCALE_KEY = "nunat-marine-locale";
+
 type I18nValue = {
   locale: Locale;
   setLocale: (locale: Locale) => void;
@@ -16,8 +18,19 @@ type I18nValue = {
 
 const I18nContext = createContext<I18nValue | null>(null);
 
+const readStoredLocale = (): Locale => {
+  if (typeof localStorage === "undefined") return "en";
+  const stored = localStorage.getItem(LOCALE_KEY);
+  if (stored === "kl" || stored === "da" || stored === "en") return stored;
+  return "en";
+};
+
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>("kl");
+  const [locale, setLocaleState] = useState<Locale>(readStoredLocale);
+  const setLocale = (next: Locale) => {
+    localStorage.setItem(LOCALE_KEY, next);
+    setLocaleState(next);
+  };
   const value = useMemo<I18nValue>(
     () => ({
       locale,

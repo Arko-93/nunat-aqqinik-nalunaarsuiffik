@@ -92,7 +92,50 @@ export type MessageKey =
   | "pointQuality"
   | "good"
   | "weak"
-  | "rejected";
+  | "rejected"
+  | "chooseRegion"
+  | "regionInstalled"
+  | "geographyCount"
+  | "selectRegion"
+  | "downloadingMap"
+  | "mapReady"
+  | "changeCoast"
+  | "gotIt"
+  | "bootFailed"
+  | "pointA"
+  | "pointB"
+  | "setPointA"
+  | "setPointB"
+  | "pointASet"
+  | "pointBSet"
+  | "clearRoute"
+  | "tapTownForA"
+  | "tapTownForB"
+  | "routeReady"
+  | "pickTownForTravel"
+  | "straightLineHint"
+  | "bearing"
+  | "swapAB"
+  | "httpsRequiredBanner"
+  | "openHttpsGps"
+  | "startDemoGps"
+  | "stopDemoGps"
+  | "demoGpsActive"
+  | "gpsCoords"
+  | "townsAreNotGps"
+  | "pickingA"
+  | "pickingB"
+  | "searchPlace"
+  | "searchNoResults"
+  | "routing"
+  | "routeWater"
+  | "routeStraightFallback"
+  | "companionRouteHint"
+  | "travelPlanner"
+  | "routeOptions"
+  | "routeShortest"
+  | "routeNorth"
+  | "routeSouth";
 
 type Dict = Record<MessageKey, string>;
 
@@ -171,10 +214,10 @@ const kl: Dict = {
   showPanel: "Panel",
   hidePanel: "Matuk panel",
   demoGpsNote:
-    "HTTP: GPS simulator (Uummannaq→Qaarsut). Rigtig GPS: HTTPS URL atoruk.",
+    "HTTP-ikkut phone GPS atuunngilaq. https://marine.sikumut.gl atoruk.",
   httpsGpsOk: "HTTPS — phone GPS atorneqarsinnaavoq.",
   httpsGpsHint: "GPS aqukkuk — accuracy meter-ini takuneqassaaq.",
-  mockedGpsWarning: "Position mocked / simulator.",
+  mockedGpsWarning: "DEMO GPS Uummannaq — illit phone-it nagga.",
   downloadFirst: "Siulliullugu package download-iuk.",
   speed: "Sukkasussuseq",
   course: "Kurs",
@@ -186,6 +229,50 @@ const kl: Dict = {
   good: "ajunngitsut",
   weak: "sajukkat",
   rejected: "peersimasut",
+  chooseRegion: "Siniffik / coast region",
+  regionInstalled: "Region downloadereqqaarneq",
+  geographyCount: "Nunap aqqi",
+  selectRegion: "Region-imik tooruk",
+  downloadingMap: "Nunap assinga aqqutissiuussineq…",
+  mapReady: "Nunap assinga ready",
+  changeCoast: "Siniffik allamik",
+  gotIt: "Akueraa",
+  bootFailed: "Nunap assinga aqqutissiuussineq ajornartorsiorpoq",
+  pointA: "A",
+  pointB: "B",
+  setPointA: "A-mik aallartit",
+  setPointB: "B-mik aallartit",
+  pointASet: "A toqqarneq",
+  pointBSet: "B toqqarneq",
+  clearRoute: "Peeruk",
+  tapTownForA: "Nunaqarfimmik tooruk — Point A",
+  tapTownForB: "Nunaqarfimmik tooruk — Point B",
+  routeReady: "A → B ready",
+  pickTownForTravel: "Nunaqarfik/bygd kisiat A/B-mut",
+  straightLineHint: "Aqqut straight-line — navigation-imut atorneqanngilaq",
+  bearing: "Bearing",
+  swapAB: "A ↔ B",
+  httpsRequiredBanner:
+    "HTTP-ikkut phone GPS atuunngilaq. Nunaqarfiit map-imi illuatut — qorsuk puck DEMO Uummannaq. HTTPS-imut real GPS.",
+  openHttpsGps: "HTTPS GPS ammaruk",
+  startDemoGps: "Demo GPS (Uummannaq)",
+  stopDemoGps: "Demo GPS unitsinneq",
+  demoGpsActive: "DEMO GPS · Uummannaq — illit nammineq najugaqanngilaq",
+  gpsCoords: "GPS",
+  townsAreNotGps: "Nunaqarfiit NunaGIS midpoint (± km) — GPS fix nagga.",
+  pickingA: "Tuluttut A-mik aallartippaa",
+  pickingB: "Tuluttut B-mik aallartippaa",
+  searchPlace: "Nunaqarfik ujaruk…",
+  searchNoResults: "Nassaarineqanngilaq",
+  routing: "Umiatsiami aqqut…",
+  routeWater: "Imaq aqqutigalugu (ikkarliit aniguk)",
+  routeStraightFallback: "Straight-line — water path nassaarineqanngilaq",
+  companionRouteHint: "Ikiortissaavoq — soqqutinut taarsiutinngilaq",
+  travelPlanner: "A → B",
+  routeOptions: "Aqqutit",
+  routeShortest: "Nanertoq",
+  routeNorth: "Avannamut",
+  routeSouth: "Kujammut",
 };
 
 const da: Dict = {
@@ -263,10 +350,10 @@ const da: Dict = {
   showPanel: "Panel",
   hidePanel: "Skjul panel",
   demoGpsNote:
-    "HTTP: GPS-simulator (Uummannaq→Qaarsut). Brug HTTPS-URL for rigtig GPS.",
+    "HTTP kan ikke bruge telefon-GPS. Åbn https://marine.sikumut.gl",
   httpsGpsOk: "HTTPS — telefonens GPS kan bruges.",
   httpsGpsHint: "Tillad GPS. Nøjagtighed vises i meter.",
-  mockedGpsWarning: "Position er simuleret.",
+  mockedGpsWarning: "DEMO-GPS ved Uummannaq — ikke din telefon.",
   downloadFirst: "Download pakken først.",
   speed: "Fart",
   course: "Kurs",
@@ -278,6 +365,51 @@ const da: Dict = {
   good: "gode",
   weak: "svage",
   rejected: "afviste",
+  chooseRegion: "Kystregion",
+  regionInstalled: "Region downloadet",
+  geographyCount: "Geografiske navne",
+  selectRegion: "Vælg region",
+  downloadingMap: "Downloader kort…",
+  mapReady: "Kort klar",
+  changeCoast: "Skift kyst",
+  gotIt: "Forstået",
+  bootFailed: "Kunne ikke hente kortet",
+  pointA: "A",
+  pointB: "B",
+  setPointA: "Sæt som A",
+  setPointB: "Sæt som B",
+  pointASet: "A valgt",
+  pointBSet: "B valgt",
+  clearRoute: "Ryd",
+  tapTownForA: "Tryk på en by/bygd — Point A",
+  tapTownForB: "Tryk på en by/bygd — Point B",
+  routeReady: "A → B klar",
+  pickTownForTravel: "Kun byer/bygder kan være A/B",
+  straightLineHint: "Straight-line — ikke en navigationsrute",
+  bearing: "Pejling",
+  swapAB: "A ↔ B",
+  httpsRequiredBanner:
+    "Telefon-GPS virker ikke på HTTP. By-prikker er rigtige kortsteder — den grønne prik var før en falsk Uummannaq-demo. Brug HTTPS for rigtig GPS.",
+  openHttpsGps: "Åbn HTTPS-GPS",
+  startDemoGps: "Demo-GPS (Uummannaq)",
+  stopDemoGps: "Stop demo-GPS",
+  demoGpsActive: "DEMO-GPS · Uummannaq — ikke din rigtige position",
+  gpsCoords: "GPS",
+  townsAreNotGps:
+    "Bypositioner er NunaGIS-midtpunkter (± km). De er ikke GPS-fixes.",
+  pickingA: "Næste tryk sætter punkt A",
+  pickingB: "Næste tryk sætter punkt B",
+  searchPlace: "Søg by/bygd…",
+  searchNoResults: "Ingen resultater",
+  routing: "Beregner bådrute…",
+  routeWater: "Vandrute uden om land",
+  routeStraightFallback: "Straight-line — ingen vandrute fundet",
+  companionRouteHint: "Hjælperute — ikke til navigation",
+  travelPlanner: "A → B",
+  routeOptions: "Ruter",
+  routeShortest: "Korteste",
+  routeNorth: "Nord om",
+  routeSouth: "Syd om",
 };
 
 const en: Dict = {
@@ -355,11 +487,11 @@ const en: Dict = {
   showPanel: "Panel",
   hidePanel: "Hide panel",
   demoGpsNote:
-    "HTTP: corridor GPS simulator. Open the HTTPS URL for real phone GPS.",
+    "HTTP cannot use phone GPS. Open https://marine.sikumut.gl for real location.",
   httpsGpsOk: "HTTPS — phone GPS can be used.",
   httpsGpsHint: "Allow GPS. Accuracy shows in meters on the map.",
-  mockedGpsWarning: "Position is mocked.",
-  downloadFirst: "Download the corridor package first.",
+  mockedGpsWarning: "DEMO GPS near Uummannaq — not your phone.",
+  downloadFirst: "Download the coast region package first.",
   speed: "Speed",
   course: "Course",
   returnAlongTrack: "Show my track",
@@ -370,6 +502,51 @@ const en: Dict = {
   good: "good",
   weak: "weak",
   rejected: "rejected",
+  chooseRegion: "Coast region",
+  regionInstalled: "Region downloaded",
+  geographyCount: "Geographic names",
+  selectRegion: "Select region",
+  downloadingMap: "Downloading map…",
+  mapReady: "Map ready",
+  changeCoast: "Change coast",
+  gotIt: "Got it",
+  bootFailed: "Could not load the map",
+  pointA: "A",
+  pointB: "B",
+  setPointA: "Set as A",
+  setPointB: "Set as B",
+  pointASet: "A set",
+  pointBSet: "B set",
+  clearRoute: "Clear",
+  tapTownForA: "Tap a town or village — Point A",
+  tapTownForB: "Tap a town or village — Point B",
+  routeReady: "A → B ready",
+  pickTownForTravel: "Only towns/villages can be A or B",
+  straightLineHint: "Straight line — not a navigation route",
+  bearing: "Bearing",
+  swapAB: "A ↔ B",
+  httpsRequiredBanner:
+    "Your phone GPS does not work on HTTP. Town dots are real map places — the green puck was a fake Uummannaq demo before. Open HTTPS for real GPS.",
+  openHttpsGps: "Open HTTPS GPS",
+  startDemoGps: "Demo GPS (Uummannaq)",
+  stopDemoGps: "Stop demo GPS",
+  demoGpsActive: "DEMO GPS · Uummannaq crawl — not your real position",
+  gpsCoords: "GPS",
+  townsAreNotGps:
+    "Town positions come from NunaGIS midpoints (± km). They are not GPS fixes.",
+  pickingA: "Next tap sets Point A",
+  pickingB: "Next tap sets Point B",
+  searchPlace: "Search town or village…",
+  searchNoResults: "No matches",
+  routing: "Calculating boat route…",
+  routeWater: "Water route around land",
+  routeStraightFallback: "Straight line — no water path found",
+  companionRouteHint: "Companion route — not for navigation",
+  travelPlanner: "A → B",
+  routeOptions: "Routes",
+  routeShortest: "Shortest",
+  routeNorth: "Around north",
+  routeSouth: "Around south",
 };
 
 export const MESSAGES: Record<Locale, Dict> = { kl, da, en };

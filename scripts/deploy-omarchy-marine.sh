@@ -10,13 +10,13 @@ image_name="${container_name}:latest"
 
 cd "$root_dir/marine-poc"
 
-if [[ ! -f public/packages/uummannaq-qaarsut/places.geojson ]]; then
-	echo "Missing corridor places; run marine-poc prepare/corridor extract first" >&2
+if [[ ! -f public/packages/catalog.json ]]; then
+	echo "Missing region catalog; run: pnpm --dir marine-poc prepare:regions" >&2
 	exit 1
 fi
 
-if [[ ! -f public/packages/uummannaq-qaarsut/manifest.json ]]; then
-	echo "Missing corridor manifest" >&2
+if [[ ! -f public/packages/greenland/manifest.json ]]; then
+	echo "Missing Greenland package; run: pnpm --dir marine-poc prepare:regions" >&2
 	exit 1
 fi
 

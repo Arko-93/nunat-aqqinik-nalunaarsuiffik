@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import maplibregl, {
   type GeoJSONSource,
   type Map,
@@ -14,6 +14,10 @@ import {
   type PlaceScope,
 } from "../domain/place.ts";
 import type { LocationPoint, TrackPoint, Waypoint } from "../domain/types.ts";
+import {
+  resolveMarineBasemap,
+  type BasemapMode,
+} from "./basemap.ts";
 import { accuracyCirclePolygon, EMPTY_FC } from "./geo.ts";
 
 type Props = {
@@ -21,19 +25,141 @@ type Props = {
   waypoints: ReadonlyArray<Waypoint>;
   position: LocationPoint | null;
   packageBaseUrl: string;
+  /** [west, south, east, north] — initial view before place fit. */
+  regionBbox?: [number, number, number, number];
   offlineReady: boolean;
   badge: string;
   placeScope: PlaceScope;
   selectedPlaceId: string | null;
   flyToPlace: CorridorPlace | null;
   fitPlaces: ReadonlyArray<CorridorPlace>;
+  pointA: CorridorPlace | null;
+  pointB: CorridorPlace | null;
+  /** Coastal boat path [lon, lat] — empty uses straight A→B. */
+  routeCoordinates: ReadonlyArray<readonly [number, number]>;
+  /** Water path vs straight-line fallback (affects dash style). */
+  routeMode: "water" | "straight-fallback" | null;
+  /** Other water corridors (drawn faint; selected is `routeCoordinates`). */
+  alternateRoutes: ReadonlyArray<{
+    coordinates: ReadonlyArray<readonly [number, number]>;
+  }>;
+  selectedRouteIndex: number;
   /** Increment to fit the recorded track (return-along-track). */
   recenterToken: number;
   followPosition: boolean;
   onSelectPlace: (place: CorridorPlace | null) => void;
 };
 
-const CORRIDOR_CENTER: [number, number] = [-51.9, 70.72];
+const travelPlanCollection = (
+  pointA: CorridorPlace | null,
+  pointB: CorridorPlace | null,
+  routeCoordinates: ReadonlyArray<readonly [number, number]>,
+  alternateRoutes: ReadonlyArray<{
+    coordinates: ReadonlyArray<readonly [number, number]>;
+  }>,
+  selectedRouteIndex: number,
+): GeoJSON.FeatureCollection => {
+  const features: GeoJSON.Feature[] = [];
+  if (pointA && pointB) {
+    alternateRoutes.forEach((route, index) => {
+      if (index === selectedRouteIndex) return;
+      if (route.coordinates.length < 2) return;
+      features.push({
+        type: "Feature",
+        properties: { kind: "alt" },
+        geometry: {
+          type: "LineString",
+          coordinates: route.coordinates.map(
+            ([lon, lat]) => [lon, lat] as [number, number],
+          ),
+        },
+      });
+    });
+    const coordinates =
+      routeCoordinates.length >= 2
+        ? routeCoordinates.map(([lon, lat]) => [lon, lat] as [number, number])
+        : [
+            [pointA.longitude, pointA.latitude] as [number, number],
+            [pointB.longitude, pointB.latitude] as [number, number],
+          ];
+    features.push({
+      type: "Feature",
+      properties: { kind: "leg" },
+      geometry: {
+        type: "LineString",
+        coordinates,
+      },
+    });
+  }
+  if (pointA) {
+    features.push({
+      type: "Feature",
+      properties: { kind: "A", label: `A · ${pointA.officialName}` },
+      geometry: {
+        type: "Point",
+        coordinates: [pointA.longitude, pointA.latitude],
+      },
+    });
+  }
+  if (pointB) {
+    features.push({
+      type: "Feature",
+      properties: { kind: "B", label: `B · ${pointB.officialName}` },
+      geometry: {
+        type: "Point",
+        coordinates: [pointB.longitude, pointB.latitude],
+      },
+    });
+  }
+  return { type: "FeatureCollection", features };
+};
+
+const fitTravel = (
+  map: Map,
+  pointA: CorridorPlace | null,
+  pointB: CorridorPlace | null,
+  routeCoordinates: ReadonlyArray<readonly [number, number]>,
+) => {
+  if (!pointA && !pointB) return;
+  if (pointA && pointB) {
+    const bounds = new maplibregl.LngLatBounds();
+    if (routeCoordinates.length >= 2) {
+      for (const [lon, lat] of routeCoordinates) bounds.extend([lon, lat]);
+    } else {
+      bounds.extend([pointA.longitude, pointA.latitude]);
+      bounds.extend([pointB.longitude, pointB.latitude]);
+    }
+    map.fitBounds(bounds, { padding: 90, maxZoom: 10, duration: 700 });
+    return;
+  }
+  const only = pointA ?? pointB;
+  if (!only) return;
+  map.easeTo({
+    center: [only.longitude, only.latitude],
+    zoom: Math.max(map.getZoom(), 9),
+    duration: 550,
+  });
+};
+
+const DEFAULT_CENTER: [number, number] = [-51.9, 70.72];
+
+const centerFromBbox = (
+  bbox: [number, number, number, number] | undefined,
+): [number, number] => {
+  if (!bbox) return DEFAULT_CENTER;
+  return [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2];
+};
+
+const zoomFromBbox = (
+  bbox: [number, number, number, number] | undefined,
+): number => {
+  if (!bbox) return 8;
+  const span = Math.max(bbox[2] - bbox[0], bbox[3] - bbox[1]);
+  if (span > 20) return 4.2;
+  if (span > 10) return 5.0;
+  if (span > 5) return 5.8;
+  return 7.2;
+};
 
 let protocolRegistered = false;
 const ensurePmtilesProtocol = () => {
@@ -178,8 +304,31 @@ const rewriteStyleUrls = (
   return next;
 };
 
+/** MapLibre glyph CDN — required for place-name text layers. */
+const GLYPHS_URL =
+  "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf";
+
+const LOCALITY_FILTER: maplibregl.FilterSpecification = [
+  "any",
+  ["==", ["get", "isLocality"], true],
+  ["==", ["get", "isLocality"], "true"],
+  ["==", ["get", "isLocality"], 1],
+];
+
+const GEOGRAPHY_FILTER: maplibregl.FilterSpecification = [
+  "!",
+  LOCALITY_FILTER,
+];
+
+const ZOOM_VISIBLE_FILTER: maplibregl.FilterSpecification = [
+  "<=",
+  ["coalesce", ["get", "minZoom"], 5],
+  ["zoom"],
+];
+
 const fallbackStyle = (packageBaseUrl: string): StyleSpecification => ({
   version: 8,
+  glyphs: GLYPHS_URL,
   sources: {
     land: {
       type: "geojson",
@@ -211,27 +360,42 @@ const fallbackStyle = (packageBaseUrl: string): StyleSpecification => ({
   ],
 });
 
+const ensureGlyphs = (style: StyleSpecification): StyleSpecification => {
+  if (style.glyphs) return style;
+  return { ...style, glyphs: GLYPHS_URL };
+};
+
 export function MarineMap({
   track,
   waypoints,
   position,
   packageBaseUrl,
+  regionBbox,
   offlineReady,
   badge,
   placeScope,
   selectedPlaceId,
   flyToPlace,
   fitPlaces,
+  pointA,
+  pointB,
+  routeCoordinates,
+  routeMode,
+  alternateRoutes,
+  selectedRouteIndex,
   recenterToken,
   followPosition,
   onSelectPlace,
 }: Props) {
+  const lastFitKeyRef = useRef<string>("");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
   const placesRef = useRef<GeoJSON.FeatureCollection>(EMPTY_FC);
   const onSelectRef = useRef(onSelectPlace);
   const fittedRef = useRef(false);
   const followRef = useRef(followPosition);
+  const basemapModeRef = useRef<BasemapMode>("offline");
+  const [basemapMode, setBasemapMode] = useState<BasemapMode>("offline");
   onSelectRef.current = onSelectPlace;
   followRef.current = followPosition;
 
@@ -241,27 +405,46 @@ export function MarineMap({
     let cancelled = false;
 
     const boot = async () => {
-      let style: StyleSpecification = fallbackStyle(packageBaseUrl);
+      let packageStyle: StyleSpecification | null = null;
       try {
         const response = await fetch(`${packageBaseUrl}/style.json`);
         if (response.ok) {
-          style = rewriteStyleUrls(
-            (await response.json()) as StyleSpecification,
-            packageBaseUrl,
+          packageStyle = ensureGlyphs(
+            rewriteStyleUrls(
+              (await response.json()) as StyleSpecification,
+              packageBaseUrl,
+            ),
           );
         }
       } catch {
-        // use fallback
+        // ignore — fallback below
       }
+      if (!packageStyle) packageStyle = ensureGlyphs(fallbackStyle(packageBaseUrl));
+
+      let style = packageStyle;
+      let basemapMode: BasemapMode = "offline";
+      try {
+        const resolved = await resolveMarineBasemap(packageStyle);
+        style = ensureGlyphs(resolved.style);
+        basemapMode = resolved.mode;
+      } catch {
+        style = packageStyle;
+        basemapMode = "offline";
+      }
+      basemapModeRef.current = basemapMode;
+      setBasemapMode(basemapMode);
       if (cancelled || !containerRef.current) return;
 
+      const lightUi = basemapMode === "realistic";
       const map = new maplibregl.Map({
         container: containerRef.current,
         style,
-        center: CORRIDOR_CENTER,
-        zoom: 8.0,
-        attributionControl: {},
+        center: centerFromBbox(regionBbox),
+        zoom: zoomFromBbox(regionBbox),
+        maxPitch: 0,
+        attributionControl: { compact: true },
       });
+      containerRef.current.dataset.basemap = basemapMode;
 
       map.addControl(
         new maplibregl.NavigationControl({ visualizePitch: false }),
@@ -280,6 +463,16 @@ export function MarineMap({
 
       map.on("load", async () => {
         try {
+          // Style packages may ship static place layers; named overlays replace them.
+          for (const layerId of [
+            "places-circle",
+            "places-label",
+            "places-label-locality",
+            "places-label-geography",
+          ]) {
+            if (map.getLayer(layerId)) map.removeLayer(layerId);
+          }
+
           const places = (await fetch(
             `${packageBaseUrl}/places.geojson`,
           ).then((response) => response.json())) as GeoJSON.FeatureCollection;
@@ -295,68 +488,147 @@ export function MarineMap({
             source.setData(filterPlaceCollection(places, placeScope));
           }
 
-          if (!map.getLayer("places-hit")) {
-            map.addLayer({
-              id: "places-hit",
-              type: "circle",
-              source: "corridor-places",
-              paint: {
-                "circle-radius": 22,
-                "circle-color": "#000000",
-                "circle-opacity": 0,
-              },
-            });
-          }
-
-          if (!map.getLayer("places-halo")) {
-            map.addLayer({
-              id: "places-halo",
-              type: "circle",
-              source: "corridor-places",
-              filter: ["==", ["get", "isLocality"], true],
-              paint: {
-                "circle-radius": 14,
-                "circle-color": "rgba(240, 198, 116, 0.28)",
-              },
-            });
-          }
-
+          // Tiny markers only — names carry the map.
           if (!map.getLayer("places-circle-overlay")) {
             map.addLayer({
               id: "places-circle-overlay",
               type: "circle",
               source: "corridor-places",
+              filter: [
+                "all",
+                ZOOM_VISIBLE_FILTER,
+                LOCALITY_FILTER,
+              ] as maplibregl.FilterSpecification,
               paint: {
-                "circle-radius": [
-                  "case",
-                  ["==", ["get", "isLocality"], true],
-                  9,
-                  5,
-                ],
-                "circle-color": [
-                  "case",
-                  ["==", ["get", "isLocality"], true],
-                  "#f0c674",
-                  "#8fb8c9",
-                ],
-                "circle-stroke-width": 2,
-                "circle-stroke-color": "#041018",
-                "circle-opacity": 0.98,
+                "circle-radius": 3.2,
+                "circle-color": lightUi ? "#c45c26" : "#f0c674",
+                "circle-stroke-width": 1,
+                "circle-stroke-color": lightUi ? "#ffffff" : "#041018",
+                "circle-opacity": 0.95,
               },
             });
           }
 
-          map.on("click", "places-hit", selectFromEvent);
-          map.on("click", "places-circle-overlay", selectFromEvent);
-          map.on("mouseenter", "places-hit", () => {
-            map.getCanvas().style.cursor = "pointer";
-          });
-          map.on("mouseleave", "places-hit", () => {
-            map.getCanvas().style.cursor = "";
-          });
+          if (!map.getLayer("places-label-locality")) {
+            map.addLayer({
+              id: "places-label-locality",
+              type: "symbol",
+              source: "corridor-places",
+              filter: [
+                "all",
+                ZOOM_VISIBLE_FILTER,
+                LOCALITY_FILTER,
+              ] as maplibregl.FilterSpecification,
+              layout: {
+                "text-field": ["get", "officialName"],
+                "text-font": ["Open Sans Bold", "Open Sans Regular"],
+                "text-size": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  3,
+                  12,
+                  8,
+                  15,
+                  12,
+                  17,
+                ],
+                "text-variable-anchor": [
+                  "top",
+                  "bottom",
+                  "right",
+                  "left",
+                  "top-right",
+                  "bottom-left",
+                ],
+                "text-radial-offset": 0.7,
+                "text-padding": 4,
+                "text-max-width": 9,
+                "text-optional": false,
+                "symbol-sort-key": [
+                  "-",
+                  ["coalesce", ["get", "importance"], 0],
+                ],
+                "text-allow-overlap": false,
+                "text-ignore-placement": false,
+              },
+              paint: {
+                "text-color": lightUi ? "#1a2a32" : "#f7efd8",
+                "text-halo-color": lightUi ? "#f4f7f8" : "#0a1a22",
+                "text-halo-width": 1.6,
+              },
+            });
+          }
+
+          if (!map.getLayer("places-label-geography")) {
+            map.addLayer({
+              id: "places-label-geography",
+              type: "symbol",
+              source: "corridor-places",
+              filter: [
+                "all",
+                ZOOM_VISIBLE_FILTER,
+                GEOGRAPHY_FILTER,
+              ] as maplibregl.FilterSpecification,
+              layout: {
+                "text-field": ["get", "officialName"],
+                "text-font": ["Open Sans Regular"],
+                "text-size": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  4,
+                  10,
+                  8,
+                  12.5,
+                  12,
+                  14,
+                ],
+                "text-variable-anchor": [
+                  "top",
+                  "bottom",
+                  "left",
+                  "right",
+                  "top-left",
+                  "bottom-right",
+                ],
+                "text-radial-offset": 0.55,
+                "text-padding": 6,
+                "text-max-width": 8,
+                "text-optional": true,
+                "symbol-sort-key": [
+                  "-",
+                  ["coalesce", ["get", "importance"], 0],
+                ],
+                "text-allow-overlap": false,
+                "text-ignore-placement": false,
+              },
+              paint: {
+                "text-color": lightUi ? "#3a5a68" : "#b7d3df",
+                "text-halo-color": lightUi ? "#f4f7f8" : "#0a1a22",
+                "text-halo-width": 1.35,
+                "text-opacity": 0.92,
+              },
+            });
+          }
+
+          const placeLayers = [
+            "places-circle-overlay",
+            "places-label-locality",
+            "places-label-geography",
+          ];
+          for (const layerId of placeLayers) {
+            map.on("click", layerId, selectFromEvent);
+            map.on("mouseenter", layerId, () => {
+              map.getCanvas().style.cursor = "pointer";
+            });
+            map.on("mouseleave", layerId, () => {
+              map.getCanvas().style.cursor = "";
+            });
+          }
           map.on("click", (event) => {
             const hits = map.queryRenderedFeatures(event.point, {
-              layers: ["places-hit", "places-circle-overlay"],
+              layers: placeLayers,
             });
             if (hits.length === 0) onSelectRef.current(null);
           });
@@ -429,6 +701,99 @@ export function MarineMap({
             "circle-stroke-width": 2,
           },
         });
+
+        map.addSource("travel-plan", {
+          type: "geojson",
+          data: travelPlanCollection(
+            pointA,
+            pointB,
+            routeCoordinates,
+            alternateRoutes,
+            selectedRouteIndex,
+          ),
+        });
+        map.addLayer({
+          id: "travel-alt",
+          type: "line",
+          source: "travel-plan",
+          filter: ["==", ["get", "kind"], "alt"],
+          paint: {
+            "line-color": "#7eb6c9",
+            "line-width": 2.4,
+            "line-opacity": 0.55,
+            "line-dasharray": [1.4, 1.8],
+          },
+        });
+        map.addLayer({
+          id: "travel-leg-casing",
+          type: "line",
+          source: "travel-plan",
+          filter: ["==", ["get", "kind"], "leg"],
+          paint: {
+            "line-color": "#041018",
+            "line-width": 7,
+            "line-opacity": 0.55,
+          },
+        });
+        map.addLayer({
+          id: "travel-leg",
+          type: "line",
+          source: "travel-plan",
+          filter: ["==", ["get", "kind"], "leg"],
+          paint: {
+            "line-color": "#f0c674",
+            "line-width": 3.8,
+            "line-opacity": 0.98,
+            "line-dasharray": [1, 0],
+          },
+        });
+        map.addLayer({
+          id: "travel-points",
+          type: "circle",
+          source: "travel-plan",
+          filter: [
+            "any",
+            ["==", ["get", "kind"], "A"],
+            ["==", ["get", "kind"], "B"],
+          ],
+          paint: {
+            "circle-radius": 11,
+            "circle-color": [
+              "match",
+              ["get", "kind"],
+              "A",
+              "#6fbf8a",
+              "B",
+              "#e3a23a",
+              "#ffffff",
+            ],
+            "circle-stroke-color": "#041018",
+            "circle-stroke-width": 2.5,
+          },
+        });
+        map.addLayer({
+          id: "travel-labels",
+          type: "symbol",
+          source: "travel-plan",
+          filter: [
+            "any",
+            ["==", ["get", "kind"], "A"],
+            ["==", ["get", "kind"], "B"],
+          ],
+          layout: {
+            "text-field": ["get", "label"],
+            "text-font": ["Open Sans Bold", "Open Sans Regular"],
+            "text-size": 14,
+            "text-offset": [0, 1.35],
+            "text-anchor": "top",
+            "text-allow-overlap": true,
+          },
+          paint: {
+            "text-color": lightUi ? "#1a2a32" : "#f7efd8",
+            "text-halo-color": lightUi ? "#f4f7f8" : "#0a1a22",
+            "text-halo-width": 1.8,
+          },
+        });
       });
 
       mapRef.current = map;
@@ -473,25 +838,47 @@ export function MarineMap({
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map?.getLayer("places-circle-overlay")) return;
-    map.setPaintProperty("places-circle-overlay", "circle-stroke-width", [
-      "case",
-      ["==", ["get", "globalId"], selectedPlaceId ?? ""],
-      4,
-      2,
-    ]);
-    map.setPaintProperty("places-circle-overlay", "circle-stroke-color", [
-      "case",
-      ["==", ["get", "globalId"], selectedPlaceId ?? ""],
-      "#ffffff",
-      "#041018",
-    ]);
+    if (!map?.getLayer("places-label-locality")) return;
+    const selected = selectedPlaceId ?? "";
     map.setPaintProperty("places-circle-overlay", "circle-radius", [
       "case",
-      ["==", ["get", "globalId"], selectedPlaceId ?? ""],
-      12,
-      ["case", ["==", ["get", "isLocality"], true], 9, 5],
+      ["==", ["get", "globalId"], selected],
+      6,
+      3.2,
     ]);
+    const lightUi = basemapModeRef.current === "realistic";
+    map.setPaintProperty("places-circle-overlay", "circle-stroke-color", [
+      "case",
+      ["==", ["get", "globalId"], selected],
+      lightUi ? "#c45c26" : "#ffffff",
+      lightUi ? "#ffffff" : "#041018",
+    ]);
+    for (const layerId of [
+      "places-label-locality",
+      "places-label-geography",
+    ] as const) {
+      if (!map.getLayer(layerId)) continue;
+      const idle =
+        layerId === "places-label-locality"
+          ? lightUi
+            ? "#1a2a32"
+            : "#f7efd8"
+          : lightUi
+            ? "#3a5a68"
+            : "#b7d3df";
+      map.setPaintProperty(layerId, "text-color", [
+        "case",
+        ["==", ["get", "globalId"], selected],
+        lightUi ? "#c45c26" : "#ffffff",
+        idle,
+      ]);
+      map.setPaintProperty(layerId, "text-halo-width", [
+        "case",
+        ["==", ["get", "globalId"], selected],
+        2.2,
+        layerId === "places-label-locality" ? 1.6 : 1.35,
+      ]);
+    }
   }, [selectedPlaceId]);
 
   useEffect(() => {
@@ -526,10 +913,63 @@ export function MarineMap({
     fitTrack(map, track);
   }, [recenterToken, track]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map?.isStyleLoaded()) return;
+    const source = map.getSource("travel-plan") as GeoJSONSource | undefined;
+    source?.setData(
+      travelPlanCollection(
+        pointA,
+        pointB,
+        routeCoordinates,
+        alternateRoutes,
+        selectedRouteIndex,
+      ),
+    );
+    if (map.getLayer("travel-leg")) {
+      map.setPaintProperty(
+        "travel-leg",
+        "line-dasharray",
+        routeMode === "straight-fallback" ? [1.2, 1.6] : [1, 0],
+      );
+      map.setPaintProperty(
+        "travel-leg",
+        "line-color",
+        routeMode === "straight-fallback" ? "#d08a5a" : "#f0c674",
+      );
+    }
+    // Fit once per A/B pair (and when water routes first appear), not every alt tap.
+    if (pointA && pointB && routeCoordinates.length >= 2) {
+      const fitKey = `${pointA.globalId}|${pointB.globalId}|${routeMode}|${alternateRoutes.length}`;
+      if (lastFitKeyRef.current !== fitKey) {
+        lastFitKeyRef.current = fitKey;
+        const boundsCoords =
+          alternateRoutes.length > 0
+            ? alternateRoutes.flatMap((route) => route.coordinates)
+            : routeCoordinates;
+        fitTravel(map, pointA, pointB, boundsCoords);
+      }
+    } else {
+      lastFitKeyRef.current = "";
+    }
+  }, [
+    pointA,
+    pointB,
+    routeCoordinates,
+    routeMode,
+    alternateRoutes,
+    selectedRouteIndex,
+  ]);
+
   return (
     <div className="map-panel fullscreen">
       <div className="map-root" ref={containerRef} />
-      <div className="map-badge">{badge}</div>
+      <div className="map-badge">
+        {badge}
+        {basemapMode === "realistic"
+          ? " · Relief + depth (context)"
+          : " · Offline package style"}
+      </div>
     </div>
   );
 }
