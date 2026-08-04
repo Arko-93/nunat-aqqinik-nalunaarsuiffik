@@ -40,13 +40,14 @@ make marine-omarchy
 ```
 
 - HTTP (demo GPS only): `http://omarchy.tail189279.ts.net:3459`
-- Real phone GPS: HTTPS required. From this Mac:
+- Real phone GPS: HTTPS required. From this Mac (keeps a tunnel process running):
 
 ```sh
 bash scripts/marine-https-tunnel.sh
 ```
 
-Open the printed `https://*.trycloudflare.com` URL on the phone, allow location, then **Download** the corridor before opening the map.
+Open the printed `https://*.trycloudflare.com` URL on the phone, allow location, tap **Download**, then **Open map**.  
+Do not use plain `http://omarchy…:3459` for GPS — browsers force a corridor simulator there.
 
 ## Corridor package
 
