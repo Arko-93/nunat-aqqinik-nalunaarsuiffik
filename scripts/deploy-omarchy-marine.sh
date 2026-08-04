@@ -51,6 +51,7 @@ docker run --detach \
 	--restart unless-stopped \
 	--name "$container_name" \
 	--publish "$tailscale_ip:$preview_port:3459" \
+	--publish "127.0.0.1:$preview_port:3459" \
 	"$image_name" >/dev/null
 
 if command -v ufw >/dev/null 2>&1; then
