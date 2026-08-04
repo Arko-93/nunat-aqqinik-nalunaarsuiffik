@@ -8,9 +8,29 @@
   ],
   "minZoom": 4,
   "maxZoom": 14,
-  "bytes": 77175,
-  "sha256": "cf789afa78637676ff0e1712f45ac5c9f1e0e32dd4b9ac0c6c0684852102526b",
-  "createdAt": "2026-08-01T00:00:00Z",
+  "bytes": 87225,
+  "sha256": "93b949c9146eb775e1e85c03312eb7abee6e62e6754f8233ee1e1be27853a26f",
+  "createdAt": "2026-08-04T00:51:29Z",
+  "primaryFile": "places.geojson",
+  "primaryBytes": 77175,
+  "primarySha256": "cf789afa78637676ff0e1712f45ac5c9f1e0e32dd4b9ac0c6c0684852102526b",
+  "files": [
+    {
+      "path": "places.geojson",
+      "bytes": 77175,
+      "sha256": "cf789afa78637676ff0e1712f45ac5c9f1e0e32dd4b9ac0c6c0684852102526b"
+    },
+    {
+      "path": "land.geojson",
+      "bytes": 8489,
+      "sha256": "411b6bf573efa37283d49689cc5dd85c3cfbe035651640ec7881328e86e3fdf9"
+    },
+    {
+      "path": "style.json",
+      "bytes": 1561,
+      "sha256": "48737573c68b75d04492cbbf727742bf8d53279068c99e6dc7451cca6e06b12b"
+    }
+  ],
   "layers": [
     {
       "id": "places",
@@ -19,6 +39,14 @@
       "dataAsOf": "2026-08-01",
       "file": "places.geojson",
       "safety": "companion_only"
+    },
+    {
+      "id": "land",
+      "source": "Natural Earth 10m Physical Land",
+      "licence": "public domain",
+      "dataAsOf": "2022-05-09",
+      "file": "land.geojson",
+      "safety": "not-for-navigation"
     },
     {
       "id": "bathymetry-context",
@@ -32,11 +60,13 @@
   "attributions": [
     "Place names: Nunat Aqqinik Aalajangiisartut / Oqaasileriffik via NunaGIS",
     "Contains data derived from the repository place-identity release 2026.08.01.1",
+    "Land: Natural Earth (public domain)",
     "Bathymetry context (when present): GEBCO / IBCAO \u2014 not for navigation or safety at sea"
   ],
   "warnings": [
     "This package is a travel-knowledge companion. It is not an official nautical chart.",
     "Do not use for navigation, depth clearance, or emergency decisions.",
-    "Browser storage can be evicted; export important trips."
+    "Browser storage can be evicted; export important trips.",
+    "Depth context is unavailable or placeholder-only in this POC build."
   ]
 }

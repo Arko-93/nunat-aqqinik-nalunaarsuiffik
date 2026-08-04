@@ -78,7 +78,21 @@ export type MessageKey =
   | "backPrepare"
   | "showPanel"
   | "hidePanel"
-  | "demoGpsNote";
+  | "demoGpsNote"
+  | "httpsGpsOk"
+  | "httpsGpsHint"
+  | "mockedGpsWarning"
+  | "downloadFirst"
+  | "speed"
+  | "course"
+  | "returnAlongTrack"
+  | "followGps"
+  | "accuracyP50"
+  | "accuracyP90"
+  | "pointQuality"
+  | "good"
+  | "weak"
+  | "rejected";
 
 type Dict = Record<MessageKey, string>;
 
@@ -157,7 +171,21 @@ const kl: Dict = {
   showPanel: "Panel",
   hidePanel: "Matuk panel",
   demoGpsNote:
-    "HTTP Omarchy: GPS simulator atorneqarpoq (secure context pissaanngilaq).",
+    "HTTP: GPS simulator (Uummannaq→Qaarsut). Rigtig GPS: HTTPS URL atoruk.",
+  httpsGpsOk: "HTTPS — phone GPS atorneqarsinnaavoq.",
+  httpsGpsHint: "GPS aqukkuk — accuracy meter-ini takuneqassaaq.",
+  mockedGpsWarning: "Position mocked / simulator.",
+  downloadFirst: "Siulliullugu package download-iuk.",
+  speed: "Sukkasussuseq",
+  course: "Kurs",
+  returnAlongTrack: "Track-imut uterit",
+  followGps: "GPS malit",
+  accuracyP50: "Accuracy p50",
+  accuracyP90: "Accuracy p90",
+  pointQuality: "Punktit quality",
+  good: "ajunngitsut",
+  weak: "sajukkat",
+  rejected: "peersimasut",
 };
 
 const da: Dict = {
@@ -173,7 +201,7 @@ const da: Dict = {
   corridorTitle: "Uummannaq–Qaarsut",
   download: "Download",
   downloaded: "Downloadet",
-  verify: "Verificér",
+  verify: "Verificér igen",
   verified: "Checksum OK",
   deletePackage: "Slet pakke",
   dataAsOf: "Data pr.",
@@ -235,7 +263,21 @@ const da: Dict = {
   showPanel: "Panel",
   hidePanel: "Skjul panel",
   demoGpsNote:
-    "HTTP Omarchy: bruger GPS-simulator (browser kræver HTTPS til rigtig GPS).",
+    "HTTP: GPS-simulator (Uummannaq→Qaarsut). Brug HTTPS-URL for rigtig GPS.",
+  httpsGpsOk: "HTTPS — telefonens GPS kan bruges.",
+  httpsGpsHint: "Tillad GPS. Nøjagtighed vises i meter.",
+  mockedGpsWarning: "Position er simuleret.",
+  downloadFirst: "Download pakken først.",
+  speed: "Fart",
+  course: "Kurs",
+  returnAlongTrack: "Vis min rute",
+  followGps: "Følg GPS",
+  accuracyP50: "Nøjagtighed p50",
+  accuracyP90: "Nøjagtighed p90",
+  pointQuality: "Punktkvalitet",
+  good: "gode",
+  weak: "svage",
+  rejected: "afviste",
 };
 
 const en: Dict = {
@@ -251,7 +293,7 @@ const en: Dict = {
   corridorTitle: "Uummannaq–Qaarsut",
   download: "Download",
   downloaded: "Downloaded",
-  verify: "Verify",
+  verify: "Re-verify",
   verified: "Checksum OK",
   deletePackage: "Delete package",
   dataAsOf: "Data as of",
@@ -313,7 +355,21 @@ const en: Dict = {
   showPanel: "Panel",
   hidePanel: "Hide panel",
   demoGpsNote:
-    "HTTP Omarchy: using GPS simulator (browser needs HTTPS for real GPS).",
+    "HTTP: corridor GPS simulator. Open the HTTPS URL for real phone GPS.",
+  httpsGpsOk: "HTTPS — phone GPS can be used.",
+  httpsGpsHint: "Allow GPS. Accuracy shows in meters on the map.",
+  mockedGpsWarning: "Position is mocked.",
+  downloadFirst: "Download the corridor package first.",
+  speed: "Speed",
+  course: "Course",
+  returnAlongTrack: "Show my track",
+  followGps: "Follow GPS",
+  accuracyP50: "Accuracy p50",
+  accuracyP90: "Accuracy p90",
+  pointQuality: "Point quality",
+  good: "good",
+  weak: "weak",
+  rejected: "rejected",
 };
 
 export const MESSAGES: Record<Locale, Dict> = { kl, da, en };

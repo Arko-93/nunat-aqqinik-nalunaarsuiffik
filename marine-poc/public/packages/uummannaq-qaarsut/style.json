@@ -3,10 +3,15 @@
   "name": "uummannaq-qaarsut-companion",
   "metadata": {
     "nunat:safety": "not-for-navigation",
-    "nunat:corridor": "corridor_uummannaq_qaarsut_2026-08-01"
+    "nunat:corridor": "corridor_uummannaq_qaarsut_2026-08-01",
+    "nunat:bathymetry": "context-placeholder-not-for-navigation"
   },
   "sources": {
-    "corridor-places": {
+    "land": {
+      "type": "geojson",
+      "data": "land.geojson"
+    },
+    "places": {
       "type": "geojson",
       "data": "places.geojson"
     }
@@ -20,28 +25,56 @@
       }
     },
     {
+      "id": "land-fill",
+      "type": "fill",
+      "source": "land",
+      "paint": {
+        "fill-color": "#1d3a2f",
+        "fill-opacity": 0.92
+      }
+    },
+    {
+      "id": "land-outline",
+      "type": "line",
+      "source": "land",
+      "paint": {
+        "line-color": "#3d6b57",
+        "line-width": 1.2
+      }
+    },
+    {
       "id": "places-circle",
       "type": "circle",
-      "source": "corridor-places",
+      "source": "places",
       "paint": {
         "circle-radius": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
-          6,
-          2.5,
-          12,
-          5.5
+          "case",
+          [
+            "==",
+            [
+              "get",
+              "isLocality"
+            ],
+            true
+          ],
+          8,
+          4.5
         ],
         "circle-color": [
           "case",
-          ["==", ["get", "isLocality"], true],
+          [
+            "==",
+            [
+              "get",
+              "isLocality"
+            ],
+            true
+          ],
           "#f0c674",
           "#8fb8c9"
         ],
-        "circle-stroke-width": 1,
-        "circle-stroke-color": "#041018",
-        "circle-opacity": 0.92
+        "circle-stroke-width": 1.5,
+        "circle-stroke-color": "#041018"
       }
     }
   ]

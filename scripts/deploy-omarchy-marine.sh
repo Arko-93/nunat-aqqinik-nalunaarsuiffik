@@ -75,4 +75,6 @@ docker logs "$container_name"
 exit 1
 REMOTE
 
-echo "Marine POC: http://omarchy.tail189279.ts.net:$preview_port"
+echo "Marine POC (HTTP, demo GPS only): http://omarchy.tail189279.ts.net:$preview_port"
+echo "Real phone GPS needs HTTPS. From a machine with DNS, tunnel with:"
+echo "  cloudflared tunnel --url http://\$(tailscale ip -4 | head -n1):$preview_port"

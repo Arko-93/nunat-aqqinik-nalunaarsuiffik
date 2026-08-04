@@ -32,7 +32,7 @@ export interface LocationService {
 const profileToOptions = (profile: RecordingProfile): PositionOptions => {
   switch (profile) {
     case "close_approach":
-      return { enableHighAccuracy: true, maximumAge: 1_000, timeout: 15_000 };
+      return { enableHighAccuracy: true, maximumAge: 0, timeout: 20_000 };
     case "battery_reserve":
       return {
         enableHighAccuracy: false,
@@ -40,7 +40,7 @@ const profileToOptions = (profile: RecordingProfile): PositionOptions => {
         timeout: 30_000,
       };
     default:
-      return { enableHighAccuracy: true, maximumAge: 5_000, timeout: 20_000 };
+      return { enableHighAccuracy: true, maximumAge: 1_000, timeout: 25_000 };
   }
 };
 
@@ -91,6 +91,22 @@ const newId = (): string =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
     : `trip_${Date.now()}`;
+
+const insecureOrigin = (): boolean => {
+  if (typeof window === "undefined") return false;
+  return !window.isSecureContext;
+};
+
+/** Explicit demo only: Uummannaq → Qaarsut corridor crawl (HTTP fallback). */
+const DEMO_ROUTE: ReadonlyArray<[number, number]> = [
+  [70.6747, -52.1269], // Uummannaq
+  [70.689, -52.05],
+  [70.705, -51.95],
+  [70.72, -51.85],
+  [70.732, -51.75],
+  [70.742, -51.65],
+  [70.734, -51.55], // near Qaarsut
+];
 
 export class WebLocationService implements LocationService {
   private watchId: number | null = null;
@@ -184,7 +200,7 @@ export class WebLocationService implements LocationService {
                 reject(new LocationError(error.message));
               }
             },
-            profileToOptions("normal_travel"),
+            profileToOptions("close_approach"),
           );
         }),
       catch: (error) => {
@@ -198,25 +214,6 @@ export class WebLocationService implements LocationService {
       },
     });
 }
-
-const insecureOrigin = (): boolean => {
-  if (typeof window === "undefined") return false;
-  return !window.isSecureContext;
-};
-
-/** Corridor demo position when browser blocks geolocation on HTTP. */
-const DEMO_POINT: LocationPoint = {
-  latitude: 70.72,
-  longitude: -52.2,
-  horizontalAccuracyM: 12,
-  altitudeM: 3,
-  verticalAccuracyM: null,
-  speedMps: 0,
-  courseDeg: null,
-  recordedAt: new Date().toISOString(),
-  provider: "web",
-  mocked: true,
-};
 
 export class BridgedLocationService implements LocationService {
   private readonly web = new WebLocationService();
@@ -256,6 +253,27 @@ export class BridgedLocationService implements LocationService {
     };
   };
 
+  private demoPoint = (sequence: number): LocationPoint => {
+    const index = Math.min(sequence, DEMO_ROUTE.length - 1);
+    const [latitude, longitude] = DEMO_ROUTE[index]!;
+    const next =
+      DEMO_ROUTE[Math.min(index + 1, DEMO_ROUTE.length - 1)] ?? DEMO_ROUTE[index]!;
+    const courseDeg =
+      (Math.atan2(next[1]! - longitude, next[0]! - latitude) * 180) / Math.PI;
+    return {
+      latitude,
+      longitude,
+      horizontalAccuracyM: 8 + (sequence % 5),
+      altitudeM: 3,
+      verticalAccuracyM: null,
+      speedMps: 3.2,
+      courseDeg: (courseDeg + 360) % 360,
+      recordedAt: new Date().toISOString(),
+      provider: "web",
+      mocked: true,
+    };
+  };
+
   private startDemo = (
     profile: RecordingProfile,
   ): TrackingSession => {
@@ -270,20 +288,11 @@ export class BridgedLocationService implements LocationService {
           : 2500;
     this.demoTimer = setInterval(() => {
       this.demoSequence += 1;
-      const point: LocationPoint = {
-        ...DEMO_POINT,
-        latitude: DEMO_POINT.latitude + this.demoSequence * 0.00035,
-        longitude: DEMO_POINT.longitude + this.demoSequence * 0.00055,
-        speedMps: 2.2,
-        courseDeg: 55,
-        recordedAt: new Date().toISOString(),
-        mocked: true,
-      };
+      const point = this.demoPoint(this.demoSequence);
       for (const listener of this.pointListeners) listener(point);
     }, tickMs);
-    // Emit immediately so UI unlocks.
     for (const listener of this.pointListeners) {
-      listener({ ...DEMO_POINT, recordedAt: new Date().toISOString() });
+      listener(this.demoPoint(0));
     }
     return {
       tripId: crypto.randomUUID(),
@@ -298,26 +307,15 @@ export class BridgedLocationService implements LocationService {
   ): Effect.Effect<TrackingSession, PermissionError | LocationError> =>
     Effect.tryPromise({
       try: async () => {
+        // Demo GPS only on insecure HTTP. HTTPS/native must use real GNSS.
         if (insecureOrigin()) {
           return this.startDemo(profile);
         }
-        try {
-          const nativeAvailable = await this.plugin.isNativeAvailable();
-          if (nativeAvailable) {
-            return await this.plugin.startBackground(profile);
-          }
-          return await Effect.runPromise(this.web.start(profile));
-        } catch (error) {
-          const message = String(error);
-          if (
-            message.includes("secure origins") ||
-            message.includes("Only secure origins") ||
-            error instanceof PermissionError
-          ) {
-            return this.startDemo(profile);
-          }
-          throw error;
+        const nativeAvailable = await this.plugin.isNativeAvailable();
+        if (nativeAvailable) {
+          return await this.plugin.startBackground(profile);
         }
+        return await Effect.runPromise(this.web.start(profile));
       },
       catch: (error) => {
         if (
@@ -351,26 +349,9 @@ export class BridgedLocationService implements LocationService {
     Effect.tryPromise({
       try: async () => {
         if (insecureOrigin()) {
-          return {
-            ...DEMO_POINT,
-            recordedAt: new Date().toISOString(),
-          };
+          return this.demoPoint(0);
         }
-        try {
-          return await Effect.runPromise(this.web.getCurrent());
-        } catch (error) {
-          const message = String(error);
-          if (
-            message.includes("secure origins") ||
-            error instanceof PermissionError
-          ) {
-            return {
-              ...DEMO_POINT,
-              recordedAt: new Date().toISOString(),
-            };
-          }
-          throw error;
-        }
+        return await Effect.runPromise(this.web.getCurrent());
       },
       catch: (error) => {
         if (

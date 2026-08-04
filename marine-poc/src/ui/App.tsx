@@ -22,11 +22,15 @@ import type {
 import { tripToGeoJsonString } from "../export/geojson.ts";
 import { tripToGpx } from "../export/gpx.ts";
 import { useI18n } from "../i18n/I18nContext.tsx";
+import { formatCourse, formatSpeedKn } from "../map/geo.ts";
 import { MarineMap } from "../map/MarineMap.tsx";
+import { loadManifestFromJson } from "../packages/manifest.ts";
 import {
-  loadManifestFromJson,
-  verifyPackageBytes,
-} from "../packages/manifest.ts";
+  deleteCorridorPackage,
+  installCorridorPackage,
+  isPackageInstalled,
+  verifyInstalledPackage,
+} from "../packages/package-cache.ts";
 import { IndexedDbMarineStore } from "../storage/repository.ts";
 import {
   BridgedLocationService,
@@ -36,7 +40,7 @@ import { PlaceDetail } from "./PlaceDetail.tsx";
 
 const PACKAGE_BASE = "/packages/uummannaq-qaarsut";
 const PACKAGE_ID = "corridor_uummannaq_qaarsut_2026-08-01";
-const SAFETY_KEY = "nunat-marine-safety-accepted-v2";
+const SAFETY_KEY = "nunat-marine-safety-accepted-v3";
 
 type Screen = "safety" | "prepare" | "map" | "summary";
 
@@ -65,10 +69,19 @@ const formatDuration = (sec: number): string => {
   return `${s}s`;
 };
 
+const ageSec = (iso: string | null | undefined): number | null => {
+  if (!iso) return null;
+  const ms = Date.now() - Date.parse(iso);
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  return Math.round(ms / 1000);
+};
+
 export function App() {
   const { t, locale, setLocale, locales } = useI18n();
   const store = useMemo(() => new IndexedDbMarineStore(), []);
   const location = useMemo(() => new BridgedLocationService(), []);
+  const secureContext =
+    typeof window !== "undefined" ? window.isSecureContext : false;
 
   const [screen, setScreen] = useState<Screen>(() =>
     localStorage.getItem(SAFETY_KEY) === "1" ? "prepare" : "safety",
@@ -77,7 +90,9 @@ export function App() {
     null,
   );
   const [packageReady, setPackageReady] = useState(false);
+  const [packageInstalled, setPackageInstalled] = useState(false);
   const [packageError, setPackageError] = useState<string | null>(null);
+  const [installProgress, setInstallProgress] = useState<string | null>(null);
   const [weather, setWeather] = useState<ConditionSnapshot | null>(null);
   const [ice, setIce] = useState<ConditionSnapshot | null>(null);
   const [gpsState, setGpsState] = useState<GpsUiState>("unknown");
@@ -101,12 +116,27 @@ export function App() {
   );
   const [corridorPlaces, setCorridorPlaces] = useState<CorridorPlace[]>([]);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [recenterToken, setRecenterToken] = useState(0);
+  const [followPosition, setFollowPosition] = useState(true);
   const sequenceRef = useRef(0);
 
   const localities = useMemo(
     () => corridorPlaces.filter((place) => place.isLocality),
     [corridorPlaces],
   );
+
+  const loadPlaces = async () => {
+    const placesResponse = await fetch(`${PACKAGE_BASE}/places.geojson`);
+    if (!placesResponse.ok) {
+      throw new Error(`places fetch failed (${placesResponse.status})`);
+    }
+    const placesJson = (await placesResponse.json()) as GeoJSON.FeatureCollection;
+    setCorridorPlaces(
+      placesJson.features
+        .map((feature) => corridorPlaceFromFeature(feature))
+        .filter((place): place is CorridorPlace => place !== null),
+    );
+  };
 
   useEffect(() => {
     tripRef.current = trip;
@@ -116,40 +146,27 @@ export function App() {
     let cancelled = false;
     (async () => {
       try {
-        const loaded = await loadManifestFromJson(
+        const networkManifest = await loadManifestFromJson(
           await fetch(`${PACKAGE_BASE}/manifest.json`),
         );
         if (cancelled) return;
-        setManifest(loaded);
+        setManifest(networkManifest);
 
-        const placesResponse = await fetch(`${PACKAGE_BASE}/places.geojson`);
-        if (!placesResponse.ok) {
-          throw new Error(`places fetch failed (${placesResponse.status})`);
+        const installed = await isPackageInstalled(PACKAGE_ID);
+        if (installed) {
+          const verified = await verifyInstalledPackage();
+          if (!cancelled) {
+            setManifest(verified);
+            setPackageInstalled(true);
+            setPackageReady(true);
+            setPackageError(null);
+          }
+        } else if (!cancelled) {
+          setPackageInstalled(false);
+          setPackageReady(false);
         }
-        const buffer = await placesResponse.arrayBuffer();
-        await verifyPackageBytes(loaded, buffer);
-        const placesJson = JSON.parse(
-          new TextDecoder().decode(buffer),
-        ) as GeoJSON.FeatureCollection;
-        if (cancelled) return;
-        setCorridorPlaces(
-          placesJson.features
-            .map((feature) => corridorPlaceFromFeature(feature))
-            .filter((place): place is CorridorPlace => place !== null),
-        );
 
-        await Effect.runPromise(
-          store.savePackage({
-            manifest: loaded,
-            installedAt: new Date().toISOString(),
-            verified: true,
-            localPath: PACKAGE_BASE,
-          }),
-        );
-        if (!cancelled) {
-          setPackageReady(true);
-          setPackageError(null);
-        }
+        await loadPlaces();
 
         const [weatherSnap, iceSnap] = await Promise.all([
           loadConditionFixture("/conditions/weather-mock.json"),
@@ -179,7 +196,6 @@ export function App() {
       } catch (err) {
         if (!cancelled) {
           setPackageError(String(err));
-          setPackageReady(false);
           setError(String(err));
         }
       }
@@ -193,9 +209,15 @@ export function App() {
     const unsubscribe = location.subscribe(
       (point) => {
         setPosition(point);
-        setGpsState((prev) =>
-          prev === "recording" || prev === "paused" ? prev : "ready",
-        );
+        if (point.horizontalAccuracyM != null && point.horizontalAccuracyM > 80) {
+          setGpsState((prev) =>
+            prev === "recording" || prev === "paused" ? prev : "weak",
+          );
+        } else {
+          setGpsState((prev) =>
+            prev === "recording" || prev === "paused" ? prev : "ready",
+          );
+        }
         const activeTrip = tripRef.current;
         if (!activeTrip || activeTrip.status !== "active") return;
         sequenceRef.current += 1;
@@ -219,28 +241,97 @@ export function App() {
     return unsubscribe;
   }, [location, store]);
 
+  const installPackage = async () => {
+    setBusy(true);
+    setPackageError(null);
+    setInstallProgress(t("loading"));
+    try {
+      const installed = await installCorridorPackage((progress) => {
+        setInstallProgress(`${progress.path} · ${formatBytes(progress.loaded)}`);
+      });
+      await verifyInstalledPackage();
+      await Effect.runPromise(
+        store.savePackage({
+          manifest: installed,
+          installedAt: new Date().toISOString(),
+          verified: true,
+          localPath: PACKAGE_BASE,
+        }),
+      );
+      setManifest(installed);
+      setPackageInstalled(true);
+      setPackageReady(true);
+      setInstallProgress(null);
+      setNotice(t("offlineReady"));
+      await loadPlaces();
+    } catch (err) {
+      setPackageError(String(err));
+      setPackageReady(false);
+      setPackageInstalled(false);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const removePackage = async () => {
+    if (!confirm(t("deletePackage"))) return;
+    setBusy(true);
+    try {
+      await deleteCorridorPackage();
+      await Effect.runPromise(store.removePackage(PACKAGE_ID));
+      setPackageInstalled(false);
+      setPackageReady(false);
+      setNotice(null);
+    } catch (err) {
+      setPackageError(String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const ensureGps = async () => {
     setGpsState("requesting");
     setError(null);
     try {
       const point = await Effect.runPromise(location.getCurrent());
       setPosition(point);
-      setGpsState("ready");
-      setNotice(point.mocked ? t("demoGpsNote") : null);
+      setGpsState(
+        point.horizontalAccuracyM != null && point.horizontalAccuracyM > 80
+          ? "weak"
+          : "ready",
+      );
+      if (!secureContext) {
+        setNotice(t("demoGpsNote"));
+      } else if (point.mocked) {
+        setNotice(t("mockedGpsWarning"));
+      } else {
+        setNotice(null);
+      }
       await Effect.runPromise(location.start(profile));
     } catch (err) {
       setError(String(err));
       setGpsState("denied");
+      if (secureContext) {
+        setNotice(t("httpsGpsHint"));
+      }
     }
   };
 
   const openMap = async () => {
+    if (!packageReady) {
+      setError(t("downloadFirst"));
+      return;
+    }
     setScreen("map");
     setPanelOpen(false);
     await ensureGps();
   };
 
   const startTrip = async () => {
+    if (!packageReady) {
+      setError(t("downloadFirst"));
+      return;
+    }
     setBusy(true);
     setError(null);
     setSummary(null);
@@ -255,7 +346,7 @@ export function App() {
         profile,
         visibility: { type: "private" },
         pointCount: 0,
-        corridorPackageId: packageReady ? PACKAGE_ID : null,
+        corridorPackageId: PACKAGE_ID,
       };
       sequenceRef.current = 0;
       setTrack([]);
@@ -266,6 +357,7 @@ export function App() {
       setGpsState("recording");
       setScreen("map");
       setPanelOpen(false);
+      setFollowPosition(true);
     } catch (err) {
       setError(String(err));
       setGpsState("denied");
@@ -400,6 +492,7 @@ export function App() {
           <p>{t("safetyBody")}</p>
           <p className="caution">{t("safetyPrivate")}</p>
           <p className="meta">{t("recordingForegroundOnly")}</p>
+          <p className="meta">{t("forceQuitLimit")}</p>
           <div className="btn-row">
             <button
               className="primary"
@@ -443,6 +536,11 @@ export function App() {
           <section className="panel prepare-hero">
             <h2>{t("corridorTitle")}</h2>
             <p className="caution">{t("notForNavigation")}</p>
+            {!secureContext ? (
+              <div className="stale-banner">{t("demoGpsNote")}</div>
+            ) : (
+              <p className="ok meta">{t("httpsGpsOk")}</p>
+            )}
             {manifest ? (
               <>
                 <p className="meta">
@@ -451,12 +549,17 @@ export function App() {
                 <p className="meta">
                   {t("bytes")}: {formatBytes(manifest.bytes)}
                 </p>
-                <p className={packageReady ? "ok meta" : "meta"}>
-                  {packageReady ? t("verified") : t("loading")}
+                <p className={packageInstalled ? "ok meta" : "meta"}>
+                  {packageInstalled ? t("offlineReady") : t("download")}
                 </p>
                 <p className="meta">
                   {t("localitiesCount")}: {localities.length}
                 </p>
+                <ul className="attr-list">
+                  {manifest.attributions.slice(0, 4).map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
                 <ul className="place-list prepare-places">
                   {localities.map((place) => (
                     <li key={place.globalId}>
@@ -469,12 +572,33 @@ export function App() {
             ) : (
               <p>{t("loading")}</p>
             )}
+            {installProgress ? <p className="meta">{installProgress}</p> : null}
             {packageError ? (
               <p className="stale-banner">{packageError}</p>
             ) : null}
             {weather?.stale || ice?.stale ? (
               <div className="stale-banner">{t("stale")}</div>
             ) : null}
+            <div className="btn-row">
+              <button
+                className="primary"
+                type="button"
+                disabled={busy}
+                onClick={() => void installPackage()}
+              >
+                {packageInstalled ? t("verify") : t("download")}
+              </button>
+              {packageInstalled ? (
+                <button
+                  className="danger"
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void removePackage()}
+                >
+                  {t("deletePackage")}
+                </button>
+              ) : null}
+            </div>
             <div className="btn-row">
               <button
                 className="primary"
@@ -494,6 +618,7 @@ export function App() {
               </button>
             </div>
             {error ? <p className="stale-banner">{error}</p> : null}
+            {notice ? <p className="caution">{notice}</p> : null}
           </section>
         </main>
       </div>
@@ -521,6 +646,23 @@ export function App() {
             </p>
             <p>
               {t("largestGap")}: {Math.round(summary.largestGapSec)} s
+            </p>
+            <p>
+              {t("accuracyP50")}:{" "}
+              {summary.accuracyP50M != null
+                ? `${Math.round(summary.accuracyP50M)} m`
+                : "—"}
+            </p>
+            <p>
+              {t("accuracyP90")}:{" "}
+              {summary.accuracyP90M != null
+                ? `${Math.round(summary.accuracyP90M)} m`
+                : "—"}
+            </p>
+            <p>
+              {t("pointQuality")}: {summary.goodCount} {t("good")} /{" "}
+              {summary.weakCount} {t("weak")} / {summary.rejectedCount}{" "}
+              {t("rejected")}
             </p>
             <div className="btn-row">
               <button
@@ -558,6 +700,8 @@ export function App() {
     );
   }
 
+  const lastAge = ageSec(position?.recordedAt);
+
   return (
     <div className="map-screen">
       <div className="map-top-chrome">
@@ -573,6 +717,18 @@ export function App() {
                 ? `${Math.round(position.horizontalAccuracyM)} m`
                 : "—"}
             </strong>
+          </span>
+          <span>
+            {t("speed")}
+            <strong>{formatSpeedKn(position?.speedMps ?? null)}</strong>
+          </span>
+          <span>
+            {t("course")}
+            <strong>{formatCourse(position?.courseDeg ?? null)}</strong>
+          </span>
+          <span>
+            {t("lastPoint")}
+            <strong>{lastAge != null ? `${lastAge}s` : "—"}</strong>
           </span>
           <span>
             {t("points")}
@@ -592,16 +748,19 @@ export function App() {
         track={track}
         waypoints={waypoints}
         position={position}
-        demoBasemap
+        packageBaseUrl={PACKAGE_BASE}
+        offlineReady={packageInstalled}
         badge={
-          packageReady
-            ? `${t("verified")} · ${t("onlineDemoBasemap")}`
-            : t("onlineDemoBasemap")
+          packageInstalled
+            ? `${t("offlineReady")} · ${t("notForNavigation")}`
+            : t("downloadFirst")
         }
         placeScope={placeScope}
         selectedPlaceId={selectedPlace?.globalId ?? null}
         flyToPlace={selectedPlace}
         fitPlaces={localities}
+        recenterToken={recenterToken}
+        followPosition={followPosition}
         onSelectPlace={setSelectedPlace}
       />
 
@@ -651,6 +810,25 @@ export function App() {
           onClick={() => setShowWaypointSheet(true)}
         >
           {t("addWaypoint")}
+        </button>
+        <button
+          className="secondary"
+          type="button"
+          disabled={track.length === 0}
+          onClick={() => {
+            setFollowPosition(false);
+            setRecenterToken((value) => value + 1);
+          }}
+        >
+          {t("returnAlongTrack")}
+        </button>
+        <button
+          className="secondary"
+          type="button"
+          aria-pressed={followPosition}
+          onClick={() => setFollowPosition((value) => !value)}
+        >
+          {t("followGps")}
         </button>
       </div>
 

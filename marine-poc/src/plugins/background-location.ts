@@ -6,6 +6,7 @@
  * must satisfy this interface for locked-screen recording.
  */
 
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import type { RecordingProfile, TrackingSession } from "../domain/types.ts";
 
 export type LocationBridgePayload = {
@@ -30,16 +31,59 @@ export interface BackgroundLocationPlugin {
   readonly requestPermissions: () => Promise<"granted" | "denied" | "prompt">;
 }
 
+type NativeBackgroundLocation = {
+  startBackground: (options: {
+    profile: RecordingProfile;
+  }) => Promise<TrackingSession>;
+  stopBackground: () => Promise<void>;
+  requestPermissions: () => Promise<{ state: "granted" | "denied" | "prompt" }>;
+};
+
+const NativePlugin = registerPlugin<NativeBackgroundLocation>(
+  "BackgroundLocation",
+);
+
+export const BACKGROUND_LOCATION_PLUGIN_NAME = "BackgroundLocation";
+
 export const createBackgroundLocationPlugin = (): BackgroundLocationPlugin => ({
-  isNativeAvailable: async () => false,
-  startBackground: async (profile) => ({
-    tripId: crypto.randomUUID(),
-    startedAt: new Date().toISOString(),
-    profile,
-    mode: "web-foreground",
-  }),
-  stopBackground: async () => undefined,
+  isNativeAvailable: async () => {
+    if (!Capacitor.isNativePlatform()) return false;
+    try {
+      // Probe: native plugin throws if unimplemented.
+      await NativePlugin.requestPermissions();
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  startBackground: async (profile) => {
+    if (!Capacitor.isNativePlatform()) {
+      return {
+        tripId: crypto.randomUUID(),
+        startedAt: new Date().toISOString(),
+        profile,
+        mode: "web-foreground",
+      };
+    }
+    const session = await NativePlugin.startBackground({ profile });
+    return {
+      ...session,
+      mode: "native-background",
+    };
+  },
+  stopBackground: async () => {
+    if (!Capacitor.isNativePlatform()) return;
+    await NativePlugin.stopBackground();
+  },
   requestPermissions: async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const result = await NativePlugin.requestPermissions();
+        return result.state;
+      } catch {
+        return "denied";
+      }
+    }
     if (!("permissions" in navigator)) return "prompt";
     try {
       const status = await navigator.permissions.query({
@@ -53,6 +97,3 @@ export const createBackgroundLocationPlugin = (): BackgroundLocationPlugin => ({
     }
   },
 });
-
-/** Declared for Capacitor registerPlugin wiring. */
-export const BACKGROUND_LOCATION_PLUGIN_NAME = "BackgroundLocation";

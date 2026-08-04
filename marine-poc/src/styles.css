@@ -169,6 +169,14 @@ button {
   font-size: 0.85rem;
 }
 
+.attr-list {
+  margin: 0.6rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
 .btn-row {
   display: flex;
   flex-wrap: wrap;

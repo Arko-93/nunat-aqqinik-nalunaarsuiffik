@@ -113,6 +113,12 @@ export type PackageLayer = {
   safety?: string;
 };
 
+export type PackageFile = {
+  path: string;
+  bytes: number;
+  sha256: string;
+};
+
 export type CorridorPackageManifest = {
   id: string;
   bbox: [number, number, number, number];
@@ -125,6 +131,10 @@ export type CorridorPackageManifest = {
   style: string;
   attributions: ReadonlyArray<string>;
   warnings: ReadonlyArray<string>;
+  files?: ReadonlyArray<PackageFile>;
+  primaryFile?: string;
+  primaryBytes?: number;
+  primarySha256?: string;
 };
 
 export type InstalledPackage = {
