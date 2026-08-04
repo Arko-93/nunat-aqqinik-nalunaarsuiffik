@@ -16,5 +16,6 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["vite/client", "geojson", "vitest/globals"]
   },
-  "include": ["src", "capacitor.config.ts", "vite.config.ts"]
+  "include": ["src", "capacitor.config.ts", "vite.config.ts"],
+  "exclude": ["src/**/*.test.ts", "node_modules", "dist"]
 }
