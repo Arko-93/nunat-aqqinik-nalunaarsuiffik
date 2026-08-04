@@ -338,7 +338,7 @@ def _clip_osm_land_polygons(region: Region) -> list | None:
     return parts or None
 
 
-def clip_land(region: Region) -> tuple[Path, Path | None, str]:
+def clip_land(region: Region) -> tuple[Path, Path | None, str, list]:
     try:
         from shapely.geometry import box, mapping  # type: ignore
     except ImportError as exc:
@@ -460,28 +460,31 @@ def clip_land(region: Region) -> tuple[Path, Path | None, str]:
     if water_out is not None:
         parts.append("OpenStreetMap water")
     source_label = " + ".join(parts)
-    return land_out, water_out, source_label
+    return land_out, water_out, source_label, land_parts
 
 
-def validate_localities_on_land(region: Region) -> None:
+def validate_localities_on_land(
+    region: Region, land_parts: list | None = None
+) -> None:
     """Fail the build if towns/villages sit far from the land fill."""
     from shapely import STRtree  # type: ignore
     from shapely.geometry import Point, shape  # type: ignore
 
     places_path = PACKAGES / region.slug / "places.geojson"
-    land_path = PACKAGES / region.slug / "land.geojson"
     places = json.loads(places_path.read_text(encoding="utf-8"))
-    land_fc = json.loads(land_path.read_text(encoding="utf-8"))
-    land_parts = []
-    for feature in land_fc.get("features", []):
-        props = feature.get("properties") or {}
-        if props.get("kind") != "land":
-            continue
-        geom = shape(feature["geometry"])
-        if not geom.is_valid:
-            geom = geom.buffer(0)
-        if not geom.is_empty:
-            land_parts.append(geom)
+    if land_parts is None:
+        land_path = PACKAGES / region.slug / "land.geojson"
+        land_fc = json.loads(land_path.read_text(encoding="utf-8"))
+        land_parts = []
+        for feature in land_fc.get("features", []):
+            props = feature.get("properties") or {}
+            if props.get("kind") != "land":
+                continue
+            geom = shape(feature["geometry"])
+            if not geom.is_valid:
+                geom = geom.buffer(0)
+            if not geom.is_empty:
+                land_parts.append(geom)
     if not land_parts:
         raise SystemExit("Land validation failed: no land geometry")
 
@@ -529,25 +532,52 @@ def validate_localities_on_land(region: Region) -> None:
     print(f"  land check: {checked}/{checked} localities on/near land fill")
 
 
-def write_ocean_bands(region: Region, land_path: Path) -> Path | None:
-    """Context-only nearshore bands (distance-to-coast), not real bathymetry."""
-    from shapely.geometry import box, mapping, shape  # type: ignore
+def _batched_unary_union(geoms: list, batch_size: int = 250):
+    """Union geometries in rounds to keep peak memory bounded."""
     from shapely.ops import unary_union  # type: ignore
 
-    land_fc = json.loads(land_path.read_text(encoding="utf-8"))
+    current = list(geoms)
+    while len(current) > 1:
+        nxt: list = []
+        for i in range(0, len(current), batch_size):
+            chunk = current[i : i + batch_size]
+            nxt.append(chunk[0] if len(chunk) == 1 else unary_union(chunk))
+        current = nxt
+    return current[0] if current else None
+
+
+def write_ocean_bands(
+    region: Region, land_path: Path, land_parts: list | None = None
+) -> Path | None:
+    """Context-only nearshore bands (distance-to-coast), not real bathymetry."""
+    from shapely.geometry import box, mapping, shape  # type: ignore
+
+    if land_parts is None:
+        land_fc = json.loads(land_path.read_text(encoding="utf-8"))
+        source_geoms = []
+        for feature in land_fc.get("features", []):
+            if (feature.get("properties") or {}).get("kind") != "land":
+                continue
+            geom = shape(feature["geometry"])
+            if not geom.is_valid:
+                geom = geom.buffer(0)
+            if not geom.is_empty:
+                source_geoms.append(geom)
+    else:
+        source_geoms = land_parts
+
+    # Coarse-simplify before union so buffer stays tractable.
     parts = []
-    for feature in land_fc.get("features", []):
-        if (feature.get("properties") or {}).get("kind") != "land":
-            continue
-        geom = shape(feature["geometry"])
-        if not geom.is_valid:
-            geom = geom.buffer(0)
-        if not geom.is_empty:
-            # Coarse-simplify before union so buffer stays tractable.
-            parts.append(geom.simplify(0.01, preserve_topology=True))
+    for geom in source_geoms:
+        simplified = geom.simplify(0.01, preserve_topology=True)
+        if not simplified.is_empty:
+            parts.append(simplified)
     if not parts:
         return None
-    land = unary_union(parts)
+    print(f"  ocean bands: unioning {len(parts)} coarse land parts…", flush=True)
+    land = _batched_unary_union(parts)
+    if land is None or land.is_empty:
+        return None
     bbox = box(*region.bbox)
     # Degrees ≈ km varies with latitude; bands are visual context only.
     near = land.buffer(0.04).difference(land).intersection(bbox)
@@ -956,14 +986,23 @@ def main() -> int:
         print(f"== {region.slug} ==")
         places_path, locs, geos = clip_places(region)
         print(f"  places: {locs} localities + {geos} geography → {places_path}")
-        land_path, water_path, land_source = clip_land(region)
-        print(f"  land: {land_path.stat().st_size} bytes ({land_source})")
+        land_path, water_path, land_source, land_parts = clip_land(region)
+        print(
+            f"  land: {land_path.stat().st_size} bytes, "
+            f"{len(land_parts)} polygons ({land_source})",
+            flush=True,
+        )
         if water_path:
-            print(f"  water: {water_path.stat().st_size} bytes")
-        validate_localities_on_land(region)
-        ocean_path = write_ocean_bands(region, land_path)
+            print(f"  water: {water_path.stat().st_size} bytes", flush=True)
+        validate_localities_on_land(region, land_parts=land_parts)
+        ocean_path = write_ocean_bands(region, land_path, land_parts=land_parts)
+        # Free detailed land geometry before tippecanoe (land.geojson is on disk).
+        land_parts.clear()
         if ocean_path:
-            print(f"  ocean bands: {ocean_path.stat().st_size} bytes (context only)")
+            print(
+                f"  ocean bands: {ocean_path.stat().st_size} bytes (context only)",
+                flush=True,
+            )
         land_pmtiles = try_build_pmtiles(
             land_path, PACKAGES / region.slug, "land.pmtiles", "land"
         )
