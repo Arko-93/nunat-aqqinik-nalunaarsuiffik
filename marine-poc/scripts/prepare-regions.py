@@ -2,8 +2,8 @@
 """Build a whole-Greenland offline marine package.
 
 Places: clip web/public/data/placenames.geojson (NunaGIS midpoints, WGS84).
-Land: OSM simplified land polygons (island-aware). NE 10m is too coarse —
-it drops west-coast islands so towns appear in the sea.
+Land: full OSM coastline land polygons (land-polygons-split-4326), lightly
+simplified — not simplified-land-polygons and not Natural Earth 10m.
 Water: OSM water polygons, simplified for phone download size.
 
 Place coordinates are not swapped here. Visual offshore bugs are land-fill
@@ -15,6 +15,7 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import subprocess
 import sys
 import urllib.request
 from dataclasses import dataclass
@@ -29,15 +30,10 @@ PLACES_SRC = REPO / "web" / "public" / "data" / "placenames.geojson"
 NE_LAND = RAW / "ne_10m_land.shp"
 OSM_NATURAL = RAW / "gis_osm_natural_a_free_1.shp"
 OSM_WATER = RAW / "gis_osm_water_a_free_1.shp"
-OSM_LAND_ZIP = RAW / "simplified-land-polygons-complete-3857.zip"
-OSM_LAND_SHP = (
-    RAW
-    / "simplified-land-polygons-complete-3857"
-    / "simplified_land_polygons.shp"
-)
+OSM_LAND_ZIP = RAW / "land-polygons-split-4326.zip"
+OSM_LAND_SHP = RAW / "land-polygons-split-4326" / "land_polygons.shp"
 OSM_LAND_URL = (
-    "https://osmdata.openstreetmap.de/download/"
-    "simplified-land-polygons-complete-3857.zip"
+    "https://osmdata.openstreetmap.de/download/land-polygons-split-4326.zip"
 )
 
 # Keep localities + higher-importance geography so packages stay phone-sized.
@@ -56,8 +52,7 @@ class Region:
     title_en: str
     bbox: tuple[float, float, float, float]  # west, south, east, north
     description_en: str
-    land_simplify_m: float = 1200.0  # Web Mercator metres (OSM land)
-    land_simplify_deg: float = 0.0006  # WGS84 polish
+    land_simplify_deg: float = 0.00005  # ~5 m WGS84 light simplify
     water_simplify: float = 0.0008
     include_beaches: bool = True
     include_water: bool = True
@@ -72,8 +67,7 @@ REGIONS: list[Region] = [
         title_en="Greenland",
         bbox=(-75.0, 59.5, -10.0, 84.0),
         description_en="Whole Greenland companion map — not for navigation.",
-        land_simplify_m=1200.0,
-        land_simplify_deg=0.0006,
+        land_simplify_deg=0.00005,
         water_simplify=0.0012,
         include_beaches=False,
         include_water=True,
@@ -185,7 +179,7 @@ def ensure_osm_land_shp() -> Path | None:
         return OSM_LAND_SHP
     RAW.mkdir(parents=True, exist_ok=True)
     if not OSM_LAND_ZIP.exists():
-        print(f"Downloading island-aware land polygons…\n  {OSM_LAND_URL}")
+        print(f"Downloading full OSM land polygons…\n  {OSM_LAND_URL}")
         try:
             urllib.request.urlretrieve(OSM_LAND_URL, OSM_LAND_ZIP)
         except Exception as exc:  # noqa: BLE001
@@ -196,71 +190,166 @@ def ensure_osm_land_shp() -> Path | None:
     return OSM_LAND_SHP if OSM_LAND_SHP.exists() else None
 
 
-def _clip_osm_land_wgs84(region: Region):
-    """Clip OSM simplified land (EPSG:3857) to region bbox → WGS84 mapping."""
+def _explode_polygons(geom) -> list:
+    """Return individual Polygon parts from Polygon/MultiPolygon/collection."""
+    from shapely.geometry import GeometryCollection, MultiPolygon, Polygon  # type: ignore
+
+    if geom is None or geom.is_empty:
+        return []
+    if isinstance(geom, Polygon):
+        return [geom]
+    if isinstance(geom, MultiPolygon):
+        return [part for part in geom.geoms if not part.is_empty]
+    if isinstance(geom, GeometryCollection) or geom.geom_type == "GeometryCollection":
+        out = []
+        for part in geom.geoms:
+            out.extend(_explode_polygons(part))
+        return out
+    return []
+
+
+def _ogr2ogr_clip_land(region: Region, shp: Path) -> Path | None:
+    """Spatially clip full land shapefile to region bbox via ogr2ogr (fast path)."""
+    ogr2ogr = shutil.which("ogr2ogr")
+    if not ogr2ogr:
+        return None
+    west, south, east, north = region.bbox
+    clipped = RAW / f"land-polygons-{region.slug}-4326.geojson"
+    if clipped.exists() and clipped.stat().st_mtime >= shp.stat().st_mtime:
+        print(f"  reusing ogr2ogr clip {clipped.name}")
+        return clipped
+    print(f"  ogr2ogr clipping land to {region.slug} bbox…")
+    try:
+        subprocess.run(
+            [
+                ogr2ogr,
+                "-f",
+                "GeoJSON",
+                "-clipsrc",
+                str(west),
+                str(south),
+                str(east),
+                str(north),
+                "-skipfailures",
+                str(clipped),
+                str(shp),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        print(f"  ogr2ogr clip failed ({exc}); falling back to pyshp scan")
+        if clipped.exists():
+            clipped.unlink()
+        return None
+    if not clipped.exists() or clipped.stat().st_size < 100:
+        return None
+    print(f"  ogr2ogr clip → {clipped.stat().st_size} bytes")
+    return clipped
+
+
+def _polygons_from_geojson(path: Path, region: Region, bbox_poly) -> list:
+    from shapely.geometry import shape  # type: ignore
+
+    print(f"  reading clipped land {path.name}…")
+    fc = json.loads(path.read_text(encoding="utf-8"))
+    features = fc.get("features") or []
+    parts: list = []
+    for index, feature in enumerate(features, start=1):
+        if index % 50_000 == 0:
+            print(f"  … processed {index} land features, kept {len(parts)} polygons")
+        geom_json = feature.get("geometry")
+        if not geom_json:
+            continue
+        geom = shape(geom_json)
+        if not geom.is_valid:
+            geom = geom.buffer(0)
+        if geom.is_empty:
+            continue
+        if not geom.within(bbox_poly):
+            if not geom.intersects(bbox_poly):
+                continue
+            geom = geom.intersection(bbox_poly)
+        if geom.is_empty:
+            continue
+        for poly in _explode_polygons(geom):
+            simplified = poly.simplify(
+                region.land_simplify_deg, preserve_topology=True
+            )
+            if not simplified.is_valid:
+                simplified = simplified.buffer(0)
+            for part in _explode_polygons(simplified):
+                if not part.is_empty and part.area > 0:
+                    parts.append(part)
+    print(f"  land polygons: {len(parts)} (from {len(features)} features)")
+    return parts
+
+
+def _polygons_from_shapefile(shp: Path, region: Region, bbox_poly) -> list:
     import shapefile  # type: ignore
-    from pyproj import Transformer  # type: ignore
-    from shapely.geometry import box, mapping, shape  # type: ignore
-    from shapely.ops import transform, unary_union  # type: ignore
+    from shapely.geometry import shape  # type: ignore
+
+    print(f"  scanning {shp} (full coastline, EPSG:4326)…")
+    reader = shapefile.Reader(str(shp))
+    parts: list = []
+    for index, record in enumerate(reader.iterShapes(), start=1):
+        if index % 50_000 == 0:
+            print(f"  … scanned {index} land shapes, kept {len(parts)} polygons")
+        geom = shape(record.__geo_interface__)
+        if not geom.is_valid:
+            geom = geom.buffer(0)
+        if geom.is_empty or not geom.intersects(bbox_poly):
+            continue
+        clipped = geom.intersection(bbox_poly)
+        if clipped.is_empty:
+            continue
+        for poly in _explode_polygons(clipped):
+            simplified = poly.simplify(
+                region.land_simplify_deg, preserve_topology=True
+            )
+            if not simplified.is_valid:
+                simplified = simplified.buffer(0)
+            for part in _explode_polygons(simplified):
+                if not part.is_empty and part.area > 0:
+                    parts.append(part)
+    print(f"  land polygons: {len(parts)} (scanned {index} shapes)")
+    return parts
+
+
+def _clip_osm_land_polygons(region: Region) -> list | None:
+    """Clip full OSM land polygons (EPSG:4326) to region bbox.
+
+    Returns a list of individual Polygon parts — do not unary_union Greenland.
+    Prefers ogr2ogr spat/clip when available; otherwise pyshp full scan.
+    """
+    from shapely.geometry import box  # type: ignore
 
     shp = ensure_osm_land_shp()
     if shp is None:
         return None
 
-    to_merc = Transformer.from_crs("EPSG:4326", "EPSG:3857", always_xy=True)
-    to_wgs = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
-    west, south, east, north = region.bbox
-    x0, y0 = to_merc.transform(west, south)
-    x1, y1 = to_merc.transform(east, north)
-    bbox_merc = box(min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1))
-
-    reader = shapefile.Reader(str(shp))
-    parts = []
-    for record in reader.iterShapes():
-        geom = shape(record.__geo_interface__)
-        if not geom.is_valid:
-            geom = geom.buffer(0)
-        if geom.is_empty or not geom.intersects(bbox_merc):
-            continue
-        clipped = geom.intersection(bbox_merc)
-        if not clipped.is_empty:
-            parts.append(clipped)
-    if not parts:
-        return None
-
-    merged = unary_union(parts).simplify(
-        region.land_simplify_m, preserve_topology=True
-    )
-    wgs = transform(lambda x, y, z=None: to_wgs.transform(x, y), merged)
-    wgs = wgs.simplify(region.land_simplify_deg, preserve_topology=True)
-    # MapLibre + boat router need Polygon/MultiPolygon, not GeometryCollection.
-    if wgs.geom_type == "GeometryCollection":
-        polys = []
-        for part in wgs.geoms:
-            if part.geom_type == "Polygon":
-                polys.append(part)
-            elif part.geom_type == "MultiPolygon":
-                polys.extend(list(part.geoms))
-        if not polys:
-            return None
-        from shapely.geometry import MultiPolygon  # type: ignore
-
-        wgs = MultiPolygon(polys) if len(polys) > 1 else polys[0]
-    return mapping(wgs)
+    bbox_poly = box(*region.bbox)
+    clipped = _ogr2ogr_clip_land(region, shp)
+    if clipped is not None:
+        parts = _polygons_from_geojson(clipped, region, bbox_poly)
+    else:
+        parts = _polygons_from_shapefile(shp, region, bbox_poly)
+    return parts or None
 
 
 def clip_land(region: Region) -> tuple[Path, Path | None, str]:
     try:
-        from shapely.geometry import box  # type: ignore
+        from shapely.geometry import box, mapping  # type: ignore
     except ImportError as exc:
         raise SystemExit(
             "Missing pyshp/shapely/pyproj. Activate marine-poc/.venv first."
         ) from exc
 
     bbox_poly = box(*region.bbox)
-    land_source_name = "OpenStreetMap simplified land polygons (ODbL)"
-    land_geom = _clip_osm_land_wgs84(region)
-    if land_geom is None:
+    land_source_name = "OpenStreetMap land polygons (full coastline, ODbL)"
+    land_parts = _clip_osm_land_polygons(region)
+    if land_parts is None:
         print("  WARN: OSM land unavailable — falling back to Natural Earth 10m")
         print("  WARN: NE 10m omits many Greenland islands; towns may look offshore")
         if not NE_LAND.exists():
@@ -269,7 +358,13 @@ def clip_land(region: Region) -> tuple[Path, Path | None, str]:
             NE_LAND, bbox_poly, simplify_tol=region.land_simplify_deg
         )
         land_source_name = "Natural Earth 10m land (fallback — incomplete islands)"
-    if land_geom is None:
+        if land_geom is None:
+            raise SystemExit(f"No land polygons for region {region.slug}")
+        from shapely.geometry import shape  # type: ignore
+
+        land_parts = _explode_polygons(shape(land_geom))
+
+    if not land_parts:
         raise SystemExit(f"No land polygons for region {region.slug}")
 
     # Beaches add coastal texture; glaciers intentionally skipped.
@@ -293,8 +388,9 @@ def clip_land(region: Region) -> tuple[Path, Path | None, str]:
                 "safety": "not-for-navigation",
                 "region": region.slug,
             },
-            "geometry": land_geom,
+            "geometry": mapping(poly),
         }
+        for poly in land_parts
     ]
     if beach_geom is not None:
         features.append(
@@ -369,6 +465,7 @@ def clip_land(region: Region) -> tuple[Path, Path | None, str]:
 
 def validate_localities_on_land(region: Region) -> None:
     """Fail the build if towns/villages sit far from the land fill."""
+    from shapely import STRtree  # type: ignore
     from shapely.geometry import Point, shape  # type: ignore
 
     places_path = PACKAGES / region.slug / "places.geojson"
@@ -383,12 +480,12 @@ def validate_localities_on_land(region: Region) -> None:
         geom = shape(feature["geometry"])
         if not geom.is_valid:
             geom = geom.buffer(0)
-        land_parts.append(geom)
+        if not geom.is_empty:
+            land_parts.append(geom)
     if not land_parts:
         raise SystemExit("Land validation failed: no land geometry")
-    land = land_parts[0]
-    for part in land_parts[1:]:
-        land = land.union(part)
+
+    tree = STRtree(land_parts)
 
     offshore: list[str] = []
     checked = 0
@@ -401,9 +498,22 @@ def validate_localities_on_land(region: Region) -> None:
         if len(coords) < 2:
             continue
         point = Point(float(coords[0]), float(coords[1]))
-        if land.contains(point) or land.distance(point) <= LOCALITY_LAND_TOLERANCE_DEG:
+        # Contains check via bbox query, then nearest for distance.
+        candidates = tree.query(point)
+        on_land = False
+        for idx in candidates:
+            geom = land_parts[int(idx)]
+            if geom.contains(point) or geom.covers(point):
+                on_land = True
+                break
+        if on_land:
             continue
-        km = land.distance(point) * 111.0
+        nearest_idx = tree.nearest(point)
+        nearest = land_parts[int(nearest_idx)]
+        dist = float(point.distance(nearest))
+        if dist <= LOCALITY_LAND_TOLERANCE_DEG:
+            continue
+        km = dist * 111.0
         name = str(props.get("officialName") or props.get("name") or "?")
         offshore.append(f"{name} (~{km:.1f} km from land fill)")
 
@@ -414,7 +524,7 @@ def validate_localities_on_land(region: Region) -> None:
             f"{len(offshore)}/{checked} localities off land fill.\n"
             f"  - {preview}\n"
             "Town coordinates are likely fine; rebuild land from OSM "
-            "simplified land polygons (not Natural Earth 10m)."
+            "full coastline land polygons (not Natural Earth 10m)."
         )
     print(f"  land check: {checked}/{checked} localities on/near land fill")
 
@@ -433,7 +543,8 @@ def write_ocean_bands(region: Region, land_path: Path) -> Path | None:
         if not geom.is_valid:
             geom = geom.buffer(0)
         if not geom.is_empty:
-            parts.append(geom)
+            # Coarse-simplify before union so buffer stays tractable.
+            parts.append(geom.simplify(0.01, preserve_topology=True))
     if not parts:
         return None
     land = unary_union(parts)
@@ -467,51 +578,154 @@ def write_ocean_bands(region: Region, land_path: Path) -> Path | None:
     return out
 
 
+def try_build_pmtiles(
+    geojson: Path, out_dir: Path, out_name: str, layer: str
+) -> Path | None:
+    """Build a PMTiles vector tileset with tippecanoe (or Docker image)."""
+    out = out_dir / out_name
+    tippecanoe = shutil.which("tippecanoe")
+    tippecanoe_args = [
+        "-o",
+        str(out) if tippecanoe else f"/data/{out_name}",
+        "-Z3",
+        "-z14",
+        "-l",
+        layer,
+        "--no-feature-limit",
+        "--no-tile-size-limit",
+        "--simplify-only-low-zooms",
+        "--force",
+        str(geojson) if tippecanoe else f"/data/{geojson.name}",
+    ]
+    cmd: list[str] | None = None
+    if tippecanoe:
+        cmd = [tippecanoe, *tippecanoe_args]
+    else:
+        docker = shutil.which("docker")
+        if not docker:
+            print("tippecanoe unavailable; skipping PMTiles for", out_name)
+            return None
+        image = None
+        for candidate in ("felt/tippecanoe:latest", "tippecanoe/tippecanoe:latest"):
+            try:
+                subprocess.run(
+                    [docker, "image", "inspect", candidate],
+                    check=True,
+                    capture_output=True,
+                )
+                image = candidate
+                break
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                continue
+        if image is None:
+            # Try pulling felt/tippecanoe once.
+            try:
+                print("Pulling felt/tippecanoe Docker image…")
+                subprocess.run(
+                    [docker, "pull", "felt/tippecanoe:latest"],
+                    check=True,
+                    capture_output=True,
+                )
+                image = "felt/tippecanoe:latest"
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                print("tippecanoe unavailable; skipping PMTiles for", out_name)
+                return None
+        cmd = [
+            docker,
+            "run",
+            "--rm",
+            "-v",
+            f"{out_dir}:/data",
+            image,
+            "tippecanoe",
+            "-o",
+            f"/data/{out_name}",
+            "-Z3",
+            "-z14",
+            "-l",
+            layer,
+            "--no-feature-limit",
+            "--no-tile-size-limit",
+            "--simplify-only-low-zooms",
+            "--force",
+            f"/data/{geojson.name}",
+        ]
+
+    print("Building", out_name, "…")
+    try:
+        subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError as exc:
+        print(f"  tippecanoe failed ({exc}); skipping PMTiles")
+        if out.exists():
+            out.unlink()
+        return None
+    return out if out.exists() else None
+
+
 def write_style(
     region: Region,
     has_water: bool,
     has_ocean_bands: bool,
+    has_land_pmtiles: bool,
 ) -> Path:
+    if has_land_pmtiles:
+        land_source: dict = {
+            "type": "vector",
+            "url": "pmtiles://land.pmtiles",
+            "attribution": "© OpenStreetMap contributors (ODbL)",
+        }
+    else:
+        land_source = {"type": "geojson", "data": "land.geojson"}
+
     sources = {
-        "land": {"type": "geojson", "data": "land.geojson"},
+        "land": land_source,
         "places": {"type": "geojson", "data": "places.geojson"},
     }
+
+    land_fill: dict = {
+        "id": "land-fill",
+        "type": "fill",
+        "source": "land",
+        "filter": ["==", ["get", "kind"], "land"],
+        "paint": {
+            "fill-color": "#243a2f",
+            "fill-opacity": 0.98,
+        },
+    }
+    beach_fill: dict = {
+        "id": "beach-fill",
+        "type": "fill",
+        "source": "land",
+        "filter": ["==", ["get", "kind"], "beach"],
+        "paint": {
+            "fill-color": "#b8995a",
+            "fill-opacity": 0.88,
+        },
+    }
+    land_outline: dict = {
+        "id": "land-outline",
+        "type": "line",
+        "source": "land",
+        "filter": ["==", ["get", "kind"], "land"],
+        "paint": {
+            "line-color": "#8ec9a8",
+            "line-width": 1.7,
+        },
+    }
+    if has_land_pmtiles:
+        land_fill["source-layer"] = "land"
+        beach_fill["source-layer"] = "land"
+        land_outline["source-layer"] = "land"
+
     layers: list[dict] = [
         {
             "id": "background",
             "type": "background",
             "paint": {"background-color": "#020c14"},
         },
-        {
-            "id": "land-fill",
-            "type": "fill",
-            "source": "land",
-            "filter": ["==", ["get", "kind"], "land"],
-            "paint": {
-                "fill-color": "#243a2f",
-                "fill-opacity": 0.98,
-            },
-        },
-        {
-            "id": "beach-fill",
-            "type": "fill",
-            "source": "land",
-            "filter": ["==", ["get", "kind"], "beach"],
-            "paint": {
-                "fill-color": "#b8995a",
-                "fill-opacity": 0.88,
-            },
-        },
-        {
-            "id": "land-outline",
-            "type": "line",
-            "source": "land",
-            "filter": ["==", ["get", "kind"], "land"],
-            "paint": {
-                "line-color": "#8ec9a8",
-                "line-width": 1.7,
-            },
-        },
+        land_fill,
+        beach_fill,
+        land_outline,
     ]
     insert_at = 1
     if has_ocean_bands:
@@ -606,13 +820,22 @@ def write_manifest(
     geography_count: int,
     has_water: bool,
     has_ocean_bands: bool,
+    has_land_pmtiles: bool,
 ) -> Path:
     out_dir = PACKAGES / region.slug
     names = ["places.geojson", "land.geojson", "style.json"]
+    if has_land_pmtiles:
+        names.insert(2, "land.pmtiles")
     if has_ocean_bands:
-        names.insert(2, "ocean-bands.geojson")
+        names.insert(2 if not has_land_pmtiles else 3, "ocean-bands.geojson")
     if has_water:
-        names.insert(2 if not has_ocean_bands else 3, "water.geojson")
+        # After ocean-bands if present, else after land assets.
+        insert = 2
+        if has_land_pmtiles:
+            insert += 1
+        if has_ocean_bands:
+            insert += 1
+        names.insert(insert, "water.geojson")
     files = []
     for name in names:
         size, digest = sha256_file(out_dir / name)
@@ -625,6 +848,16 @@ def write_manifest(
         aggregate.update(b":")
         aggregate.update(item["sha256"].encode("utf-8"))
         aggregate.update(b"\n")
+
+    land_layer = {
+        "id": "land",
+        "source": land_source,
+        "licence": "ODbL" if "OpenStreetMap" in land_source else "public domain",
+        "dataAsOf": "2026-08-04",
+        "file": "land.pmtiles" if has_land_pmtiles else "land.geojson",
+        "routingFile": "land.geojson",
+        "safety": "not-for-navigation",
+    }
 
     manifest = {
         "id": region.package_id,
@@ -658,14 +891,7 @@ def write_manifest(
                 "file": "places.geojson",
                 "safety": "companion_only",
             },
-            {
-                "id": "land",
-                "source": land_source,
-                "licence": "ODbL" if "OpenStreetMap" in land_source else "public domain",
-                "dataAsOf": "2026-08-04",
-                "file": "land.geojson",
-                "safety": "not-for-navigation",
-            },
+            land_layer,
             {
                 "id": "bathymetry-context",
                 "source": (
@@ -735,10 +961,17 @@ def main() -> int:
         ocean_path = write_ocean_bands(region, land_path)
         if ocean_path:
             print(f"  ocean bands: {ocean_path.stat().st_size} bytes (context only)")
+        land_pmtiles = try_build_pmtiles(
+            land_path, PACKAGES / region.slug, "land.pmtiles", "land"
+        )
+        if land_pmtiles:
+            print(f"  land.pmtiles: {land_pmtiles.stat().st_size} bytes")
+        has_land_pmtiles = land_pmtiles is not None
         write_style(
             region,
             has_water=water_path is not None,
             has_ocean_bands=ocean_path is not None,
+            has_land_pmtiles=has_land_pmtiles,
         )
         manifest_path = write_manifest(
             region,
@@ -747,6 +980,7 @@ def main() -> int:
             geos,
             has_water=water_path is not None,
             has_ocean_bands=ocean_path is not None,
+            has_land_pmtiles=has_land_pmtiles,
         )
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         summaries.append(

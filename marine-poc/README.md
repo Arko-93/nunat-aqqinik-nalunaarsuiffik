@@ -61,7 +61,8 @@ Do not use plain `http://omarchy…:3459` for GPS — browsers force a corridor 
 One downloadable package at `public/packages/greenland/`:
 
 - `places.geojson` — localities + higher-importance geography (NunaGIS midpoints)
-- `land.geojson` — OSM simplified land polygons (island-aware; NOT Natural Earth 10m)
+- `land.geojson` — full OSM coastline land polygons (for routing; NOT simplified-land / NE10m)
+- `land.pmtiles` — vector tiles of the same land fill for offline map display (when tippecanoe is available)
 - `water.geojson` — simplified OSM inland/coastal water
 - `style.json` + `manifest.json` (SHA-256)
 
