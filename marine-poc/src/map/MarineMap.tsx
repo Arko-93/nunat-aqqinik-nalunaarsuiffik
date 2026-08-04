@@ -1,6 +1,16 @@
 import { useEffect, useRef } from "react";
-import maplibregl, { type GeoJSONSource, type Map } from "maplibre-gl";
+import maplibregl, {
+  type GeoJSONSource,
+  type Map,
+  type MapLayerMouseEvent,
+} from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import {
+  corridorPlaceFromFeature,
+  filterPlaceCollection,
+  type CorridorPlace,
+  type PlaceScope,
+} from "../domain/place.ts";
 import type { LocationPoint, TrackPoint, Waypoint } from "../domain/types.ts";
 
 type Props = {
@@ -9,9 +19,13 @@ type Props = {
   position: LocationPoint | null;
   demoBasemap: boolean;
   badge: string;
+  placeScope: PlaceScope;
+  selectedPlaceId: string | null;
+  onSelectPlace: (place: CorridorPlace | null) => void;
 };
 
-const CORRIDOR_CENTER: [number, number] = [-51.5, 70.75];
+const CORRIDOR_CENTER: [number, number] = [-51.9, 70.72];
+const PLACES_URL = "/packages/uummannaq-qaarsut/places.geojson";
 
 const trackCollection = (
   track: ReadonlyArray<TrackPoint>,
@@ -68,15 +82,26 @@ const positionCollection = (
     : [],
 });
 
+const EMPTY: GeoJSON.FeatureCollection = {
+  type: "FeatureCollection",
+  features: [],
+};
+
 export function MarineMap({
   track,
   waypoints,
   position,
   demoBasemap,
   badge,
+  placeScope,
+  selectedPlaceId,
+  onSelectPlace,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
+  const placesRef = useRef<GeoJSON.FeatureCollection>(EMPTY);
+  const onSelectRef = useRef(onSelectPlace);
+  onSelectRef.current = onSelectPlace;
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -85,13 +110,12 @@ export function MarineMap({
       container: containerRef.current,
       style: {
         version: 8,
+        glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
         sources: demoBasemap
           ? {
               demoraster: {
                 type: "raster",
-                tiles: [
-                  "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                ],
+                tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
                 tileSize: 256,
                 attribution: "© OpenStreetMap",
               },
@@ -114,7 +138,7 @@ export function MarineMap({
             ],
       },
       center: CORRIDOR_CENTER,
-      zoom: 8.2,
+      zoom: 8.0,
       attributionControl: {},
     });
 
@@ -123,31 +147,138 @@ export function MarineMap({
       "top-right",
     );
 
+    const selectFromEvent = (event: MapLayerMouseEvent) => {
+      const feature = event.features?.[0];
+      if (!feature) return;
+      event.originalEvent.stopPropagation();
+      const place = corridorPlaceFromFeature(
+        feature as unknown as GeoJSON.Feature,
+      );
+      onSelectRef.current(place);
+      if (place) {
+        map.easeTo({
+          center: [place.longitude, place.latitude],
+          zoom: Math.max(map.getZoom(), place.isLocality ? 9.2 : 10),
+          duration: 450,
+        });
+      }
+    };
+
     map.on("load", async () => {
       try {
-        const places = await fetch(
-          "/packages/uummannaq-qaarsut/places.geojson",
-        ).then((response) => response.json());
-        map.addSource("corridor-places", { type: "geojson", data: places });
+        const places = (await fetch(PLACES_URL).then((response) =>
+          response.json(),
+        )) as GeoJSON.FeatureCollection;
+        placesRef.current = places;
+        map.addSource("corridor-places", {
+          type: "geojson",
+          data: filterPlaceCollection(places, placeScope),
+          promoteId: "globalId",
+        });
+
+        map.addLayer({
+          id: "places-hit",
+          type: "circle",
+          source: "corridor-places",
+          paint: {
+            "circle-radius": [
+              "case",
+              ["==", ["get", "isLocality"], true],
+              16,
+              12,
+            ],
+            "circle-color": "#000000",
+            "circle-opacity": 0,
+          },
+        });
+
         map.addLayer({
           id: "places-circle",
           type: "circle",
           source: "corridor-places",
           paint: {
-            "circle-radius": 4,
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              6,
+              ["case", ["==", ["get", "isLocality"], true], 5, 2.5],
+              11,
+              ["case", ["==", ["get", "isLocality"], true], 9, 5],
+            ],
             "circle-color": [
               "case",
               ["==", ["get", "isLocality"], true],
               "#f0c674",
-              "#8fb8c9",
+              [
+                "match",
+                ["get", "featureKind"],
+                "settlement",
+                "#f0c674",
+                "town",
+                "#f0c674",
+                "#8fb8c9",
+              ],
             ],
-            "circle-stroke-width": 1,
-            "circle-stroke-color": "#041018",
+            "circle-stroke-width": [
+              "case",
+              ["==", ["get", "globalId"], selectedPlaceId ?? ""],
+              3,
+              1,
+            ],
+            "circle-stroke-color": [
+              "case",
+              ["==", ["get", "globalId"], selectedPlaceId ?? ""],
+              "#ffffff",
+              "#041018",
+            ],
+            "circle-opacity": 0.95,
           },
         });
-        // Labels omitted in POC to avoid remote glyph dependency offline.
+
+        map.addLayer({
+          id: "places-label",
+          type: "symbol",
+          source: "corridor-places",
+          minzoom: 7.2,
+          layout: {
+            "text-field": ["get", "officialName"],
+            "text-size": [
+              "case",
+              ["==", ["get", "isLocality"], true],
+              13,
+              11,
+            ],
+            "text-offset": [0, 1.15],
+            "text-anchor": "top",
+            "text-optional": true,
+            "text-font": ["Open Sans Regular", "Arial Unicode MS Regular"],
+            "text-max-width": 10,
+          },
+          paint: {
+            "text-color": "#e8f1f4",
+            "text-halo-color": "#041018",
+            "text-halo-width": 1.4,
+          },
+        });
+
+        map.on("click", "places-hit", selectFromEvent);
+        map.on("click", "places-circle", selectFromEvent);
+        map.on("click", "places-label", selectFromEvent);
+        map.on("mouseenter", "places-hit", () => {
+          map.getCanvas().style.cursor = "pointer";
+        });
+        map.on("mouseleave", "places-hit", () => {
+          map.getCanvas().style.cursor = "";
+        });
+        map.on("click", (event) => {
+          const hits = map.queryRenderedFeatures(event.point, {
+            layers: ["places-hit", "places-circle", "places-label"],
+          });
+          if (hits.length === 0) onSelectRef.current(null);
+        });
       } catch {
-        // Package may be deleted; map still shows track/position.
+        // Package may be missing; track/position still work.
       }
 
       map.addSource("track", {
@@ -222,25 +353,47 @@ export function MarineMap({
       map.remove();
       mapRef.current = null;
     };
-    // Initial map bootstrap only.
+    // Bootstrap once; filter/selection update via later effects.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [demoBasemap]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map?.getSource("corridor-places")) return;
+    const source = map.getSource("corridor-places") as GeoJSONSource;
+    source.setData(filterPlaceCollection(placesRef.current, placeScope));
+  }, [placeScope]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map?.getLayer("places-circle")) return;
+    map.setPaintProperty("places-circle", "circle-stroke-width", [
+      "case",
+      ["==", ["get", "globalId"], selectedPlaceId ?? ""],
+      3,
+      1,
+    ]);
+    map.setPaintProperty("places-circle", "circle-stroke-color", [
+      "case",
+      ["==", ["get", "globalId"], selectedPlaceId ?? ""],
+      "#ffffff",
+      "#041018",
+    ]);
+  }, [selectedPlaceId]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !map.isStyleLoaded()) return;
     const trackSource = map.getSource("track") as GeoJSONSource | undefined;
     trackSource?.setData(trackCollection(track));
-    const waypointSource = map.getSource("waypoints") as GeoJSONSource | undefined;
+    const waypointSource = map.getSource("waypoints") as
+      | GeoJSONSource
+      | undefined;
     waypointSource?.setData(waypointCollection(waypoints));
-    const positionSource = map.getSource("position") as GeoJSONSource | undefined;
+    const positionSource = map.getSource("position") as
+      | GeoJSONSource
+      | undefined;
     positionSource?.setData(positionCollection(position));
-    if (position) {
-      map.easeTo({
-        center: [position.longitude, position.latitude],
-        duration: 500,
-      });
-    }
   }, [track, waypoints, position]);
 
   return (

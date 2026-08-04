@@ -1,6 +1,11 @@
 import { Effect } from "effect";
 import { useEffect, useMemo, useState } from "react";
 import { loadConditionFixture } from "../domain/conditions.ts";
+import {
+  corridorPlaceFromFeature,
+  type CorridorPlace,
+  type PlaceScope,
+} from "../domain/place.ts";
 import { summarizeTrip } from "../domain/trip-metrics.ts";
 import type {
   ConditionSnapshot,
@@ -28,6 +33,7 @@ import {
   BridgedLocationService,
   toTrackPoint,
 } from "../tracking/location-service.ts";
+import { PlaceDetail } from "./PlaceDetail.tsx";
 
 const PACKAGE_BASE = "/packages/uummannaq-qaarsut";
 const PACKAGE_ID = "corridor_uummannaq_qaarsut_2026-08-01";
@@ -84,7 +90,17 @@ export function App() {
   const [waypointNote, setWaypointNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [placeScope, setPlaceScope] = useState<PlaceScope>("localities");
+  const [selectedPlace, setSelectedPlace] = useState<CorridorPlace | null>(
+    null,
+  );
+  const [corridorPlaces, setCorridorPlaces] = useState<CorridorPlace[]>([]);
   const sequenceRef = useMemo(() => ({ current: 0 }), []);
+
+  const localities = useMemo(
+    () => corridorPlaces.filter((place) => place.isLocality),
+    [corridorPlaces],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -94,6 +110,16 @@ export function App() {
           await fetch(`${PACKAGE_BASE}/manifest.json`),
         );
         if (!cancelled) setManifest(loaded);
+        const placesJson = (await fetch(
+          `${PACKAGE_BASE}/places.geojson`,
+        ).then((response) => response.json())) as GeoJSON.FeatureCollection;
+        if (!cancelled) {
+          setCorridorPlaces(
+            placesJson.features
+              .map((feature) => corridorPlaceFromFeature(feature))
+              .filter((place): place is CorridorPlace => place !== null),
+          );
+        }
         const installed = await Effect.runPromise(store.getPackage(PACKAGE_ID));
         if (!cancelled && installed) {
           setPackageInstalled(true);
@@ -460,12 +486,65 @@ export function App() {
                     {t("deletePackage")}
                   </button>
                 </div>
-                {packageError ? <p className="stale-banner">{packageError}</p> : null}
+                {packageError ? (
+                  <p className="stale-banner">{packageError}</p>
+                ) : null}
               </>
             ) : (
               <p>{t("loading")}</p>
             )}
           </section>
+
+          <section className="panel">
+            <h2>{t("mapContent")}</h2>
+            <p className="meta">{t("clickPlaceHint")}</p>
+            <div className="scope-switch" role="group" aria-label={t("mapContent")}>
+              {(
+                [
+                  ["localities", "scopeLocalities"],
+                  ["all", "scopeAll"],
+                  ["geography", "scopeGeography"],
+                ] as const
+              ).map(([scope, labelKey]) => (
+                <button
+                  key={scope}
+                  type="button"
+                  aria-pressed={placeScope === scope}
+                  onClick={() => setPlaceScope(scope)}
+                >
+                  {t(labelKey)}
+                </button>
+              ))}
+            </div>
+            <p className="meta" style={{ marginTop: "0.65rem" }}>
+              {t("localitiesCount")}: {localities.length}
+            </p>
+            <ul className="place-list">
+              {localities.map((place) => (
+                <li key={place.globalId}>
+                  <button
+                    type="button"
+                    className={
+                      selectedPlace?.globalId === place.globalId
+                        ? "place-list-item active"
+                        : "place-list-item"
+                    }
+                    onClick={() => setSelectedPlace(place)}
+                  >
+                    <strong>{place.officialName}</strong>
+                    <span>{place.typeLabel}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {selectedPlace ? (
+            <PlaceDetail
+              place={selectedPlace}
+              onClose={() => setSelectedPlace(null)}
+            />
+          ) : null}
 
           <section className="panel">
             <h2>{t("weather")}</h2>
@@ -659,9 +738,10 @@ export function App() {
           waypoints={waypoints}
           position={position}
           demoBasemap={demoBasemap}
-          badge={
-            demoBasemap ? t("onlineDemoBasemap") : t("offlineReady")
-          }
+          badge={demoBasemap ? t("onlineDemoBasemap") : t("offlineReady")}
+          placeScope={placeScope}
+          selectedPlaceId={selectedPlace?.globalId ?? null}
+          onSelectPlace={setSelectedPlace}
         />
       </div>
 

@@ -59,7 +59,21 @@ export type MessageKey =
   | "recordingForegroundOnly"
   | "forceQuitLimit"
   | "loading"
-  | "error";
+  | "error"
+  | "mapContent"
+  | "scopeAll"
+  | "scopeLocalities"
+  | "scopeGeography"
+  | "clickPlaceHint"
+  | "closePlace"
+  | "danishName"
+  | "historicalName"
+  | "municipality"
+  | "coordinates"
+  | "inhabitedPlace"
+  | "geographicFeature"
+  | "placeList"
+  | "localitiesCount";
 
 type Dict = Record<MessageKey, string>;
 
@@ -119,6 +133,20 @@ const kl: Dict = {
     "Force-quit / location-off unitsikkumaaq. Paasissutissat safety-tekstimiipput.",
   loading: "Uterenneq...",
   error: "Kukkuneq",
+  mapContent: "Kortip imarisai",
+  scopeAll: "Tamarmik aqqi",
+  scopeLocalities: "Nunaqarfiit / bygdit",
+  scopeGeography: "Nunap qeqqani",
+  clickPlaceHint: "Nunaqarfik / aqqi tooruk — paasissutissat takutinneqassapput.",
+  closePlace: "Matuk",
+  danishName: "Qallunaat aqqa",
+  historicalName: "Aqqi itoqanngitsoq",
+  municipality: "Kommune",
+  coordinates: "Koordinater",
+  inhabitedPlace: "Nunaqarfik",
+  geographicFeature: "Nunap ilusaa",
+  placeList: "Nunaqarfiit",
+  localitiesCount: "Nunaqarfiit corridor-imi",
 };
 
 const da: Dict = {
@@ -177,6 +205,20 @@ const da: Dict = {
     "Force-quit / slået lokation stopper optagelse. Begrænsninger står i sikkerhedsteksten.",
   loading: "Indlæser…",
   error: "Fejl",
+  mapContent: "Kortindhold",
+  scopeAll: "Alle navne",
+  scopeLocalities: "Byer / bygder",
+  scopeGeography: "Geografi",
+  clickPlaceHint: "Klik et sted på kortet for detaljer.",
+  closePlace: "Luk",
+  danishName: "Dansk navn",
+  historicalName: "Historisk navn",
+  municipality: "Kommune",
+  coordinates: "Koordinater",
+  inhabitedPlace: "Bebyggelse",
+  geographicFeature: "Geografisk sted",
+  placeList: "Steder",
+  localitiesCount: "Byer/bygder i korridoren",
 };
 
 const en: Dict = {
@@ -235,6 +277,20 @@ const en: Dict = {
     "Force-quit or location-off stops recording. Limits are stated in the safety text.",
   loading: "Loading…",
   error: "Error",
+  mapContent: "Map content",
+  scopeAll: "All names",
+  scopeLocalities: "Towns / villages",
+  scopeGeography: "Geography",
+  clickPlaceHint: "Click a place on the map for details.",
+  closePlace: "Close",
+  danishName: "Danish name",
+  historicalName: "Historical name",
+  municipality: "Municipality",
+  coordinates: "Coordinates",
+  inhabitedPlace: "Inhabited place",
+  geographicFeature: "Geographic feature",
+  placeList: "Places",
+  localitiesCount: "Towns/villages in corridor",
 };
 
 export const MESSAGES: Record<Locale, Dict> = { kl, da, en };

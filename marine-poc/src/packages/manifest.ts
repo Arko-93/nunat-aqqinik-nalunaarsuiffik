@@ -1,5 +1,6 @@
 import { ChecksumError, PackageError } from "../domain/errors.ts";
 import type { CorridorPackageManifest } from "../domain/types.ts";
+import { sha256HexSync } from "./sha256.ts";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -78,9 +79,14 @@ export const bytesToHex = (bytes: ArrayBuffer): string =>
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
 
+/** Works on HTTP Tailscale previews where `crypto.subtle` is unavailable. */
 export const sha256Hex = async (data: ArrayBuffer): Promise<string> => {
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return bytesToHex(digest);
+  const subtle = globalThis.crypto?.subtle;
+  if (subtle) {
+    const digest = await subtle.digest("SHA-256", data);
+    return bytesToHex(digest);
+  }
+  return sha256HexSync(data);
 };
 
 export const verifyPackageBytes = async (

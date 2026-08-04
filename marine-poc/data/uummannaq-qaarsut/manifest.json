@@ -1,10 +1,15 @@
 {
   "id": "corridor_uummannaq_qaarsut_2026-08-01",
-  "bbox": [-52.3, 70.5, -50.7, 71.0],
+  "bbox": [
+    -52.85,
+    70.45,
+    -50.7,
+    71.12
+  ],
   "minZoom": 4,
   "maxZoom": 14,
-  "bytes": 54863,
-  "sha256": "395caeb0ce825568b74ee368e0dda957efcc0aeffc2abe54dbe5bd0e43316e8f",
+  "bytes": 77175,
+  "sha256": "cf789afa78637676ff0e1712f45ac5c9f1e0e32dd4b9ac0c6c0684852102526b",
   "createdAt": "2026-08-01T00:00:00Z",
   "layers": [
     {
@@ -17,7 +22,7 @@
     },
     {
       "id": "bathymetry-context",
-      "source": "IBCAO v5.2 / GEBCO terms (context placeholder — no depth contours in POC)",
+      "source": "IBCAO v5.2 / GEBCO terms (context placeholder \u2014 no depth contours in POC)",
       "licence": "GEBCO terms",
       "dataAsOf": "2026-06-01",
       "safety": "not-for-navigation"
@@ -27,7 +32,7 @@
   "attributions": [
     "Place names: Nunat Aqqinik Aalajangiisartut / Oqaasileriffik via NunaGIS",
     "Contains data derived from the repository place-identity release 2026.08.01.1",
-    "Bathymetry context (when present): GEBCO / IBCAO — not for navigation or safety at sea"
+    "Bathymetry context (when present): GEBCO / IBCAO \u2014 not for navigation or safety at sea"
   ],
   "warnings": [
     "This package is a travel-knowledge companion. It is not an official nautical chart.",
