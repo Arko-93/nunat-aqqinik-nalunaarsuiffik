@@ -21,6 +21,8 @@ type Props = {
   badge: string;
   placeScope: PlaceScope;
   selectedPlaceId: string | null;
+  flyToPlace: CorridorPlace | null;
+  fitPlaces: ReadonlyArray<CorridorPlace>;
   onSelectPlace: (place: CorridorPlace | null) => void;
 };
 
@@ -87,6 +89,24 @@ const EMPTY: GeoJSON.FeatureCollection = {
   features: [],
 };
 
+const fitToPlaces = (map: Map, places: ReadonlyArray<CorridorPlace>) => {
+  if (places.length === 0) return;
+  if (places.length === 1) {
+    const only = places[0]!;
+    map.easeTo({
+      center: [only.longitude, only.latitude],
+      zoom: 9.5,
+      duration: 600,
+    });
+    return;
+  }
+  const bounds = new maplibregl.LngLatBounds();
+  for (const place of places) {
+    bounds.extend([place.longitude, place.latitude]);
+  }
+  map.fitBounds(bounds, { padding: 72, maxZoom: 10, duration: 700 });
+};
+
 export function MarineMap({
   track,
   waypoints,
@@ -95,12 +115,15 @@ export function MarineMap({
   badge,
   placeScope,
   selectedPlaceId,
+  flyToPlace,
+  fitPlaces,
   onSelectPlace,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
   const placesRef = useRef<GeoJSON.FeatureCollection>(EMPTY);
   const onSelectRef = useRef(onSelectPlace);
+  const fittedRef = useRef(false);
   onSelectRef.current = onSelectPlace;
 
   useEffect(() => {
@@ -127,6 +150,7 @@ export function MarineMap({
                 id: "demoraster",
                 type: "raster",
                 source: "demoraster",
+                paint: { "raster-opacity": 0.85 },
               },
             ]
           : [
@@ -155,13 +179,6 @@ export function MarineMap({
         feature as unknown as GeoJSON.Feature,
       );
       onSelectRef.current(place);
-      if (place) {
-        map.easeTo({
-          center: [place.longitude, place.latitude],
-          zoom: Math.max(map.getZoom(), place.isLocality ? 9.2 : 10),
-          duration: 450,
-        });
-      }
     };
 
     map.on("load", async () => {
@@ -173,7 +190,6 @@ export function MarineMap({
         map.addSource("corridor-places", {
           type: "geojson",
           data: filterPlaceCollection(places, placeScope),
-          promoteId: "globalId",
         });
 
         map.addLayer({
@@ -181,14 +197,20 @@ export function MarineMap({
           type: "circle",
           source: "corridor-places",
           paint: {
-            "circle-radius": [
-              "case",
-              ["==", ["get", "isLocality"], true],
-              16,
-              12,
-            ],
+            "circle-radius": 22,
             "circle-color": "#000000",
             "circle-opacity": 0,
+          },
+        });
+
+        map.addLayer({
+          id: "places-halo",
+          type: "circle",
+          source: "corridor-places",
+          filter: ["==", ["get", "isLocality"], true],
+          paint: {
+            "circle-radius": 14,
+            "circle-color": "rgba(240, 198, 116, 0.28)",
           },
         });
 
@@ -198,41 +220,20 @@ export function MarineMap({
           source: "corridor-places",
           paint: {
             "circle-radius": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              6,
-              ["case", ["==", ["get", "isLocality"], true], 5, 2.5],
-              11,
-              ["case", ["==", ["get", "isLocality"], true], 9, 5],
+              "case",
+              ["==", ["get", "isLocality"], true],
+              9,
+              5,
             ],
             "circle-color": [
               "case",
               ["==", ["get", "isLocality"], true],
               "#f0c674",
-              [
-                "match",
-                ["get", "featureKind"],
-                "settlement",
-                "#f0c674",
-                "town",
-                "#f0c674",
-                "#8fb8c9",
-              ],
+              "#8fb8c9",
             ],
-            "circle-stroke-width": [
-              "case",
-              ["==", ["get", "globalId"], selectedPlaceId ?? ""],
-              3,
-              1,
-            ],
-            "circle-stroke-color": [
-              "case",
-              ["==", ["get", "globalId"], selectedPlaceId ?? ""],
-              "#ffffff",
-              "#041018",
-            ],
-            "circle-opacity": 0.95,
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#041018",
+            "circle-opacity": 0.98,
           },
         });
 
@@ -240,25 +241,25 @@ export function MarineMap({
           id: "places-label",
           type: "symbol",
           source: "corridor-places",
-          minzoom: 7.2,
+          minzoom: 6.5,
           layout: {
             "text-field": ["get", "officialName"],
             "text-size": [
               "case",
               ["==", ["get", "isLocality"], true],
-              13,
+              14,
               11,
             ],
-            "text-offset": [0, 1.15],
+            "text-offset": [0, 1.3],
             "text-anchor": "top",
             "text-optional": true,
             "text-font": ["Open Sans Regular", "Arial Unicode MS Regular"],
             "text-max-width": 10,
           },
           paint: {
-            "text-color": "#e8f1f4",
+            "text-color": "#fff7e6",
             "text-halo-color": "#041018",
-            "text-halo-width": 1.4,
+            "text-halo-width": 1.6,
           },
         });
 
@@ -277,6 +278,11 @@ export function MarineMap({
           });
           if (hits.length === 0) onSelectRef.current(null);
         });
+
+        if (!fittedRef.current && fitPlaces.length > 0) {
+          fittedRef.current = true;
+          fitToPlaces(map, fitPlaces);
+        }
       } catch {
         // Package may be missing; track/position still work.
       }
@@ -291,8 +297,8 @@ export function MarineMap({
         source: "track",
         paint: {
           "line-color": "#e3a23a",
-          "line-width": 3,
-          "line-opacity": 0.9,
+          "line-width": 4,
+          "line-opacity": 0.95,
         },
       });
 
@@ -305,10 +311,10 @@ export function MarineMap({
         type: "circle",
         source: "waypoints",
         paint: {
-          "circle-radius": 6,
+          "circle-radius": 7,
           "circle-color": "#d96b5c",
           "circle-stroke-color": "#041018",
-          "circle-stroke-width": 1.5,
+          "circle-stroke-width": 2,
         },
       });
 
@@ -326,9 +332,9 @@ export function MarineMap({
             ["linear"],
             ["coalesce", ["get", "accuracy"], 30],
             5,
-            8,
+            10,
             80,
-            28,
+            32,
           ],
           "circle-color": "rgba(111, 191, 138, 0.18)",
           "circle-stroke-color": "rgba(111, 191, 138, 0.7)",
@@ -340,7 +346,7 @@ export function MarineMap({
         type: "circle",
         source: "position",
         paint: {
-          "circle-radius": 6,
+          "circle-radius": 7,
           "circle-color": "#6fbf8a",
           "circle-stroke-color": "#041018",
           "circle-stroke-width": 2,
@@ -352,8 +358,8 @@ export function MarineMap({
     return () => {
       map.remove();
       mapRef.current = null;
+      fittedRef.current = false;
     };
-    // Bootstrap once; filter/selection update via later effects.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [demoBasemap]);
 
@@ -366,18 +372,44 @@ export function MarineMap({
 
   useEffect(() => {
     const map = mapRef.current;
+    if (!map || !flyToPlace) return;
+    map.easeTo({
+      center: [flyToPlace.longitude, flyToPlace.latitude],
+      zoom: Math.max(map.getZoom(), flyToPlace.isLocality ? 10 : 11),
+      duration: 650,
+    });
+  }, [flyToPlace]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map?.isStyleLoaded() || fittedRef.current || fitPlaces.length === 0) {
+      return;
+    }
+    if (!map.getSource("corridor-places")) return;
+    fittedRef.current = true;
+    fitToPlaces(map, fitPlaces);
+  }, [fitPlaces]);
+
+  useEffect(() => {
+    const map = mapRef.current;
     if (!map?.getLayer("places-circle")) return;
     map.setPaintProperty("places-circle", "circle-stroke-width", [
       "case",
       ["==", ["get", "globalId"], selectedPlaceId ?? ""],
-      3,
-      1,
+      4,
+      2,
     ]);
     map.setPaintProperty("places-circle", "circle-stroke-color", [
       "case",
       ["==", ["get", "globalId"], selectedPlaceId ?? ""],
       "#ffffff",
       "#041018",
+    ]);
+    map.setPaintProperty("places-circle", "circle-radius", [
+      "case",
+      ["==", ["get", "globalId"], selectedPlaceId ?? ""],
+      12,
+      ["case", ["==", ["get", "isLocality"], true], 9, 5],
     ]);
   }, [selectedPlaceId]);
 
@@ -397,7 +429,7 @@ export function MarineMap({
   }, [track, waypoints, position]);
 
   return (
-    <div className="map-panel">
+    <div className="map-panel fullscreen">
       <div className="map-root" ref={containerRef} />
       <div className="map-badge">{badge}</div>
     </div>

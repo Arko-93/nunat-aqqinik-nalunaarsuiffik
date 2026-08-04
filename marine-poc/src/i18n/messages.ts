@@ -73,7 +73,11 @@ export type MessageKey =
   | "inhabitedPlace"
   | "geographicFeature"
   | "placeList"
-  | "localitiesCount";
+  | "localitiesCount"
+  | "openMap"
+  | "backPrepare"
+  | "showPanel"
+  | "hidePanel";
 
 type Dict = Record<MessageKey, string>;
 
@@ -147,6 +151,10 @@ const kl: Dict = {
   geographicFeature: "Nunap ilusaa",
   placeList: "Nunaqarfiit",
   localitiesCount: "Nunaqarfiit corridor-imi",
+  openMap: "Kortimuk",
+  backPrepare: "Uterit",
+  showPanel: "Panel",
+  hidePanel: "Matuk panel",
 };
 
 const da: Dict = {
@@ -219,6 +227,10 @@ const da: Dict = {
   geographicFeature: "Geografisk sted",
   placeList: "Steder",
   localitiesCount: "Byer/bygder i korridoren",
+  openMap: "Åbn kort",
+  backPrepare: "Tilbage",
+  showPanel: "Panel",
+  hidePanel: "Skjul panel",
 };
 
 const en: Dict = {
@@ -291,6 +303,10 @@ const en: Dict = {
   geographicFeature: "Geographic feature",
   placeList: "Places",
   localitiesCount: "Towns/villages in corridor",
+  openMap: "Open map",
+  backPrepare: "Back",
+  showPanel: "Panel",
+  hidePanel: "Hide panel",
 };
 
 export const MESSAGES: Record<Locale, Dict> = { kl, da, en };

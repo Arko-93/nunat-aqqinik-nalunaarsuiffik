@@ -382,6 +382,141 @@ textarea {
   cursor: grabbing;
 }
 
+.brand-mark {
+  margin: 0 0 0.4rem;
+  color: var(--caution);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.prepare-screen,
+.map-screen {
+  min-height: 100vh;
+}
+
+.prepare-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 1.1rem 2rem;
+}
+
+.prepare-hero h2 {
+  font-size: 1.6rem;
+}
+
+.prepare-places li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.prepare-places span {
+  color: var(--muted);
+}
+
+.map-screen {
+  position: relative;
+}
+
+.map-panel.fullscreen {
+  position: fixed;
+  inset: 0;
+  border-radius: 0;
+  border: 0;
+  min-height: 100vh;
+  z-index: 1;
+}
+
+.map-panel.fullscreen .map-root {
+  min-height: 100vh;
+  height: 100vh;
+}
+
+.map-top-chrome {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  padding: 0.65rem 0.75rem 0;
+  pointer-events: none;
+}
+
+.map-top-chrome .status-bar {
+  pointer-events: auto;
+}
+
+.status-bar.compact {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.chrome-btn {
+  pointer-events: auto;
+}
+
+.trip-dock {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: calc(100vw - 1.5rem);
+  padding: 0.55rem;
+  border-radius: 16px;
+  background: rgba(4, 16, 24, 0.88);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.map-side-panel {
+  position: fixed;
+  top: 4.6rem;
+  left: 0.75rem;
+  width: min(340px, calc(100vw - 1.5rem));
+  max-height: calc(100vh - 8.5rem);
+  overflow: auto;
+  z-index: 6;
+  background: rgba(11, 28, 40, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.8rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  background: rgba(4, 16, 24, 0.55);
+  display: grid;
+  align-items: end;
+  padding: 0.75rem;
+}
+
+.sheet-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 900px) {
+  .status-bar.compact {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 @media (max-width: 900px) {
   .main {
     grid-template-columns: 1fr;

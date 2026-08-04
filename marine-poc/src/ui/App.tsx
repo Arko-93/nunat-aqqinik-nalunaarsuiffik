@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { loadConditionFixture } from "../domain/conditions.ts";
 import {
   corridorPlaceFromFeature,
@@ -25,7 +25,6 @@ import { useI18n } from "../i18n/I18nContext.tsx";
 import { MarineMap } from "../map/MarineMap.tsx";
 import {
   loadManifestFromJson,
-  sha256Hex,
   verifyPackageBytes,
 } from "../packages/manifest.ts";
 import { IndexedDbMarineStore } from "../storage/repository.ts";
@@ -37,7 +36,9 @@ import { PlaceDetail } from "./PlaceDetail.tsx";
 
 const PACKAGE_BASE = "/packages/uummannaq-qaarsut";
 const PACKAGE_ID = "corridor_uummannaq_qaarsut_2026-08-01";
-const SAFETY_KEY = "nunat-marine-safety-accepted";
+const SAFETY_KEY = "nunat-marine-safety-accepted-v2";
+
+type Screen = "safety" | "prepare" | "map" | "summary";
 
 const downloadBlob = (filename: string, content: string, type: string) => {
   const blob = new Blob([content], { type });
@@ -69,25 +70,28 @@ export function App() {
   const store = useMemo(() => new IndexedDbMarineStore(), []);
   const location = useMemo(() => new BridgedLocationService(), []);
 
-  const [safetyAccepted, setSafetyAccepted] = useState(
-    () => localStorage.getItem(SAFETY_KEY) === "1",
+  const [screen, setScreen] = useState<Screen>(() =>
+    localStorage.getItem(SAFETY_KEY) === "1" ? "prepare" : "safety",
   );
-  const [manifest, setManifest] = useState<CorridorPackageManifest | null>(null);
-  const [packageInstalled, setPackageInstalled] = useState(false);
-  const [packageVerified, setPackageVerified] = useState(false);
+  const [manifest, setManifest] = useState<CorridorPackageManifest | null>(
+    null,
+  );
+  const [packageReady, setPackageReady] = useState(false);
   const [packageError, setPackageError] = useState<string | null>(null);
   const [weather, setWeather] = useState<ConditionSnapshot | null>(null);
   const [ice, setIce] = useState<ConditionSnapshot | null>(null);
   const [gpsState, setGpsState] = useState<GpsUiState>("unknown");
   const [position, setPosition] = useState<LocationPoint | null>(null);
-  const [profile, setProfile] = useState<RecordingProfile>("normal_travel");
+  const [profile] = useState<RecordingProfile>("normal_travel");
   const [trip, setTrip] = useState<Trip | null>(null);
+  const tripRef = useRef<Trip | null>(null);
   const [track, setTrack] = useState<TrackPoint[]>([]);
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
   const [summary, setSummary] = useState<TripSummary | null>(null);
   const [waypointCategory, setWaypointCategory] =
     useState<WaypointCategory>("landing");
   const [waypointNote, setWaypointNote] = useState("");
+  const [showWaypointSheet, setShowWaypointSheet] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [placeScope, setPlaceScope] = useState<PlaceScope>("localities");
@@ -95,12 +99,17 @@ export function App() {
     null,
   );
   const [corridorPlaces, setCorridorPlaces] = useState<CorridorPlace[]>([]);
-  const sequenceRef = useMemo(() => ({ current: 0 }), []);
+  const [panelOpen, setPanelOpen] = useState(true);
+  const sequenceRef = useRef(0);
 
   const localities = useMemo(
     () => corridorPlaces.filter((place) => place.isLocality),
     [corridorPlaces],
   );
+
+  useEffect(() => {
+    tripRef.current = trip;
+  }, [trip]);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,22 +118,38 @@ export function App() {
         const loaded = await loadManifestFromJson(
           await fetch(`${PACKAGE_BASE}/manifest.json`),
         );
-        if (!cancelled) setManifest(loaded);
-        const placesJson = (await fetch(
-          `${PACKAGE_BASE}/places.geojson`,
-        ).then((response) => response.json())) as GeoJSON.FeatureCollection;
+        if (cancelled) return;
+        setManifest(loaded);
+
+        const placesResponse = await fetch(`${PACKAGE_BASE}/places.geojson`);
+        if (!placesResponse.ok) {
+          throw new Error(`places fetch failed (${placesResponse.status})`);
+        }
+        const buffer = await placesResponse.arrayBuffer();
+        await verifyPackageBytes(loaded, buffer);
+        const placesJson = JSON.parse(
+          new TextDecoder().decode(buffer),
+        ) as GeoJSON.FeatureCollection;
+        if (cancelled) return;
+        setCorridorPlaces(
+          placesJson.features
+            .map((feature) => corridorPlaceFromFeature(feature))
+            .filter((place): place is CorridorPlace => place !== null),
+        );
+
+        await Effect.runPromise(
+          store.savePackage({
+            manifest: loaded,
+            installedAt: new Date().toISOString(),
+            verified: true,
+            localPath: PACKAGE_BASE,
+          }),
+        );
         if (!cancelled) {
-          setCorridorPlaces(
-            placesJson.features
-              .map((feature) => corridorPlaceFromFeature(feature))
-              .filter((place): place is CorridorPlace => place !== null),
-          );
+          setPackageReady(true);
+          setPackageError(null);
         }
-        const installed = await Effect.runPromise(store.getPackage(PACKAGE_ID));
-        if (!cancelled && installed) {
-          setPackageInstalled(true);
-          setPackageVerified(installed.verified);
-        }
+
         const [weatherSnap, iceSnap] = await Promise.all([
           loadConditionFixture("/conditions/weather-mock.json"),
           loadConditionFixture("/conditions/ice-mock.json"),
@@ -133,9 +158,11 @@ export function App() {
           setWeather(weatherSnap);
           setIce(iceSnap);
         }
+
         const active = await Effect.runPromise(store.recoverActive());
         if (!cancelled && active) {
           setTrip(active.trip);
+          tripRef.current = active.trip;
           const points = await Effect.runPromise(
             store.listPoints(active.trip.id),
           );
@@ -146,15 +173,20 @@ export function App() {
           );
           setWaypoints([...wps]);
           setGpsState(active.trip.status === "paused" ? "paused" : "recording");
+          setScreen("map");
         }
       } catch (err) {
-        if (!cancelled) setError(String(err));
+        if (!cancelled) {
+          setPackageError(String(err));
+          setPackageReady(false);
+          setError(String(err));
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [sequenceRef, store]);
+  }, [store]);
 
   useEffect(() => {
     const unsubscribe = location.subscribe(
@@ -163,21 +195,20 @@ export function App() {
         setGpsState((prev) =>
           prev === "recording" || prev === "paused" ? prev : "ready",
         );
-        if (!trip || trip.status !== "active") return;
+        const activeTrip = tripRef.current;
+        if (!activeTrip || activeTrip.status !== "active") return;
         sequenceRef.current += 1;
         const trackPoint = toTrackPoint(
-          trip.id,
+          activeTrip.id,
           sequenceRef.current,
           point,
         );
         setTrack((prev) => [...prev, trackPoint]);
         void Effect.runPromise(store.appendPoint(trackPoint));
-        void Effect.runPromise(
-          store.saveTrip({
-            ...trip,
-            pointCount: sequenceRef.current,
-          }),
-        );
+        const nextTrip = { ...activeTrip, pointCount: sequenceRef.current };
+        tripRef.current = nextTrip;
+        setTrip(nextTrip);
+        void Effect.runPromise(store.saveTrip(nextTrip));
       },
       (err) => {
         setError(err.message);
@@ -185,53 +216,25 @@ export function App() {
       },
     );
     return unsubscribe;
-  }, [location, sequenceRef, store, trip]);
+  }, [location, store]);
 
-  const installPackage = async () => {
-    if (!manifest) return;
-    setBusy(true);
-    setPackageError(null);
+  const ensureGps = async () => {
+    setGpsState("requesting");
     try {
-      const places = await fetch(`${PACKAGE_BASE}/places.geojson`);
-      if (!places.ok) throw new Error(`places fetch failed (${places.status})`);
-      const buffer = await places.arrayBuffer();
-      // Manifest sha256 targets places.geojson for the POC.
-      const digest = await sha256Hex(buffer);
-      const patched = { ...manifest, bytes: buffer.byteLength, sha256: digest };
-      await verifyPackageBytes(patched, buffer);
-      await Effect.runPromise(
-        store.savePackage({
-          manifest: patched,
-          installedAt: new Date().toISOString(),
-          verified: true,
-          localPath: PACKAGE_BASE,
-        }),
-      );
-      setManifest(patched);
-      setPackageInstalled(true);
-      setPackageVerified(true);
-      if ("storage" in navigator && "persist" in navigator.storage) {
-        await navigator.storage.persist().catch(() => false);
-      }
+      const point = await Effect.runPromise(location.getCurrent());
+      setPosition(point);
+      setGpsState("ready");
+      await Effect.runPromise(location.start(profile));
     } catch (err) {
-      setPackageError(String(err));
-      setPackageVerified(false);
-    } finally {
-      setBusy(false);
+      setError(String(err));
+      setGpsState("denied");
     }
   };
 
-  const deletePackage = async () => {
-    setBusy(true);
-    try {
-      await Effect.runPromise(store.removePackage(PACKAGE_ID));
-      setPackageInstalled(false);
-      setPackageVerified(false);
-    } catch (err) {
-      setPackageError(String(err));
-    } finally {
-      setBusy(false);
-    }
+  const openMap = async () => {
+    setScreen("map");
+    setPanelOpen(false);
+    await ensureGps();
   };
 
   const startTrip = async () => {
@@ -239,7 +242,7 @@ export function App() {
     setError(null);
     setSummary(null);
     try {
-      setGpsState("requesting");
+      await ensureGps();
       const session = await Effect.runPromise(location.start(profile));
       const nextTrip: Trip = {
         id: session.tripId,
@@ -249,14 +252,17 @@ export function App() {
         profile,
         visibility: { type: "private" },
         pointCount: 0,
-        corridorPackageId: packageInstalled ? PACKAGE_ID : null,
+        corridorPackageId: packageReady ? PACKAGE_ID : null,
       };
       sequenceRef.current = 0;
       setTrack([]);
       setWaypoints([]);
+      tripRef.current = nextTrip;
       setTrip(nextTrip);
       await Effect.runPromise(store.saveTrip(nextTrip));
       setGpsState("recording");
+      setScreen("map");
+      setPanelOpen(false);
     } catch (err) {
       setError(String(err));
       setGpsState("denied");
@@ -266,8 +272,9 @@ export function App() {
   };
 
   const pauseTrip = async () => {
-    if (!trip) return;
-    const next = { ...trip, status: "paused" as const };
+    if (!tripRef.current) return;
+    const next = { ...tripRef.current, status: "paused" as const };
+    tripRef.current = next;
     setTrip(next);
     setGpsState("paused");
     await Effect.runPromise(store.saveTrip(next));
@@ -275,28 +282,36 @@ export function App() {
   };
 
   const resumeTrip = async () => {
-    if (!trip) return;
+    if (!tripRef.current) return;
     await Effect.runPromise(location.start(profile));
-    const next = { ...trip, status: "active" as const };
+    const next = { ...tripRef.current, status: "active" as const };
+    tripRef.current = next;
     setTrip(next);
     setGpsState("recording");
     await Effect.runPromise(store.saveTrip(next));
   };
 
   const stopTrip = async () => {
-    if (!trip) return;
+    if (!tripRef.current) return;
     setBusy(true);
     try {
       await Effect.runPromise(location.stop());
       const endedAt = new Date().toISOString();
-      const next = { ...trip, status: "completed" as const, endedAt };
+      const current = tripRef.current;
+      const next = { ...current, status: "completed" as const, endedAt };
       await Effect.runPromise(store.saveTrip(next));
-      const points = await Effect.runPromise(store.listPoints(trip.id));
-      setSummary(
-        summarizeTrip(trip.id, trip.startedAt, endedAt, points),
+      const points = await Effect.runPromise(store.listPoints(current.id));
+      const nextSummary = summarizeTrip(
+        current.id,
+        current.startedAt,
+        endedAt,
+        points,
       );
+      setSummary(nextSummary);
+      tripRef.current = next;
       setTrip(next);
       setGpsState("ready");
+      setScreen("summary");
     } catch (err) {
       setError(String(err));
     } finally {
@@ -311,7 +326,7 @@ export function App() {
     }
     const waypoint: Waypoint = {
       id: crypto.randomUUID(),
-      tripId: trip?.id ?? null,
+      tripId: tripRef.current?.id ?? null,
       category: waypointCategory,
       kind: "personal_waypoint",
       note: waypointNote,
@@ -323,6 +338,7 @@ export function App() {
     await Effect.runPromise(store.saveWaypoint(waypoint));
     setWaypoints((prev) => [...prev, waypoint]);
     setWaypointNote("");
+    setShowWaypointSheet(false);
   };
 
   const exportTrip = async (format: "gpx" | "geojson") => {
@@ -348,14 +364,15 @@ export function App() {
     if (!trip) return;
     if (!confirm("Delete this trip permanently?")) return;
     await Effect.runPromise(store.deleteTrip(trip.id));
+    tripRef.current = null;
     setTrip(null);
     setTrack([]);
     setWaypoints([]);
     setSummary(null);
     setGpsState("ready");
+    setScreen("prepare");
   };
 
-  const demoBasemap = !packageInstalled;
   const categoryLabel = (category: WaypointCategory): string => {
     switch (category) {
       case "landing":
@@ -371,274 +388,329 @@ export function App() {
     }
   };
 
-  return (
-    <div className="app-shell">
-      {!safetyAccepted ? (
-        <div className="safety-overlay">
-          <div className="safety-card">
-            <h1>{t("safetyTitle")}</h1>
-            <p>{t("safetyBody")}</p>
-            <p className="caution">{t("safetyPrivate")}</p>
-            <p className="meta">{t("recordingForegroundOnly")}</p>
-            <p className="meta">{t("forceQuitLimit")}</p>
-            <div className="btn-row">
-              <button
-                className="primary"
-                type="button"
-                onClick={() => {
-                  localStorage.setItem(SAFETY_KEY, "1");
-                  setSafetyAccepted(true);
-                }}
-              >
-                {t("safetyAccept")}
-              </button>
-            </div>
+  if (screen === "safety") {
+    return (
+      <div className="safety-overlay">
+        <div className="safety-card">
+          <p className="brand-mark">Nunat Marine</p>
+          <h1>{t("safetyTitle")}</h1>
+          <p>{t("safetyBody")}</p>
+          <p className="caution">{t("safetyPrivate")}</p>
+          <p className="meta">{t("recordingForegroundOnly")}</p>
+          <div className="btn-row">
+            <button
+              className="primary"
+              type="button"
+              onClick={() => {
+                localStorage.setItem(SAFETY_KEY, "1");
+                setScreen("prepare");
+              }}
+            >
+              {t("safetyAccept")}
+            </button>
           </div>
         </div>
-      ) : null}
-
-      <header className="topbar">
-        <div className="brand">
-          <h1>{t("appTitle")}</h1>
-          <p>{t("appTagline")}</p>
-        </div>
-        <div className="lang-switch" aria-label={t("language")}>
-          {locales.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              aria-pressed={locale === item.id}
-              onClick={() => setLocale(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </header>
-
-      <div className="status-bar">
-        <span>
-          {t("gpsState")}
-          <strong>{gpsState}</strong>
-        </span>
-        <span>
-          {t("accuracy")}
-          <strong>
-            {position?.horizontalAccuracyM != null
-              ? `${Math.round(position.horizontalAccuracyM)} m`
-              : "—"}
-          </strong>
-        </span>
-        <span>
-          {t("lastPoint")}
-          <strong>
-            {position?.recordedAt
-              ? new Date(position.recordedAt).toLocaleTimeString()
-              : "—"}
-          </strong>
-        </span>
-        <span>
-          {t("profile")}
-          <strong>{profile}</strong>
-        </span>
       </div>
+    );
+  }
 
-      <div className="main">
-        <aside className="side">
-          <section className="panel">
+  if (screen === "prepare") {
+    return (
+      <div className="prepare-screen">
+        <header className="topbar">
+          <div className="brand">
+            <h1>{t("appTitle")}</h1>
+            <p>{t("appTagline")}</p>
+          </div>
+          <div className="lang-switch" aria-label={t("language")}>
+            {locales.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                aria-pressed={locale === item.id}
+                onClick={() => setLocale(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        <main className="prepare-main">
+          <section className="panel prepare-hero">
             <h2>{t("corridorTitle")}</h2>
+            <p className="caution">{t("notForNavigation")}</p>
             {manifest ? (
               <>
-                <p className="caution">{t("notForNavigation")}</p>
                 <p className="meta">
                   {t("dataAsOf")}: {manifest.layers[0]?.dataAsOf ?? "—"}
                 </p>
                 <p className="meta">
                   {t("bytes")}: {formatBytes(manifest.bytes)}
                 </p>
-                <p className={packageVerified ? "ok meta" : "meta"}>
-                  {packageInstalled
-                    ? packageVerified
-                      ? t("verified")
-                      : t("downloaded")
-                    : "—"}
+                <p className={packageReady ? "ok meta" : "meta"}>
+                  {packageReady ? t("verified") : t("loading")}
                 </p>
-                <ul>
-                  {manifest.attributions.slice(0, 3).map((item) => (
-                    <li key={item}>{item}</li>
+                <p className="meta">
+                  {t("localitiesCount")}: {localities.length}
+                </p>
+                <ul className="place-list prepare-places">
+                  {localities.map((place) => (
+                    <li key={place.globalId}>
+                      <strong>{place.officialName}</strong>
+                      <span>{place.typeLabel}</span>
+                    </li>
                   ))}
                 </ul>
-                <div className="btn-row">
-                  <button
-                    className="primary"
-                    type="button"
-                    disabled={busy || packageInstalled}
-                    onClick={() => void installPackage()}
-                  >
-                    {t("download")}
-                  </button>
-                  <button
-                    className="secondary"
-                    type="button"
-                    disabled={busy || !packageInstalled}
-                    onClick={() => void deletePackage()}
-                  >
-                    {t("deletePackage")}
-                  </button>
-                </div>
-                {packageError ? (
-                  <p className="stale-banner">{packageError}</p>
-                ) : null}
               </>
             ) : (
               <p>{t("loading")}</p>
             )}
-          </section>
-
-          <section className="panel">
-            <h2>{t("mapContent")}</h2>
-            <p className="meta">{t("clickPlaceHint")}</p>
-            <div className="scope-switch" role="group" aria-label={t("mapContent")}>
-              {(
-                [
-                  ["localities", "scopeLocalities"],
-                  ["all", "scopeAll"],
-                  ["geography", "scopeGeography"],
-                ] as const
-              ).map(([scope, labelKey]) => (
-                <button
-                  key={scope}
-                  type="button"
-                  aria-pressed={placeScope === scope}
-                  onClick={() => setPlaceScope(scope)}
-                >
-                  {t(labelKey)}
-                </button>
-              ))}
+            {packageError ? (
+              <p className="stale-banner">{packageError}</p>
+            ) : null}
+            {weather?.stale || ice?.stale ? (
+              <div className="stale-banner">{t("stale")}</div>
+            ) : null}
+            <div className="btn-row">
+              <button
+                className="primary"
+                type="button"
+                disabled={!packageReady || busy}
+                onClick={() => void openMap()}
+              >
+                {t("openMap")}
+              </button>
+              <button
+                className="secondary"
+                type="button"
+                disabled={!packageReady || busy}
+                onClick={() => void startTrip()}
+              >
+                {t("startTrip")}
+              </button>
             </div>
-            <p className="meta" style={{ marginTop: "0.65rem" }}>
-              {t("localitiesCount")}: {localities.length}
-            </p>
-            <ul className="place-list">
-              {localities.map((place) => (
-                <li key={place.globalId}>
-                  <button
-                    type="button"
-                    className={
-                      selectedPlace?.globalId === place.globalId
-                        ? "place-list-item active"
-                        : "place-list-item"
-                    }
-                    onClick={() => setSelectedPlace(place)}
-                  >
-                    <strong>{place.officialName}</strong>
-                    <span>{place.typeLabel}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {error ? <p className="stale-banner">{error}</p> : null}
           </section>
+        </main>
+      </div>
+    );
+  }
 
+  if (screen === "summary" && summary) {
+    return (
+      <div className="prepare-screen">
+        <header className="topbar">
+          <div className="brand">
+            <h1>{t("tripSummary")}</h1>
+          </div>
+        </header>
+        <main className="prepare-main">
+          <section className="panel">
+            <p>
+              {t("duration")}: {formatDuration(summary.durationSec)}
+            </p>
+            <p>
+              {t("distance")}: {(summary.distanceM / 1000).toFixed(2)} km
+            </p>
+            <p>
+              {t("points")}: {summary.pointCount}
+            </p>
+            <p>
+              {t("largestGap")}: {Math.round(summary.largestGapSec)} s
+            </p>
+            <div className="btn-row">
+              <button
+                className="secondary"
+                type="button"
+                onClick={() => void exportTrip("gpx")}
+              >
+                {t("exportGpx")}
+              </button>
+              <button
+                className="secondary"
+                type="button"
+                onClick={() => void exportTrip("geojson")}
+              >
+                {t("exportGeojson")}
+              </button>
+              <button
+                className="danger"
+                type="button"
+                onClick={() => void deleteTrip()}
+              >
+                {t("deleteTrip")}
+              </button>
+              <button
+                className="primary"
+                type="button"
+                onClick={() => setScreen("map")}
+              >
+                {t("openMap")}
+              </button>
+            </div>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="map-screen">
+      <div className="map-top-chrome">
+        <div className="status-bar compact">
+          <span>
+            {t("gpsState")}
+            <strong>{gpsState}</strong>
+          </span>
+          <span>
+            {t("accuracy")}
+            <strong>
+              {position?.horizontalAccuracyM != null
+                ? `${Math.round(position.horizontalAccuracyM)} m`
+                : "—"}
+            </strong>
+          </span>
+          <span>
+            {t("points")}
+            <strong>{track.length}</strong>
+          </span>
+          <button
+            type="button"
+            className="secondary chrome-btn"
+            onClick={() => setPanelOpen((value) => !value)}
+          >
+            {panelOpen ? t("hidePanel") : t("showPanel")}
+          </button>
+        </div>
+      </div>
+
+      <MarineMap
+        track={track}
+        waypoints={waypoints}
+        position={position}
+        demoBasemap
+        badge={
+          packageReady
+            ? `${t("verified")} · ${t("onlineDemoBasemap")}`
+            : t("onlineDemoBasemap")
+        }
+        placeScope={placeScope}
+        selectedPlaceId={selectedPlace?.globalId ?? null}
+        flyToPlace={selectedPlace}
+        fitPlaces={localities}
+        onSelectPlace={setSelectedPlace}
+      />
+
+      <div className="trip-dock">
+        {trip?.status !== "active" && trip?.status !== "paused" ? (
+          <button
+            className="primary"
+            type="button"
+            disabled={busy || !packageReady}
+            onClick={() => void startTrip()}
+          >
+            {t("startTrip")}
+          </button>
+        ) : null}
+        {trip?.status === "active" ? (
+          <button
+            className="secondary"
+            type="button"
+            onClick={() => void pauseTrip()}
+          >
+            {t("pauseTrip")}
+          </button>
+        ) : null}
+        {trip?.status === "paused" ? (
+          <button
+            className="secondary"
+            type="button"
+            onClick={() => void resumeTrip()}
+          >
+            {t("resumeTrip")}
+          </button>
+        ) : null}
+        {trip && trip.status !== "completed" ? (
+          <button
+            className="danger"
+            type="button"
+            disabled={busy}
+            onClick={() => void stopTrip()}
+          >
+            {t("stopTrip")}
+          </button>
+        ) : null}
+        <button
+          className="secondary"
+          type="button"
+          disabled={!position}
+          onClick={() => setShowWaypointSheet(true)}
+        >
+          {t("addWaypoint")}
+        </button>
+      </div>
+
+      {panelOpen ? (
+        <aside className="map-side-panel">
+          <div className="scope-switch" role="group" aria-label={t("mapContent")}>
+            {(
+              [
+                ["localities", "scopeLocalities"],
+                ["all", "scopeAll"],
+                ["geography", "scopeGeography"],
+              ] as const
+            ).map(([scope, labelKey]) => (
+              <button
+                key={scope}
+                type="button"
+                aria-pressed={placeScope === scope}
+                onClick={() => setPlaceScope(scope)}
+              >
+                {t(labelKey)}
+              </button>
+            ))}
+          </div>
+          <ul className="place-list">
+            {localities.map((place) => (
+              <li key={place.globalId}>
+                <button
+                  type="button"
+                  className={
+                    selectedPlace?.globalId === place.globalId
+                      ? "place-list-item active"
+                      : "place-list-item"
+                  }
+                  onClick={() => setSelectedPlace(place)}
+                >
+                  <strong>{place.officialName}</strong>
+                  <span>{place.typeLabel}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
           {selectedPlace ? (
             <PlaceDetail
               place={selectedPlace}
               onClose={() => setSelectedPlace(null)}
             />
-          ) : null}
+          ) : (
+            <p className="meta">{t("clickPlaceHint")}</p>
+          )}
+          {error ? <div className="stale-banner">{error}</div> : null}
+          <button
+            className="secondary"
+            type="button"
+            onClick={() => setScreen("prepare")}
+          >
+            {t("backPrepare")}
+          </button>
+        </aside>
+      ) : null}
 
-          <section className="panel">
-            <h2>{t("weather")}</h2>
-            {weather ? (
-              <>
-                {weather.stale ? (
-                  <div className="stale-banner">{t("stale")}</div>
-                ) : null}
-                <p className="meta">
-                  {t("validTo")}: {new Date(weather.validTo).toLocaleString()}
-                </p>
-                <p>{weather.disclaimer}</p>
-              </>
-            ) : (
-              <p>{t("loading")}</p>
-            )}
-            <h3 style={{ marginTop: "0.9rem" }}>{t("ice")}</h3>
-            {ice ? (
-              <>
-                {ice.stale ? (
-                  <div className="stale-banner">{t("stale")}</div>
-                ) : null}
-                <p className="meta">
-                  {t("validTo")}: {new Date(ice.validTo).toLocaleString()}
-                </p>
-                <p>{ice.disclaimer}</p>
-              </>
-            ) : null}
-          </section>
-
-          <section className="panel">
-            <h2>{t("startTrip")}</h2>
-            <label className="meta" htmlFor="profile">
-              {t("profile")}
-            </label>
-            <select
-              id="profile"
-              value={profile}
-              onChange={(event) =>
-                setProfile(event.target.value as RecordingProfile)
-              }
-              disabled={trip?.status === "active"}
-              style={{
-                width: "100%",
-                marginTop: "0.35rem",
-                background: "rgba(0,0,0,0.2)",
-                color: "inherit",
-                borderRadius: 10,
-                border: "1px solid var(--line)",
-                padding: "0.45rem",
-              }}
-            >
-              <option value="normal_travel">normal_travel</option>
-              <option value="close_approach">close_approach</option>
-              <option value="battery_reserve">battery_reserve</option>
-            </select>
-            <div className="btn-row">
-              <button
-                className="primary"
-                type="button"
-                disabled={busy || trip?.status === "active"}
-                onClick={() => void startTrip()}
-              >
-                {t("startTrip")}
-              </button>
-              <button
-                className="secondary"
-                type="button"
-                disabled={trip?.status !== "active"}
-                onClick={() => void pauseTrip()}
-              >
-                {t("pauseTrip")}
-              </button>
-              <button
-                className="secondary"
-                type="button"
-                disabled={trip?.status !== "paused"}
-                onClick={() => void resumeTrip()}
-              >
-                {t("resumeTrip")}
-              </button>
-              <button
-                className="danger"
-                type="button"
-                disabled={!trip || trip.status === "completed"}
-                onClick={() => void stopTrip()}
-              >
-                {t("stopTrip")}
-              </button>
-            </div>
-            <p className="meta">{t("recordingForegroundOnly")}</p>
-          </section>
-
-          <section className="panel">
+      {showWaypointSheet ? (
+        <div className="sheet">
+          <div className="sheet-card">
             <h2>{t("addWaypoint")}</h2>
             <p className="meta">{t("privateOnly")}</p>
             <div className="waypoint-grid">
@@ -675,79 +747,17 @@ export function App() {
               >
                 {t("saveWaypoint")}
               </button>
+              <button
+                className="secondary"
+                type="button"
+                onClick={() => setShowWaypointSheet(false)}
+              >
+                {t("closePlace")}
+              </button>
             </div>
-          </section>
-
-          {(summary || trip) && (
-            <section className="panel">
-              <h2>{t("tripSummary")}</h2>
-              {summary ? (
-                <>
-                  <p>
-                    {t("duration")}: {formatDuration(summary.durationSec)}
-                  </p>
-                  <p>
-                    {t("distance")}: {(summary.distanceM / 1000).toFixed(2)} km
-                  </p>
-                  <p>
-                    {t("points")}: {summary.pointCount}
-                  </p>
-                  <p>
-                    {t("largestGap")}: {Math.round(summary.largestGapSec)} s
-                  </p>
-                </>
-              ) : (
-                <p className="meta">
-                  {t("points")}: {track.length}
-                </p>
-              )}
-              <div className="btn-row">
-                <button
-                  className="secondary"
-                  type="button"
-                  disabled={!trip}
-                  onClick={() => void exportTrip("gpx")}
-                >
-                  {t("exportGpx")}
-                </button>
-                <button
-                  className="secondary"
-                  type="button"
-                  disabled={!trip}
-                  onClick={() => void exportTrip("geojson")}
-                >
-                  {t("exportGeojson")}
-                </button>
-                <button
-                  className="danger"
-                  type="button"
-                  disabled={!trip}
-                  onClick={() => void deleteTrip()}
-                >
-                  {t("deleteTrip")}
-                </button>
-              </div>
-            </section>
-          )}
-
-          {error ? <div className="stale-banner">{error}</div> : null}
-        </aside>
-
-        <MarineMap
-          track={track}
-          waypoints={waypoints}
-          position={position}
-          demoBasemap={demoBasemap}
-          badge={demoBasemap ? t("onlineDemoBasemap") : t("offlineReady")}
-          placeScope={placeScope}
-          selectedPlaceId={selectedPlace?.globalId ?? null}
-          onSelectPlace={setSelectedPlace}
-        />
-      </div>
-
-      <footer className="footer-note">
-        Companion POC · Uummannaq–Qaarsut · no GST chart content · sync off
-      </footer>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
