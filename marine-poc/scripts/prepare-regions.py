@@ -566,20 +566,32 @@ def write_ocean_bands(
     else:
         source_geoms = land_parts
 
-    # Coarse-simplify before union so buffer stays tractable.
+    # Coarse-simplify (0.01°) before union. Skip tiny islets — bands are
+    # visual context only; full coastline stays in land.geojson/pmtiles.
+    min_area = 1e-4
     parts = []
+    skipped = 0
     for geom in source_geoms:
+        if geom.area < min_area:
+            skipped += 1
+            continue
         simplified = geom.simplify(0.01, preserve_topology=True)
         if not simplified.is_empty:
             parts.append(simplified)
     if not parts:
         return None
-    print(f"  ocean bands: unioning {len(parts)} coarse land parts…", flush=True)
-    land = _batched_unary_union(parts)
+    print(
+        f"  ocean bands: unioning {len(parts)} coarse parts "
+        f"(skipped {skipped} tiny islets)…",
+        flush=True,
+    )
+    land = _batched_unary_union(parts, batch_size=100)
     if land is None or land.is_empty:
         return None
+    land = land.simplify(0.02, preserve_topology=True)
     bbox = box(*region.bbox)
     # Degrees ≈ km varies with latitude; bands are visual context only.
+    print("  ocean bands: buffering…", flush=True)
     near = land.buffer(0.04).difference(land).intersection(bbox)
     shelf = land.buffer(0.12).difference(land.buffer(0.04)).intersection(bbox)
     features = []
@@ -995,20 +1007,21 @@ def main() -> int:
         if water_path:
             print(f"  water: {water_path.stat().st_size} bytes", flush=True)
         validate_localities_on_land(region, land_parts=land_parts)
+        # Build PMTiles before ocean bands so display tiles land even if
+        # context-band buffering is slow on full coastline.
+        land_pmtiles = try_build_pmtiles(
+            land_path, PACKAGES / region.slug, "land.pmtiles", "land"
+        )
+        if land_pmtiles:
+            print(f"  land.pmtiles: {land_pmtiles.stat().st_size} bytes", flush=True)
+        has_land_pmtiles = land_pmtiles is not None
         ocean_path = write_ocean_bands(region, land_path, land_parts=land_parts)
-        # Free detailed land geometry before tippecanoe (land.geojson is on disk).
         land_parts.clear()
         if ocean_path:
             print(
                 f"  ocean bands: {ocean_path.stat().st_size} bytes (context only)",
                 flush=True,
             )
-        land_pmtiles = try_build_pmtiles(
-            land_path, PACKAGES / region.slug, "land.pmtiles", "land"
-        )
-        if land_pmtiles:
-            print(f"  land.pmtiles: {land_pmtiles.stat().st_size} bytes")
-        has_land_pmtiles = land_pmtiles is not None
         write_style(
             region,
             has_water=water_path is not None,
