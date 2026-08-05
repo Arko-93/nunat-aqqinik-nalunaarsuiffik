@@ -17,7 +17,11 @@ import {
   selectedCoastalInteractiveLayerIds,
   selectedNonCoastalDotLayer,
 } from "../map/gazetteer-markers.ts";
-import { loadTerrainStyle } from "../map/terrain-style.ts";
+import { applyMapStyle } from "../map/apply-style.ts";
+import {
+  loadNameOwnedLibertyStyle,
+  loadTerrainStyle,
+} from "../map/terrain-style.ts";
 import { selectPlaceFromMapClick } from "./map-selection.ts";
 
 const SOURCE_ID = PLACENAMES_SOURCE_ID;
@@ -482,63 +486,73 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       bindPointer(SELECTED_LABEL_ID);
     };
 
+    const onStyleReady = () => {
+      if (cancelled) return;
+      ensureLayers();
+      bindInteractions();
+      void fetch("/data/administrative-areas.geojson")
+        .then(async (response) => {
+          if (!response.ok) return null;
+          return response.json() as Promise<GeoJSON.FeatureCollection>;
+        })
+        .then((admin) => {
+          if (!admin || !map.getSource(ADMIN_SOURCE_ID)) return;
+          const source = map.getSource(ADMIN_SOURCE_ID) as GeoJSONSource;
+          source.setData(admin);
+        })
+        .catch(() => {
+          /* basemap still usable without admin outlines */
+        });
+      const data = collectionRef.current;
+      if (data) {
+        const source = map.getSource(SOURCE_ID) as GeoJSONSource;
+        source.setData(data);
+        if (!fittedRef.current && data.features.length > 0) {
+          const bounds = new maplibregl.LngLatBounds();
+          for (const feature of data.features) {
+            if (feature.properties?.isLocality) {
+              bounds.extend(
+                feature.geometry.coordinates as [number, number],
+              );
+            }
+          }
+          if (!bounds.isEmpty()) {
+            map.fitBounds(bounds, {
+              padding: 72,
+              maxZoom: 5.2,
+              duration: 0,
+            });
+            fittedRef.current = true;
+          }
+        }
+      }
+    };
+
     void loadTerrainStyle()
       .then((style) => {
         if (cancelled) return;
-        map.setStyle(style);
-        map.once("style.load", () => {
-          ensureLayers();
-          bindInteractions();
-          void fetch("/data/administrative-areas.geojson")
-            .then(async (response) => {
-              if (!response.ok) return null;
-              return response.json() as Promise<GeoJSON.FeatureCollection>;
-            })
-            .then((admin) => {
-              if (!admin || !map.getSource(ADMIN_SOURCE_ID)) return;
-              const source = map.getSource(ADMIN_SOURCE_ID) as GeoJSONSource;
-              source.setData(admin);
-            })
-            .catch(() => {
-              /* basemap still usable without admin outlines */
-            });
-          const data = collectionRef.current;
-          if (data) {
-            const source = map.getSource(SOURCE_ID) as GeoJSONSource;
-            source.setData(data);
-            if (!fittedRef.current && data.features.length > 0) {
-              const bounds = new maplibregl.LngLatBounds();
-              for (const feature of data.features) {
-                if (feature.properties?.isLocality) {
-                  bounds.extend(
-                    feature.geometry.coordinates as [number, number],
-                  );
-                }
-              }
-              if (!bounds.isEmpty()) {
-                map.fitBounds(bounds, {
-                  padding: 72,
-                  maxZoom: 5.2,
-                  duration: 0,
-                });
-                fittedRef.current = true;
-              }
-            }
-          }
-        });
+        // Handlers before setStyle — style.load can fire during setStyle.
+        applyMapStyle(map, style, onStyleReady);
       })
       .catch(() => {
-        // Fallback: Liberty alone if terrain compose fails — still usable.
-        map.setStyle("https://tiles.openfreemap.org/styles/liberty");
-        map.once("style.load", () => {
-          ensureLayers();
-          bindInteractions();
-        });
+        // Fallback: Liberty without terrain, still name-owned labels.
+        void loadNameOwnedLibertyStyle()
+          .then((style) => {
+            if (cancelled) return;
+            applyMapStyle(map, style, onStyleReady);
+          })
+          .catch(() => {
+            /* map shell stays empty; product labels need a style */
+          });
       });
 
     mapRef.current = map;
+    // Dogfood / console verify: map.getSource('placenames'), getStyle().layers
+    (window as Window & { __nunatMap?: Map }).__nunatMap = map;
     return () => {
       cancelled = true;
+      const win = window as Window & { __nunatMap?: Map };
+      if (win.__nunatMap === map) delete win.__nunatMap;
       map.remove();
       mapRef.current = null;
     };

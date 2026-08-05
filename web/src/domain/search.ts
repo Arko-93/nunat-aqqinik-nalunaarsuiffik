@@ -1,10 +1,15 @@
 import type { Placename } from "./placename.ts";
 import { levenshteinAtMost } from "./near-duplicate.ts";
 
+/** Which name field produced the search match. */
+export type SearchMatchField = "official" | "danish" | "historical";
+
 export type SearchHit = {
   place: Placename;
   score: number;
   match: "exact" | "prefix" | "word" | "contains" | "fuzzy";
+  /** Name field that caused this hit — gates alternate text in results. */
+  matchedField: SearchMatchField;
 };
 
 /** Minimum trimmed length before search results / sheet open. */
@@ -20,9 +25,10 @@ const normalize = (value: string): string =>
 type FieldMatch = {
   score: number;
   match: SearchHit["match"];
+  matchedField: SearchMatchField;
 };
 
-const scoreField = (field: string, query: string): FieldMatch | null => {
+const scoreField = (field: string, query: string): Omit<FieldMatch, "matchedField"> | null => {
   if (!field) return null;
   if (field === query) return { score: 1000, match: "exact" };
   if (field.startsWith(query)) {
@@ -44,10 +50,26 @@ const scoreField = (field: string, query: string): FieldMatch | null => {
 };
 
 const bestFieldMatch = (place: Placename, query: string): FieldMatch | null => {
-  const fields = [
-    { value: normalize(place.officialName), weight: 1 },
-    { value: normalize(place.danishName ?? ""), weight: 0.96 },
-    { value: normalize(place.oldOfficialName ?? ""), weight: 0.72 },
+  const fields: ReadonlyArray<{
+    value: string;
+    weight: number;
+    matchedField: SearchMatchField;
+  }> = [
+    {
+      value: normalize(place.officialName),
+      weight: 1,
+      matchedField: "official",
+    },
+    {
+      value: normalize(place.danishName ?? ""),
+      weight: 0.96,
+      matchedField: "danish",
+    },
+    {
+      value: normalize(place.oldOfficialName ?? ""),
+      weight: 0.72,
+      matchedField: "historical",
+    },
   ];
 
   let best: FieldMatch | null = null;
@@ -55,9 +77,10 @@ const bestFieldMatch = (place: Placename, query: string): FieldMatch | null => {
     if (!field.value) continue;
     const hit = scoreField(field.value, query);
     if (!hit) continue;
-    const scored = {
+    const scored: FieldMatch = {
       score: hit.score * field.weight,
       match: hit.match,
+      matchedField: field.matchedField,
     };
     if (!best || scored.score > best.score) best = scored;
   }
@@ -67,18 +90,32 @@ const bestFieldMatch = (place: Placename, query: string): FieldMatch | null => {
 /** Locality near-miss: Naajat→Naajaat, Nuke→Nuuk. Strong enough to beat geo exact. */
 const localityFuzzy = (place: Placename, query: string): FieldMatch | null => {
   if (!place.isLocality || query.length < 3 || query.length > 12) return null;
-  const fields = [place.officialName, place.danishName ?? ""].map(normalize);
+  const fields: ReadonlyArray<{
+    value: string;
+    matchedField: SearchMatchField;
+  }> = [
+    { value: normalize(place.officialName), matchedField: "official" },
+    {
+      value: normalize(place.danishName ?? ""),
+      matchedField: "danish",
+    },
+  ];
   for (const field of fields) {
-    if (!field || field.length > 18) continue;
+    if (!field.value || field.value.length > 18) continue;
     const maxDist =
-      Math.abs(field.length - query.length) <= 1 && Math.max(field.length, query.length) <= 8
+      Math.abs(field.value.length - query.length) <= 1 &&
+      Math.max(field.value.length, query.length) <= 8
         ? 2
-        : query.length <= 5 && field.length === query.length
+        : query.length <= 5 && field.value.length === query.length
           ? 2
           : 1;
-    if (levenshteinAtMost(field, query, maxDist)) {
+    if (levenshteinAtMost(field.value, query, maxDist)) {
       // Sit just under exact so true exact locality still wins, but above geo exact.
-      return { score: maxDist === 1 ? 980 : 940, match: "fuzzy" };
+      return {
+        score: maxDist === 1 ? 980 : 940,
+        match: "fuzzy",
+        matchedField: field.matchedField,
+      };
     }
   }
   return null;
@@ -111,7 +148,12 @@ export const scorePlacename = (
     place.importance / 100 -
     Math.min(20, place.officialName.length) * 0.15;
 
-  return { place, score, match: field.match };
+  return {
+    place,
+    score,
+    match: field.match,
+    matchedField: field.matchedField,
+  };
 };
 
 export const searchPlacenames = (
@@ -138,3 +180,22 @@ export const searchPlacenames = (
 
   return hits.slice(0, limit);
 };
+
+/** Alternate text shown in search only when that field caused the match. */
+export function searchAlternateMatchText(
+  hit: SearchHit,
+): { field: Exclude<SearchMatchField, "official">; text: string } | null {
+  if (hit.matchedField === "danish") {
+    const text = hit.place.danishName?.trim();
+    if (text && text !== hit.place.officialName) {
+      return { field: "danish", text };
+    }
+  }
+  if (hit.matchedField === "historical") {
+    const text = hit.place.oldOfficialName?.trim();
+    if (text && text !== hit.place.officialName) {
+      return { field: "historical", text };
+    }
+  }
+  return null;
+}

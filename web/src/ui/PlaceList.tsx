@@ -24,7 +24,7 @@ export function PlaceList({
   queryActive,
 }: Props) {
   const { t } = useI18n();
-  const items = queryActive ? hits.map((hit) => hit.place) : [];
+  const items = queryActive ? hits : [];
 
   return (
     <section
@@ -57,15 +57,16 @@ export function PlaceList({
               role="listbox"
               aria-label={t.results}
             >
-              {items.map((place) => (
+              {items.map((hit) => (
                 <li
-                  key={place.featureId}
+                  key={hit.place.featureId}
                   role="option"
-                  aria-selected={selectedId === place.recordId}
+                  aria-selected={selectedId === hit.place.recordId}
                 >
                   <PlaceResultCard
-                    place={place}
-                    selected={selectedId === place.recordId}
+                    place={hit.place}
+                    matchedField={hit.matchedField}
+                    selected={selectedId === hit.place.recordId}
                     onSelect={onSelect}
                   />
                 </li>

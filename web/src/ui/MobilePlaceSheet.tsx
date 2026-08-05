@@ -90,6 +90,7 @@ export function MobilePlaceSheet({
                   <li key={hit.place.featureId} role="option">
                     <PlaceResultCard
                       place={hit.place}
+                      matchedField={hit.matchedField}
                       selected={place?.recordId === hit.place.recordId}
                       onSelect={onSelect}
                     />

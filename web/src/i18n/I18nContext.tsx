@@ -33,8 +33,17 @@ const readStoredLocale = (): Locale => {
   return DEFAULT_LOCALE;
 };
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => readStoredLocale());
+export function I18nProvider({
+  children,
+  initialLocale,
+}: {
+  children: ReactNode;
+  /** Test/override seed; production omits this and reads localStorage. */
+  initialLocale?: Locale;
+}) {
+  const [locale, setLocaleState] = useState<Locale>(
+    () => initialLocale ?? readStoredLocale(),
+  )
 
   const setLocale = (next: Locale) => {
     setLocaleState(next);

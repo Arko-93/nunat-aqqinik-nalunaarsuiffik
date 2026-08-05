@@ -7,13 +7,23 @@ import {
 } from "./meter-bands.ts";
 import {
   assertOceanUnderLand,
+  composeNameOwnedLibertyStyle,
   composeTerrainStyle,
   contourBreakFilter,
+  expressionPrefersEnglishFirstName,
+  hasEnglishFirstGeographyLabels,
   oceanFillFilter,
   oceanInsertBeforeId,
   parseLibertyStyle,
   TERRAIN_LAYER_IDS,
 } from "./terrain-style.ts";
+
+/** Liberty-like coalesce that prefers English before native name. */
+const englishFirstTextField = [
+  "coalesce",
+  ["get", "name_en"],
+  ["get", "name"],
+] as const;
 
 const libertyStub = {
   version: 8,
@@ -39,6 +49,41 @@ const libertyStub = {
       source: "openmaptiles",
       "source-layer": "landcover",
       paint: { "fill-color": "#d8e8c8", "fill-opacity": 0.6 },
+    },
+    {
+      id: "label_other",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "place",
+      layout: { "text-field": [...englishFirstTextField] },
+    },
+    {
+      id: "water_name_point_label",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "water_name",
+      layout: { "text-field": [...englishFirstTextField] },
+    },
+    {
+      id: "waterway_line_label",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "waterway",
+      layout: { "text-field": [...englishFirstTextField] },
+    },
+    {
+      id: "mountain_peak_label",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "mountain_peak",
+      layout: { "text-field": [...englishFirstTextField] },
+    },
+    {
+      id: "highway-name-major",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "transportation_name",
+      layout: { "text-field": [...englishFirstTextField] },
     },
   ],
 } as StyleSpecification;
@@ -159,5 +204,44 @@ describe("composeTerrainStyle (hybrid D)", () => {
 
   it("inserts ocean before the first land fill", () => {
     expect(oceanInsertBeforeId(libertyStub.layers ?? [])).toBe("landcover");
+  });
+
+  it("suppresses competing geography labels and keeps road labels", () => {
+    const style = composeTerrainStyle(libertyStub);
+    const ids = (style.layers ?? []).map((layer) => layer.id);
+    expect(ids).not.toContain("label_other");
+    expect(ids).not.toContain("water_name_point_label");
+    expect(ids).not.toContain("waterway_line_label");
+    expect(ids).not.toContain("mountain_peak_label");
+    expect(ids).toContain("highway-name-major");
+    expect(hasEnglishFirstGeographyLabels(style.layers ?? [])).toBe(false);
+    const meta = style.metadata as Record<string, unknown>;
+    expect(meta["nunat:name-ownership"]).toBe("official-kalaallisut-primary");
+  });
+
+  it("rejects English-first text fields on geography label layers", () => {
+    expect(expressionPrefersEnglishFirstName([...englishFirstTextField])).toBe(
+      true,
+    );
+    expect(
+      expressionPrefersEnglishFirstName([
+        "coalesce",
+        ["get", "name"],
+        ["get", "name_en"],
+      ]),
+    ).toBe(false);
+    // Raw Liberty stub still has English-first geography labels…
+    expect(hasEnglishFirstGeographyLabels(libertyStub.layers ?? [])).toBe(true);
+    // …but composed / name-owned styles must not.
+    expect(
+      hasEnglishFirstGeographyLabels(
+        composeTerrainStyle(libertyStub).layers ?? [],
+      ),
+    ).toBe(false);
+    expect(
+      hasEnglishFirstGeographyLabels(
+        composeNameOwnedLibertyStyle(libertyStub).layers ?? [],
+      ),
+    ).toBe(false);
   });
 });

@@ -35,3 +35,11 @@ _Avoid_: Treating as whole island, skerry, or island group
 **Øgruppe (type 183)**:
 A named island group in the NunaGIS placenames register.
 _Avoid_: Collapsing into a single island or skerry
+
+**Official Kalaallisut name (`officialName`)**:
+The sole primary map and dossier label for a place in every UI locale. NunaGIS owns this name; locale switching changes interface copy and feature-type descriptions only.
+_Avoid_: Translating the primary label, appending island/fjord/ø suffixes, promoting Danish or English basemap names above it
+
+**Alternate name**:
+A Danish, historical, or other secondary spelling kept searchable and shown in the dossier as an explicitly labelled alternate below `officialName`. In search results it appears only when that alternate caused the match.
+_Avoid_: Showing every alternate on every result, treating alternates as primary map labels
