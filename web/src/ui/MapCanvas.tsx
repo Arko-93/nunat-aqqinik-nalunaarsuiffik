@@ -4,10 +4,23 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { disclosureMinZoom } from "../domain/disclosure.ts";
 import type { ZoomBand } from "../domain/importance.ts";
 import type { Placename } from "../domain/placename.ts";
+import {
+  allCoastalLabelLayers,
+  allCoastalMarkerOnlyLayers,
+  allSelectedCoastalMarkerLayers,
+  bandCircleLayerId,
+  bandLabelLayerId,
+  coastalInteractiveLayerIds,
+  nonCoastalBandFilter,
+  PLACENAMES_SOURCE_ID,
+  SELECTED_SOURCE_ID,
+  selectedCoastalInteractiveLayerIds,
+  selectedNonCoastalDotLayer,
+} from "../map/gazetteer-markers.ts";
 import { loadTerrainStyle } from "../map/terrain-style.ts";
+import { selectPlaceFromMapClick } from "./map-selection.ts";
 
-const SOURCE_ID = "placenames";
-const SELECTED_SOURCE_ID = "placenames-selected";
+const SOURCE_ID = PLACENAMES_SOURCE_ID;
 const ADMIN_SOURCE_ID = "administrative-areas";
 const ADMIN_LINE_ID = "administrative-areas-outline";
 const SELECTED_HALO_ID = "placenames-selected-halo";
@@ -29,9 +42,6 @@ const BANDS: ReadonlyArray<ZoomBand> = [
   "settlement",
   "town",
 ];
-
-const circleLayerId = (band: ZoomBand) => `placenames-circle-${band}`;
-const labelLayerId = (band: ZoomBand) => `placenames-label-${band}`;
 
 type Props = {
   collection: GeoJSON.FeatureCollection<GeoJSON.Point, Placename> | null;
@@ -109,76 +119,11 @@ function whenSourceReady(map: Map, run: () => void): () => void {
   };
 }
 
-function parsePlacename(props: GeoJSON.GeoJsonProperties): Placename | null {
-  if (!props) return null;
-  const isLocality =
-    props.isLocality === true ||
-    props.isLocality === "true" ||
-    props.isLocality === 1;
-  const globalId = String(props.globalId ?? "");
-  const identityStatus =
-    props.identityStatus === "canonical" ||
-    props.identityStatus === "candidate" ||
-    props.identityStatus === "upstream_only"
-      ? props.identityStatus
-      : "upstream_only";
-  return {
-    ...(props as Placename),
-    featureId:
-      typeof props.featureId === "string" && props.featureId.length > 0
-        ? props.featureId
-        : `nunagis:${globalId}`,
-    placeId:
-      props.placeId == null || props.placeId === ""
-        ? null
-        : String(props.placeId),
-    identityStatus,
-    globalId,
-    isLocality,
-    isLocalityShadow:
-      props.isLocalityShadow === true ||
-      props.isLocalityShadow === "true" ||
-      props.isLocalityShadow === 1,
-    typeCode: Number(props.typeCode),
-    recordId: Number(props.recordId),
-    importance: Number(props.importance),
-    minZoom: Number(props.minZoom),
-    longitude: Number(props.longitude),
-    latitude: Number(props.latitude),
-    typeLabel: String(props.typeLabel ?? ""),
-    zoomBand: props.zoomBand as Placename["zoomBand"],
-    municipalityCode:
-      props.municipalityCode == null || props.municipalityCode === ""
-        ? null
-        : Number(props.municipalityCode),
-    danishName:
-      props.danishName == null || props.danishName === ""
-        ? null
-        : String(props.danishName),
-    oldOfficialName:
-      props.oldOfficialName == null || props.oldOfficialName === ""
-        ? null
-        : String(props.oldOfficialName),
-    municipalityName:
-      props.municipalityName == null || props.municipalityName === ""
-        ? null
-        : String(props.municipalityName),
-    localityCode:
-      props.localityCode == null || props.localityCode === ""
-        ? null
-        : String(props.localityCode),
-  };
-}
-
 function addBandLayers(map: Map, band: ZoomBand, minzoom: number) {
-  const filter: maplibregl.FilterSpecification = [
-    "==",
-    ["get", "zoomBand"],
-    band,
-  ];
+  const filter = nonCoastalBandFilter(band);
 
   map.addLayer({
-    id: circleLayerId(band),
+    id: bandCircleLayerId(band),
     type: "circle",
     source: SOURCE_ID,
     minzoom,
@@ -246,7 +191,7 @@ function addBandLayers(map: Map, band: ZoomBand, minzoom: number) {
   });
 
   map.addLayer({
-    id: labelLayerId(band),
+    id: bandLabelLayerId(band),
     type: "symbol",
     source: SOURCE_ID,
     minzoom,
@@ -316,6 +261,18 @@ function addBandLayers(map: Map, band: ZoomBand, minzoom: number) {
   });
 }
 
+function addCoastalMarkerLayers(map: Map) {
+  for (const layer of allCoastalMarkerOnlyLayers()) {
+    map.addLayer(layer);
+  }
+}
+
+function addCoastalLabelLayers(map: Map) {
+  for (const layer of allCoastalLabelLayers()) {
+    map.addLayer(layer);
+  }
+}
+
 function addSelectedLayers(map: Map) {
   map.addLayer({
     id: SELECTED_HALO_ID,
@@ -363,28 +320,10 @@ function addSelectedLayers(map: Map) {
     },
   });
 
-  map.addLayer({
-    id: SELECTED_DOT_ID,
-    type: "circle",
-    source: SELECTED_SOURCE_ID,
-    paint: {
-      "circle-radius": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        3,
-        6.5,
-        8,
-        8.5,
-        12,
-        9.5,
-      ],
-      "circle-color": "#c45c26",
-      "circle-opacity": 1,
-      "circle-stroke-width": 1.8,
-      "circle-stroke-color": "#0d2a38",
-    },
-  });
+  for (const layer of allSelectedCoastalMarkerLayers()) {
+    map.addLayer(layer);
+  }
+  map.addLayer(selectedNonCoastalDotLayer());
 
   map.addLayer({
     id: SELECTED_LABEL_ID,
@@ -495,10 +434,12 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       });
 
       const mins = disclosureMinZoom("geography");
+      // Markers first; locality/band labels next (collision priority); coastal labels last.
+      addCoastalMarkerLayers(map);
       for (const band of BANDS) {
         addBandLayers(map, band, mins[band]);
       }
-
+      addCoastalLabelLayers(map);
       addSelectedLayers(map);
     };
 
@@ -508,7 +449,9 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
           features?: maplibregl.MapGeoJSONFeature[];
         },
       ) => {
-        const place = parsePlacename(event.features?.[0]?.properties ?? null);
+        const place = selectPlaceFromMapClick(
+          event.features?.[0]?.properties ?? null,
+        );
         if (!place) return;
         onSelectRef.current(place);
       };
@@ -524,11 +467,17 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       };
 
       for (const band of BANDS) {
-        bindPointer(circleLayerId(band));
-        bindPointer(labelLayerId(band));
+        bindPointer(bandCircleLayerId(band));
+        bindPointer(bandLabelLayerId(band));
+      }
+      for (const layerId of coastalInteractiveLayerIds()) {
+        bindPointer(layerId);
       }
 
       bindPointer(SELECTED_DOT_ID);
+      for (const layerId of selectedCoastalInteractiveLayerIds()) {
+        bindPointer(layerId);
+      }
       bindPointer(SELECTED_RING_ID);
       bindPointer(SELECTED_LABEL_ID);
     };

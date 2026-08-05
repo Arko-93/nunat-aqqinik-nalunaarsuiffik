@@ -340,7 +340,10 @@ export const placenamesToFeatureCollection = (
 });
 
 export const enrichCollection = (
-  collection: GeoJSON.FeatureCollection<GeoJSON.Point, Placename>,
+  collection: GeoJSON.FeatureCollection<
+    GeoJSON.Point,
+    Placename | Record<string, unknown>
+  >,
   crosswalk: IdentityCrosswalk | null = null,
 ): GeoJSON.FeatureCollection<GeoJSON.Point, Placename> => {
   const enriched = collection.features.map((feature) =>

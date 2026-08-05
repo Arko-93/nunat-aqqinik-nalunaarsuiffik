@@ -59,6 +59,17 @@ export type Messages = {
   tileGapLabel: string;
   iosHomeScreenHint: string;
   packVersion: string;
+  legendLabel: string;
+  typeLabelSkerry: string;
+  typeLabelIsland: string;
+  typeLabelIslandPart: string;
+  typeLabelIslandGroup: string;
+  provenanceSource: string;
+  provenanceGeometry: string;
+  provenanceMidpoint: string;
+  provenanceType: string;
+  provenanceGlobalId: string;
+  provenanceLayer: string;
 };
 
 const en: Messages = {
@@ -116,6 +127,17 @@ const en: Messages = {
   iosHomeScreenHint:
     "On iPhone/iPad: Add to Home Screen so the offline pack is not cleared.",
   packVersion: "Pack",
+  legendLabel: "Named coastal features",
+  typeLabelSkerry: "Skerry",
+  typeLabelIsland: "Island",
+  typeLabelIslandPart: "Island part",
+  typeLabelIslandGroup: "Island group",
+  provenanceSource: "Source register",
+  provenanceGeometry: "Geometry",
+  provenanceMidpoint: "NunaGIS midpoint point",
+  provenanceType: "Register type",
+  provenanceGlobalId: "GlobalID",
+  provenanceLayer: "Source layer",
 };
 
 const da: Messages = {
@@ -173,6 +195,17 @@ const da: Messages = {
   iosHomeScreenHint:
     "På iPhone/iPad: Føj til hjemmeskærm, så offline-pakken ikke slettes.",
   packVersion: "Pakke",
+  legendLabel: "Navngivne kystforekomster",
+  typeLabelSkerry: "Skær",
+  typeLabelIsland: "Ø",
+  typeLabelIslandPart: "Del af ø",
+  typeLabelIslandGroup: "Øgruppe",
+  provenanceSource: "Kilderegister",
+  provenanceGeometry: "Geometri",
+  provenanceMidpoint: "NunaGIS-midtpunkt",
+  provenanceType: "Registertype",
+  provenanceGlobalId: "GlobalID",
+  provenanceLayer: "Kildelag",
 };
 
 const kl: Messages = {
@@ -230,8 +263,29 @@ const kl: Messages = {
   iosHomeScreenHint:
     "iPhone/iPad-imi: Home Screen-imut ilanngutikkit offline-pakke peerneqannginnissaa.",
   packVersion: "Pakke",
+  // Accessibility chrome reuses existing KL UI word; type words stay NunaGIS Danish.
+  legendLabel: "Takussutissat — Skær · Ø · Del af ø · Øgruppe",
+  // NunaGIS Danish register terms until native Kalaallisut review — do not invent KL.
+  typeLabelSkerry: "Skær",
+  typeLabelIsland: "Ø",
+  typeLabelIslandPart: "Del af ø",
+  typeLabelIslandGroup: "Øgruppe",
+  provenanceSource: "Kingumut",
+  provenanceGeometry: "Sumiiffik",
+  provenanceMidpoint: "NunaGIS midpoint",
+  provenanceType: "Type",
+  provenanceGlobalId: "GlobalID",
+  provenanceLayer: "Source layer",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { kl, da, en };
+
+/** Coastal type labels in KL still use register Danish terms pending native review. */
+export const TYPE_LABELS_NEED_NATIVE_REVIEW: Readonly<Record<Locale, boolean>> =
+  {
+    kl: true,
+    da: false,
+    en: false,
+  };
 
 export const DEFAULT_LOCALE: Locale = "kl";

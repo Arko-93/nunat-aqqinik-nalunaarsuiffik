@@ -51,7 +51,7 @@ describe("near-duplicate locality shadows", () => {
     expect(namesNearDuplicate("Naajat", "Naajaat")).toBe(true);
   });
 
-  it("marks Øgruppe Naajat beside Bygd Naajaat as a shadow", () => {
+  it("does not auto-shadow coastal gazetteer types (needs explicit review)", () => {
     const bygd = place({
       globalId: "bygd",
       recordId: 31350,
@@ -70,7 +70,49 @@ describe("near-duplicate locality shadows", () => {
       longitude: -55.7896,
       latitude: 73.14136,
     });
-    expect(isLocalityNameShadow(group, [bygd])).toBe(true);
+    const island = place({
+      globalId: "island",
+      recordId: 1,
+      officialName: "Naajaat",
+      typeCode: 181,
+      isLocality: false,
+      longitude: -55.81,
+      latitude: 73.142,
+    });
+    const skerry = place({
+      globalId: "skerry",
+      recordId: 2,
+      officialName: "Naajaat",
+      typeCode: 143,
+      isLocality: false,
+      longitude: -55.81,
+      latitude: 73.142,
+    });
+    expect(isLocalityNameShadow(group, [bygd])).toBe(false);
+    expect(isLocalityNameShadow(island, [bygd])).toBe(false);
+    expect(isLocalityNameShadow(skerry, [bygd])).toBe(false);
     expect(isLocalityNameShadow(bygd, [bygd])).toBe(false);
+  });
+
+  it("still shadows non-coastal geography that echoes a locality", () => {
+    const bygd = place({
+      globalId: "bygd",
+      recordId: 31350,
+      officialName: "Naajaat",
+      typeCode: 23,
+      isLocality: true,
+      longitude: -55.81009,
+      latitude: 73.14215,
+    });
+    const landform = place({
+      globalId: "land",
+      recordId: 99,
+      officialName: "Naajat",
+      typeCode: 118,
+      isLocality: false,
+      longitude: -55.7896,
+      latitude: 73.14136,
+    });
+    expect(isLocalityNameShadow(landform, [bygd])).toBe(true);
   });
 });

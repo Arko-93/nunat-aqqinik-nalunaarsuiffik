@@ -70,6 +70,24 @@ describe("map-first UI contracts", () => {
     }
   });
 
+  it("exposes a passive coastal legend in all locales (not a filter)", () => {
+    for (const locale of ["kl", "da", "en"] as const) {
+      const t = MESSAGES[locale];
+      expect(t.legendLabel.length).toBeGreaterThan(0);
+      expect(t.typeLabelSkerry.length).toBeGreaterThan(0);
+      expect(t.typeLabelIsland.length).toBeGreaterThan(0);
+      expect(t.typeLabelIslandPart.length).toBeGreaterThan(0);
+      expect(t.typeLabelIslandGroup.length).toBeGreaterThan(0);
+      expect(t.provenanceSource.length).toBeGreaterThan(0);
+      expect(t.provenanceGlobalId.length).toBeGreaterThan(0);
+    }
+    expect(MESSAGES.en.typeLabelSkerry).toBe("Skerry");
+    expect(MESSAGES.da.typeLabelSkerry).toBe("Skær");
+    expect(MESSAGES.kl.legendLabel).toContain("Takussutissat");
+    expect(MESSAGES.kl.legendLabel).not.toBe(MESSAGES.en.legendLabel);
+    expect(MESSAGES.kl.typeLabelSkerry).toBe("Skær");
+  });
+
   it("uses Overview and Sources only (no Access label required in chrome)", () => {
     const en = MESSAGES.en;
     expect(en.overview).toBeTruthy();

@@ -16,6 +16,7 @@ import {
   type SheetState,
 } from "./MobilePlaceSheet.tsx";
 import { GlobalPlaceSearch } from "./GlobalPlaceSearch.tsx";
+import { MapLegend } from "./MapLegend.tsx";
 import { PlaceDossier } from "./PlaceDossier.tsx";
 import { PlaceList } from "./PlaceList.tsx";
 
@@ -52,9 +53,7 @@ export function App() {
         ]);
         if (cancelled) return;
         setRelease(selectedRelease);
-        setCollection(
-          crosswalk ? enrichCollection(places, crosswalk) : places,
-        );
+        setCollection(enrichCollection(places, crosswalk));
         setError(null);
       })
       .catch((cause: unknown) => {
@@ -130,6 +129,7 @@ export function App() {
           <p className="not-for-navigation" role="note">
             {t.notForNavigation}
           </p>
+          <MapLegend />
           <DownloadArea />
         </div>
       }

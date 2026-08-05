@@ -3,6 +3,8 @@
  * Higher importance wins label collisions; minZoom gates when a name may appear.
  */
 
+import { COASTAL_KINDS, COASTAL_REGISTRY } from "./coastal-features.ts";
+
 export const TYPE_LABEL_DA: Readonly<Record<number, string>> = {
   0: "Banke",
   5: "Ankerplads",
@@ -101,7 +103,6 @@ const TYPE_RANK: Readonly<
   57: { importance: 760, minZoom: 4.6 }, // Fjord
   166: { importance: 740, minZoom: 5.0 }, // Sund
   164: { importance: 730, minZoom: 5.2 }, // Stræde
-  183: { importance: 720, minZoom: 5.0 }, // Øgruppe
   10: { importance: 700, minZoom: 5.2 }, // Bredning
   18: { importance: 680, minZoom: 5.6 }, // Bugt
   73: { importance: 670, minZoom: 5.6 }, // Halvø
@@ -109,7 +110,6 @@ const TYPE_RANK: Readonly<
   12: { importance: 650, minZoom: 5.8 }, // Bræ
 
   // Islands & landforms (dense — collision thins them)
-  181: { importance: 600, minZoom: 6.4 }, // Ø
   105: { importance: 560, minZoom: 7.0 }, // Landareal
   44: { importance: 540, minZoom: 7.2 }, // Fjeldområde
   49: { importance: 520, minZoom: 7.4 }, // Fjeld
@@ -124,22 +124,36 @@ const TYPE_RANK: Readonly<
   59: { importance: 410, minZoom: 8.5 }, // Forbjerg
   117: { importance: 400, minZoom: 8.6 }, // Nunatak
   54: { importance: 390, minZoom: 8.8 }, // Top
-  182: { importance: 380, minZoom: 9.0 }, // Del af ø
 
   // Dense coastal / local names
   118: { importance: 320, minZoom: 9.4 }, // Næs
-  143: { importance: 300, minZoom: 9.6 }, // Skær
   127: { importance: 290, minZoom: 9.8 }, // Pynt
   119: { importance: 280, minZoom: 9.8 }, // Odde
   8: { importance: 270, minZoom: 10.0 }, // Fjeldvæg
   96: { importance: 260, minZoom: 10.0 }, // Kløft
   123: { importance: 250, minZoom: 10.2 }, // Overbæringssted
+
+  // Coastal gazetteer types — ranks owned by COASTAL_REGISTRY
+  ...Object.fromEntries(
+    COASTAL_KINDS.map((kind) => {
+      const meta = COASTAL_REGISTRY[kind];
+      return [
+        meta.typeCode,
+        { importance: meta.importance, minZoom: meta.minZoom },
+      ];
+    }),
+  ),
 };
 
 const DEFAULT_RANK = { importance: 180, minZoom: 10.5 };
 
-export const typeLabel = (typeCode: number): string =>
-  TYPE_LABEL_DA[typeCode] ?? `Type ${typeCode}`;
+export const typeLabel = (typeCode: number): string => {
+  for (const kind of COASTAL_KINDS) {
+    const meta = COASTAL_REGISTRY[kind];
+    if (meta.typeCode === typeCode) return meta.registerLabelDa;
+  }
+  return TYPE_LABEL_DA[typeCode] ?? `Type ${typeCode}`;
+};
 
 export const rankForType = (
   typeCode: number,

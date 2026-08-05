@@ -19,3 +19,19 @@ _Avoid_: Full Greenland offline, browser-cache-only
 **Map-first UI**:
 A shell where the map dominates: all gazetteer names discoverable by zoom/browse; search opens a result sheet then Overview + Sources; no lens/filter stack.
 _Avoid_: List–map toggle as primary nav, Access tab, municipality/lens filters, search-only discovery
+
+**Skær (type 143)**:
+A named skerry in the NunaGIS placenames register — a recorded named coastal rock feature, not an inferred hazard or size class.
+_Avoid_: Chart rock symbol, hazard mark, unnamed rock
+
+**Ø (type 181)**:
+A named island in the NunaGIS placenames register.
+_Avoid_: Collapsing with skerry, island part, or island group
+
+**Del af ø (type 182)**:
+A named part of an island in the NunaGIS placenames register — not a separate island and not a skerry.
+_Avoid_: Treating as whole island, skerry, or island group
+
+**Øgruppe (type 183)**:
+A named island group in the NunaGIS placenames register.
+_Avoid_: Collapsing into a single island or skerry

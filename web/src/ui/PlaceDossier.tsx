@@ -9,7 +9,8 @@ import {
 } from "../domain/placename.ts";
 import { useI18n } from "../i18n/I18nContext.tsx";
 import type { LoadedRelease } from "../services/release.ts";
-import { OfflineStatus } from "./OfflineStatus.tsx";
+import { displayTypeLabel } from "./map-selection.ts";
+import { PlaceDossierSources } from "./PlaceDossierSources.tsx";
 
 type TabId = "overview" | "sources";
 
@@ -25,6 +26,7 @@ export function PlaceDossier({ place, release, onClose }: Props) {
     place.municipalityCode,
     place.municipalityName,
   );
+  const typeLabel = displayTypeLabel(place, t);
 
   const tabs = useMemo(
     () => [
@@ -50,7 +52,7 @@ export function PlaceDossier({ place, release, onClose }: Props) {
     <article className="place-dossier" aria-live="polite">
       <header className="place-dossier-header">
         <div className="place-panel-meta">
-          <Badge variant="secondary">{place.typeLabel}</Badge>
+          <Badge variant="secondary">{typeLabel}</Badge>
           {areaLabel ? <Badge variant="outline">{areaLabel}</Badge> : null}
           <Badge variant="outline">{identityBadge}</Badge>
         </div>
@@ -130,32 +132,11 @@ export function PlaceDossier({ place, release, onClose }: Props) {
       ) : null}
 
       {activeTab === "sources" ? (
-        <div className="dossier-sources">
-          <OfflineStatus release={release} />
-          <dl className="names">
-            <div>
-              <dt>{t.featureId}</dt>
-              <dd>
-                <code>{place.featureId}</code>
-              </dd>
-            </div>
-            {place.placeId ? (
-              <div>
-                <dt>{t.placeId}</dt>
-                <dd>
-                  <code>{place.placeId}</code>
-                </dd>
-              </div>
-            ) : null}
-            <div>
-              <dt>{t.identityUpstream}</dt>
-              <dd>{identityBadge}</dd>
-            </div>
-          </dl>
-          <Text as="p" variant="secondary" size="xs">
-            {t.pendingReviewNote}
-          </Text>
-        </div>
+        <PlaceDossierSources
+          place={place}
+          release={release}
+          identityBadge={identityBadge}
+        />
       ) : null}
     </article>
   );
