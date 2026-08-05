@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { useI18n } from "../i18n/I18nContext.tsx";
 
 type Props = {
@@ -5,17 +6,18 @@ type Props = {
   onQueryChange: (query: string) => void;
 };
 
-/** Search filters the place list — no floating autocomplete overlay. */
+/** Search filters the place list — results open in rail / bottom sheet. */
 export function GlobalPlaceSearch({ query, onQueryChange }: Props) {
   const { t } = useI18n();
+  const id = useId();
 
   return (
     <div className="search-field">
-      <label className="search-label" htmlFor="place-search">
+      <label className="search-label" htmlFor={id}>
         {t.searchLabel}
       </label>
       <input
-        id="place-search"
+        id={id}
         className="search-input"
         type="search"
         value={query}

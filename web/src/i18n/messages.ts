@@ -15,23 +15,11 @@ export type Messages = {
   searchEmpty: string;
   searchIdleHint: string;
   language: string;
-  mapContent: string;
-  inhabitedPlaces: string;
-  geography: string;
-  geographyZoomHint: string;
-  waters: string;
-  islands: string;
-  landforms: string;
-  municipality: string;
-  municipalityAll: string;
-  municipalityOutside: string;
   placesList: string;
   results: string;
   noResults: string;
-  viewList: string;
   viewMap: string;
   overview: string;
-  access: string;
   sources: string;
   officialName: string;
   danishName: string;
@@ -43,10 +31,6 @@ export type Messages = {
   identityUpstream: string;
   inhabitedPlace: string;
   geographicFeature: string;
-  noCanonicalIdentity: string;
-  noConnections: string;
-  reachableFromHere: string;
-  structuralConnection: string;
   releaseLabel: string;
   dataAsOf: string;
   publicationBlockers: string;
@@ -56,7 +40,6 @@ export type Messages = {
   offline: string;
   loading: string;
   shownCount: string;
-  filtered: string;
   closePlace: string;
   expandSheet: string;
   collapseSheet: string;
@@ -64,38 +47,31 @@ export type Messages = {
   dossierPurpose: string;
   featureId: string;
   pendingReviewNote: string;
-  mapFilters: string;
-  openFilters: string;
-  closeFilters: string;
-  clearFilters: string;
+  downloadArea: string;
+  downloadAreaHint: string;
+  downloadProgress: string;
+  downloadReady: string;
+  downloadDelete: string;
+  downloadUpdate: string;
+  notForNavigation: string;
+  tileGapLabel: string;
+  iosHomeScreenHint: string;
+  packVersion: string;
 };
 
 const en: Messages = {
   appTitle: "Nunat Aqqinik Nalunaarsuiffik",
-  appTagline: "Find a Greenland place. See how it connects.",
+  appTagline: "Greenland places on land and sea.",
   searchLabel: "Find a place",
   searchPlaceholder: "Name in Kalaallisut, Danish, or an older spelling…",
   searchEmpty: "No matching places",
-  searchIdleHint:
-    "Type a name to search. Or click a place on the map.",
+  searchIdleHint: "Type a name, or browse the map.",
   language: "Language",
-  mapContent: "What the map shows",
-  inhabitedPlaces: "Towns and settlements",
-  geography: "Geography",
-  geographyZoomHint: "Zoom into a coast or fjord to reveal geography names.",
-  waters: "Waters",
-  islands: "Islands",
-  landforms: "Landforms",
-  municipality: "Municipality",
-  municipalityAll: "All municipalities",
-  municipalityOutside: "Outside municipalities",
   placesList: "Find",
   results: "Matches",
   noResults: "No places to show",
-  viewList: "List",
   viewMap: "Map",
   overview: "Overview",
-  access: "Access",
   sources: "Sources",
   officialName: "Official",
   danishName: "Danish",
@@ -107,11 +83,6 @@ const en: Messages = {
   identityUpstream: "No canonical identity yet",
   inhabitedPlace: "Inhabited place",
   geographicFeature: "Geographical feature",
-  noCanonicalIdentity:
-    "No canonical place identity yet. Access stays unavailable until a place ID is confirmed.",
-  noConnections: "No structural connections recorded for this locality yet.",
-  reachableFromHere: "Reachable from here",
-  structuralConnection: "Structural connection",
   releaseLabel: "Release",
   dataAsOf: "Data as of",
   publicationBlockers: "publication blockers",
@@ -121,46 +92,40 @@ const en: Messages = {
   offline: "Offline",
   loading: "Loading places…",
   shownCount: "matches",
-  filtered: "filtered",
   closePlace: "Close place",
   expandSheet: "Expand place details",
   collapseSheet: "Collapse place details",
-  selectPlaceHint: "Select a place to see names, access, and sources.",
+  selectPlaceHint: "Select a place to see names and sources.",
   dossierPurpose:
-    "This panel answers: what is this place called, how can you reach it, and where did that claim come from?",
+    "This panel answers: what is this place called, and where did that claim come from?",
   featureId: "Feature ID",
   pendingReviewNote: "UI language draft — Kalaallisut terms need native review.",
-  mapFilters: "Map filters",
-  openFilters: "Map layers",
-  closeFilters: "Close",
-  clearFilters: "Reset",
+  downloadArea: "Download area",
+  downloadAreaHint: "Qaarsut→Kullorsuaq offline corridor",
+  downloadProgress: "Downloading…",
+  downloadReady: "Ready offline",
+  downloadDelete: "Delete download",
+  downloadUpdate: "Update available",
+  notForNavigation: "Not for navigation — open-grid depth, not a chart",
+  tileGapLabel: "Relief data missing here",
+  iosHomeScreenHint:
+    "On iPhone/iPad: Add to Home Screen so the offline pack is not cleared.",
+  packVersion: "Pack",
 };
 
 const da: Messages = {
   appTitle: "Nunat Aqqinik Nalunaarsuiffik",
-  appTagline: "Find et sted i Grønland. Se hvordan det forbindes.",
+  appTagline: "Grønlandske steder til lands og til vands.",
   searchLabel: "Find et sted",
   searchPlaceholder: "Navn på kalaallisut, dansk eller ældre stavemåde…",
   searchEmpty: "Ingen matchende steder",
-  searchIdleHint: "Skriv et navn for at søge. Eller klik på et sted på kortet.",
+  searchIdleHint: "Skriv et navn, eller browse kortet.",
   language: "Sprog",
-  mapContent: "Hvad kortet viser",
-  inhabitedPlaces: "Byer og bygder",
-  geography: "Geografi",
-  geographyZoomHint: "Zoom ind på en kyst eller fjord for at se geografiske navne.",
-  waters: "Vande",
-  islands: "Øer",
-  landforms: "Landformer",
-  municipality: "Kommune",
-  municipalityAll: "Alle kommuner",
-  municipalityOutside: "Uden for kommuner",
   placesList: "Find",
   results: "Fund",
   noResults: "Ingen steder at vise",
-  viewList: "Liste",
   viewMap: "Kort",
   overview: "Overblik",
-  access: "Adgang",
   sources: "Kilder",
   officialName: "Officielt",
   danishName: "Dansk",
@@ -172,11 +137,6 @@ const da: Messages = {
   identityUpstream: "Ingen kanonisk identitet endnu",
   inhabitedPlace: "Beboet sted",
   geographicFeature: "Geografisk forekomst",
-  noCanonicalIdentity:
-    "Ingen kanonisk stedidentitet endnu. Adgang vises først, når et sted-ID er bekræftet.",
-  noConnections: "Ingen strukturelle forbindelser registreret for denne bebyggelse endnu.",
-  reachableFromHere: "Kan nås herfra",
-  structuralConnection: "Strukturel forbindelse",
   releaseLabel: "Udgivelse",
   dataAsOf: "Data pr.",
   publicationBlockers: "publiceringsblokeringer",
@@ -186,48 +146,40 @@ const da: Messages = {
   offline: "Offline",
   loading: "Indlæser steder…",
   shownCount: "fund",
-  filtered: "filtreret",
   closePlace: "Luk sted",
   expandSheet: "Udvid stedoplysninger",
   collapseSheet: "Skjul stedoplysninger",
-  selectPlaceHint: "Vælg et sted for at se navne, adgang og kilder.",
+  selectPlaceHint: "Vælg et sted for at se navne og kilder.",
   dossierPurpose:
-    "Dette panel svarer: hvad hedder stedet, hvordan nås det, og hvor kommer påstanden fra?",
+    "Dette panel svarer: hvad hedder stedet, og hvor kommer påstanden fra?",
   featureId: "Objekt-ID",
   pendingReviewNote: "UI-sprog er udkast — kalaallisut skal gennemgås lokalt.",
-  mapFilters: "Kortfiltre",
-  openFilters: "Kortlag",
-  closeFilters: "Luk",
-  clearFilters: "Nulstil",
+  downloadArea: "Download område",
+  downloadAreaHint: "Qaarsut→Kullorsuaq offline-korridor",
+  downloadProgress: "Downloader…",
+  downloadReady: "Klar offline",
+  downloadDelete: "Slet download",
+  downloadUpdate: "Opdatering klar",
+  notForNavigation: "Ikke til navigation — åbent dybdegitter, ikke et søkort",
+  tileGapLabel: "Relief mangler her",
+  iosHomeScreenHint:
+    "På iPhone/iPad: Føj til hjemmeskærm, så offline-pakken ikke slettes.",
+  packVersion: "Pakke",
 };
 
 const kl: Messages = {
   appTitle: "Nunat Aqqinik Nalunaarsuiffik",
-  appTagline: "Nunaasuq nassaaruk. Qanoq attaveqarnersoq takukkit.",
+  appTagline: "Kalaallit Nunaata nunaasuisa nunami imaanilu.",
   searchLabel: "Nunaasuq nassaaruk",
   searchPlaceholder: "Ateq kalaallisut, qallunaatut imaluunniit itoqqortoq…",
   searchEmpty: "Nunaasuut nassaarineqanngillat",
-  searchIdleHint:
-    "Ateq allaguk ujarlerniarlugu. Imaluunniit kortimi nunaasuq toqqaruk.",
+  searchIdleHint: "Ateq allaguk, imaluunniit kortimi ujarlerit.",
   language: "Oqaatsit",
-  mapContent: "Kortip takutikkai",
-  inhabitedPlaces: "Illut nunaqarfiillu",
-  geography: "Nunap assinga",
-  geographyZoomHint:
-    "Zoom-iliuk sinaakkut imaluunniit kangerlummut nunap aqqinik takusinnaajumallugit.",
-  waters: "Imaq",
-  islands: "Qeqertat",
-  landforms: "Nunap ilusai",
-  municipality: "Kommune",
-  municipalityAll: "Kommunit tamarmik",
-  municipalityOutside: "Kommuninut ilaanngitsut",
   placesList: "Nassaarit",
   results: "Nassaarineqartut",
   noResults: "Nunat takutissallugit piginngillat",
-  viewList: "Allattorsimaffik",
   viewMap: "Kort",
   overview: "Takussutissat",
-  access: "Angalanerit",
   sources: "Kingumut",
   officialName: "Official",
   danishName: "Qallunaatut",
@@ -239,11 +191,6 @@ const kl: Messages = {
   identityUpstream: "Id kanoniski suli peqanngilaq",
   inhabitedPlace: "Inoqarfik",
   geographicFeature: "Nunap ilusia",
-  noCanonicalIdentity:
-    "Nunaasuup id-ia suli uppernarsarneqanngilaq. Angalanerit takutitinneqassanngillat id uppernarsarneqartinnagu.",
-  noConnections: "Inoqarfimmut uunga angalanerit suli nalunaarsorneqanngillat.",
-  reachableFromHere: "Uuma angalanera",
-  structuralConnection: "Angalanerit aaqqissuussimasut",
   releaseLabel: "Saqqummersitaq",
   dataAsOf: "Data ullumi",
   publicationBlockers: "saqqummersinneqarnissamut akornutit",
@@ -253,19 +200,25 @@ const kl: Messages = {
   offline: "Internetikkut atorsinnaanngitsoq",
   loading: "Nunat loadereqarput…",
   shownCount: "nassaarineqartut",
-  filtered: "filtereqarluni",
   closePlace: "Nuna matu",
   expandSheet: "Nunaasuup paasisassai annertusiguk",
   collapseSheet: "Nunaasuup paasisassai annikillisiguk",
-  selectPlaceHint: "Nunaasuq toqqaruk aqqinik, angalanernik kingumullu takusinnaajumallugit.",
+  selectPlaceHint: "Nunaasuq toqqaruk aqqinik kingumullu takusinnaajumallugit.",
   dossierPurpose:
-    "Panelip akissutai: nunaasuq qanoq ateqarpa, qanoq tikinneqarsinnaava, aamma paasissutissat sumit piggerpat?",
+    "Panelip akissutai: nunaasuq qanoq ateqarpa, aamma paasissutissat sumit piggerpat?",
   featureId: "Feature ID",
   pendingReviewNote: "UI oqaatsit misileraaneq — kalaallisut nunaqavissunit nalilersorneqassapput.",
-  mapFilters: "Kortip filteri",
-  openFilters: "Kortip qalipaatai",
-  closeFilters: "Matukkit",
-  clearFilters: "Nalinginnaasumut",
+  downloadArea: "Download-eqareaq",
+  downloadAreaHint: "Qaarsut→Kullorsuaq offline-korridori",
+  downloadProgress: "Downloadereqarpoq…",
+  downloadReady: "Offline-imut piareersimavoq",
+  downloadDelete: "Download peeruk",
+  downloadUpdate: "Nutarterneqarsinnaavoq",
+  notForNavigation: "Angalanermut atugassaanngilaq — immap itissusia chartinngilaq",
+  tileGapLabel: "Relief-data maani peqanngilaq",
+  iosHomeScreenHint:
+    "iPhone/iPad-imi: Home Screen-imut ilanngutikkit offline-pakke peerneqannginnissaa.",
+  packVersion: "Pakke",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { kl, da, en };
