@@ -1,9 +1,16 @@
 import { Text } from "@cloudflare/kumo/components/text";
 import { useI18n } from "../i18n/I18nContext.tsx";
 import { responsibilityLabel, type Placename } from "../domain/placename.ts";
+import {
+  searchAlternateMatchText,
+  type SearchHit,
+  type SearchMatchField,
+} from "../domain/search.ts";
 
 type Props = {
   place: Placename;
+  /** When set (search results), show alternate text only if it caused the match. */
+  matchedField?: SearchMatchField;
   selected?: boolean;
   /** When false, render a non-interactive block. */
   interactive?: boolean;
@@ -19,6 +26,7 @@ export function placeKindLabel(
 
 export function PlaceResultCard({
   place,
+  matchedField,
   selected = false,
   interactive = true,
   onSelect,
@@ -28,8 +36,21 @@ export function PlaceResultCard({
     place.municipalityCode,
     place.municipalityName,
   );
-  const showDanish =
-    Boolean(place.danishName) && place.danishName !== place.officialName;
+  const alternate =
+    matchedField != null
+      ? searchAlternateMatchText({
+          place,
+          score: 0,
+          match: "exact",
+          matchedField,
+        } satisfies SearchHit)
+      : null;
+  const alternateLabel =
+    alternate?.field === "danish"
+      ? t.danishName
+      : alternate?.field === "historical"
+        ? t.historicalName
+        : null;
 
   const body = (
     <>
@@ -42,7 +63,9 @@ export function PlaceResultCard({
         <Text as="span" variant="secondary" size="xs">
           {place.typeLabel}
           {area ? ` · ${area}` : ""}
-          {showDanish ? ` · ${place.danishName}` : ""}
+          {alternate && alternateLabel
+            ? ` · ${alternateLabel}: ${alternate.text}`
+            : ""}
           {!place.isLocality ? ` · ${placeKindLabel(place, t)}` : ""}
         </Text>
       </span>

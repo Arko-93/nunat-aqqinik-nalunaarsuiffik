@@ -17,7 +17,10 @@ import {
   selectedCoastalInteractiveLayerIds,
   selectedNonCoastalDotLayer,
 } from "../map/gazetteer-markers.ts";
-import { loadTerrainStyle } from "../map/terrain-style.ts";
+import {
+  loadNameOwnedLibertyStyle,
+  loadTerrainStyle,
+} from "../map/terrain-style.ts";
 import { selectPlaceFromMapClick } from "./map-selection.ts";
 
 const SOURCE_ID = PLACENAMES_SOURCE_ID;
@@ -528,12 +531,19 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
         });
       })
       .catch(() => {
-        // Fallback: Liberty alone if terrain compose fails — still usable.
-        map.setStyle("https://tiles.openfreemap.org/styles/liberty");
-        map.once("style.load", () => {
-          ensureLayers();
-          bindInteractions();
-        });
+        // Fallback: Liberty without terrain, still name-owned labels.
+        void loadNameOwnedLibertyStyle()
+          .then((style) => {
+            if (cancelled) return;
+            map.setStyle(style);
+            map.once("style.load", () => {
+              ensureLayers();
+              bindInteractions();
+            });
+          })
+          .catch(() => {
+            /* map shell stays empty; product labels need a style */
+          });
       });
 
     mapRef.current = map;

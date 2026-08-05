@@ -48,6 +48,8 @@ export type TerrainStyleMeta = {
   /** Peak color bands are product policy only — not a live layer yet. */
   "nunat:land-peak-bands": "deferred";
   "nunat:ocean-under-land": true;
+  /** NunaGIS officialName is the sole primary geography label. */
+  "nunat:name-ownership": "official-kalaallisut-primary";
 };
 
 /** First land-like fill id — ocean layers insert before this. */
@@ -156,6 +158,111 @@ function softenBasemapWater(layers: LayerSpecification[]): void {
 }
 
 /**
+ * OpenMapTiles source-layers whose symbol labels compete with NunaGIS
+ * geography names (places, islands, water, waterways, peaks/landforms).
+ * Road / transportation_name labels are intentionally kept.
+ */
+export const COMPETING_GEOGRAPHY_SOURCE_LAYERS = [
+  "place",
+  "water_name",
+  "waterway",
+  "mountain_peak",
+] as const;
+
+export type CompetingGeographySourceLayer =
+  (typeof COMPETING_GEOGRAPHY_SOURCE_LAYERS)[number];
+
+const competingSourceLayerSet = new Set<string>(
+  COMPETING_GEOGRAPHY_SOURCE_LAYERS,
+);
+
+/** True when a Liberty symbol layer would paint competing geography names. */
+export function isCompetingGeographyLabelLayer(
+  layer: LayerSpecification,
+): boolean {
+  if (layer.type !== "symbol") return false;
+  const sourceLayer =
+    "source-layer" in layer ? layer["source-layer"] : undefined;
+  if (typeof sourceLayer !== "string") return false;
+  if (!competingSourceLayerSet.has(sourceLayer)) return false;
+  const layout = layer.layout as { "text-field"?: unknown } | undefined;
+  return layout?.["text-field"] != null;
+}
+
+/**
+ * True when a MapLibre text-field expression prefers English (`name_en`)
+ * over native/local `name` — the Liberty default we must not keep for
+ * geography labels NunaGIS owns.
+ */
+export function expressionPrefersEnglishFirstName(
+  textField: unknown,
+): boolean {
+  if (typeof textField === "string") {
+    // Liberty token forms only — bare get-keys are handled via coalesce order.
+    return /\{name_en\}|\{name:en\}/.test(textField);
+  }
+  if (!Array.isArray(textField) || textField.length === 0) return false;
+
+  const op = textField[0];
+  // Field references are not preferences by themselves.
+  if (op === "get" || op === "has") return false;
+  if (op === "coalesce") {
+    const keys: string[] = [];
+    for (let i = 1; i < textField.length; i++) {
+      const arg = textField[i];
+      if (
+        Array.isArray(arg) &&
+        arg[0] === "get" &&
+        typeof arg[1] === "string"
+      ) {
+        keys.push(arg[1]);
+      }
+    }
+    const enIdx = keys.findIndex(
+      (key) => key === "name_en" || key === "name:en",
+    );
+    if (enIdx < 0) {
+      /* fall through to recurse */
+    } else {
+      const nativeIdx = keys.findIndex(
+        (key) =>
+          key === "name" ||
+          key === "name:latin" ||
+          key === "name:nonlatin",
+      );
+      if (nativeIdx < 0 || enIdx < nativeIdx) return true;
+    }
+  }
+
+  return textField.some(
+    (child, index) =>
+      index > 0 && expressionPrefersEnglishFirstName(child),
+  );
+}
+
+/** Drop Liberty symbol layers that duplicate NunaGIS geography labels. */
+export function suppressCompetingGeographyLabels(
+  layers: ReadonlyArray<LayerSpecification>,
+): LayerSpecification[] {
+  return layers.filter((layer) => !isCompetingGeographyLabelLayer(layer));
+}
+
+/**
+ * True when any remaining competing geography symbol layer still prefers
+ * English-first text fields (should be empty after suppression).
+ */
+export function hasEnglishFirstGeographyLabels(
+  layers: ReadonlyArray<LayerSpecification>,
+): boolean {
+  for (const layer of layers) {
+    if (!isCompetingGeographyLabelLayer(layer)) continue;
+    const layout = layer.layout as { "text-field"?: unknown } | undefined;
+    if (expressionPrefersEnglishFirstName(layout?.["text-field"])) return true;
+  }
+  return false;
+}
+
+/**
  * Compose terrain-first style: Liberty chrome + land DEM hillshade +
  * hybrid D ocean meter bands under land.
  */
@@ -203,7 +310,7 @@ export function composeTerrainStyle(
     },
   };
 
-  const layers = [...(style.layers ?? [])];
+  const layers = suppressCompetingGeographyLabels(style.layers ?? []);
   softenBasemapWater(layers);
 
   const beforeId = oceanInsertBeforeId(layers);
@@ -298,6 +405,7 @@ export function composeTerrainStyle(
     "nunat:land-source": "mapterhorn-terrarium",
     "nunat:land-peak-bands": "deferred",
     "nunat:ocean-under-land": true,
+    "nunat:name-ownership": "official-kalaallisut-primary",
   };
   style.metadata = {
     ...(typeof style.metadata === "object" && style.metadata
@@ -311,6 +419,27 @@ export function composeTerrainStyle(
   };
 
   return style;
+}
+
+/**
+ * Liberty style with competing geography labels removed — used when full
+ * terrain compose fails so name ownership still holds.
+ */
+export function composeNameOwnedLibertyStyle(
+  liberty: StyleSpecification,
+): StyleSpecification {
+  const validated = parseLibertyStyle(liberty);
+  const layers = suppressCompetingGeographyLabels(validated.layers ?? []);
+  return {
+    ...validated,
+    layers,
+    metadata: {
+      ...(typeof validated.metadata === "object" && validated.metadata
+        ? validated.metadata
+        : {}),
+      "nunat:name-ownership": "official-kalaallisut-primary",
+    },
+  };
 }
 
 export async function loadTerrainStyle(
@@ -327,4 +456,21 @@ export async function loadTerrainStyle(
     throw new StyleError("Liberty style response is not JSON");
   }
   return composeTerrainStyle(parseLibertyStyle(raw));
+}
+
+/** Fetch Liberty and strip competing geography labels (no terrain sources). */
+export async function loadNameOwnedLibertyStyle(
+  fetchImpl: typeof fetch = fetch,
+): Promise<StyleSpecification> {
+  const response = await fetchImpl(LIBERTY_STYLE_URL);
+  if (!response.ok) {
+    throw new StyleError(`Liberty style HTTP ${response.status}`);
+  }
+  let raw: unknown;
+  try {
+    raw = await response.json();
+  } catch {
+    throw new StyleError("Liberty style response is not JSON");
+  }
+  return composeNameOwnedLibertyStyle(parseLibertyStyle(raw));
 }

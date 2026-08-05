@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { withMapRank, type Placename } from "./placename.ts";
 import {
   isSearchQueryActive,
+  searchAlternateMatchText,
   searchPlacenames,
   scorePlacename,
 } from "./search.ts";
@@ -77,6 +78,16 @@ const fixtures: Placename[] = [
     isLocality: false,
     longitude: -50.1,
     latitude: 64.1,
+  }),
+  place({
+    globalId: "ø-qeqertarsuaq",
+    recordId: 7,
+    officialName: "Qeqertarsuaq",
+    danishName: "Disko",
+    typeCode: 181,
+    isLocality: false,
+    longitude: -53.5,
+    latitude: 69.25,
   }),
   place({
     globalId: "long",
@@ -174,5 +185,41 @@ describe("placename search ranking", () => {
     expect(isSearchQueryActive("")).toBe(false);
     expect(isSearchQueryActive("q")).toBe(false);
     expect(isSearchQueryActive("qa")).toBe(true);
+  });
+
+  it("keeps official name primary; Danish alternate only when it matched", () => {
+    const fjordOfficial = searchPlacenames(fixtures, "Nuup Kangerlua", 3);
+    const fjordHit = fjordOfficial.find((hit) => hit.place.globalId === "fjord");
+    expect(fjordHit?.matchedField).toBe("official");
+    expect(searchAlternateMatchText(fjordHit!)).toBeNull();
+
+    const fjordDanish = searchPlacenames(fixtures, "Godthåbsfjord", 3);
+    const fjordDaHit = fjordDanish.find(
+      (hit) => hit.place.globalId === "fjord",
+    );
+    expect(fjordDaHit?.place.officialName).toBe("Nuup Kangerlua");
+    expect(fjordDaHit?.matchedField).toBe("danish");
+    expect(searchAlternateMatchText(fjordDaHit!)).toEqual({
+      field: "danish",
+      text: "Godthåbsfjord",
+    });
+
+    const islandOfficial = searchPlacenames(fixtures, "Qeqertarsuaq", 3);
+    const islandHit = islandOfficial.find(
+      (hit) => hit.place.globalId === "ø-qeqertarsuaq",
+    );
+    expect(islandHit?.matchedField).toBe("official");
+    expect(searchAlternateMatchText(islandHit!)).toBeNull();
+
+    const islandDanish = searchPlacenames(fixtures, "Disko", 3);
+    const islandDaHit = islandDanish.find(
+      (hit) => hit.place.globalId === "ø-qeqertarsuaq",
+    );
+    expect(islandDaHit?.place.officialName).toBe("Qeqertarsuaq");
+    expect(islandDaHit?.matchedField).toBe("danish");
+    expect(searchAlternateMatchText(islandDaHit!)).toEqual({
+      field: "danish",
+      text: "Disko",
+    });
   });
 });
