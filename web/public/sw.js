@@ -1,44 +1,77 @@
 /* App-shell Service Worker only — large corridor PMTiles stay in OPFS. */
 const SHELL_CACHE = "nunat-shell-v1";
-const SHELL_URLS = ["/", "/index.html"];
+const SHELL_PREFIX = "nunat-shell-";
+const PRECACHE_URLS = ["/", "/index.html"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_URLS)).then(() =>
-      self.skipWaiting(),
-    ),
+    caches
+      .open(SHELL_CACHE)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting()),
   );
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== SHELL_CACHE)
-          .map((key) => caches.delete(key)),
-      ),
-    ).then(() => self.clients.claim()),
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            // Only delete obsolete caches this worker owns.
+            .filter((key) => key.startsWith(SHELL_PREFIX) && key !== SHELL_CACHE)
+            .map((key) => caches.delete(key)),
+        ),
+      )
+      .then(() => self.clients.claim()),
   );
 });
 
+function isPackageOrTiles(url) {
+  return (
+    url.pathname.includes(".pmtiles") || url.pathname.startsWith("/packages/")
+  );
+}
+
+/** HTML + hashed Vite assets + same-origin JS/CSS needed to boot offline. */
+function isAppShellRequest(request, url) {
+  if (url.origin !== self.location.origin) return false;
+  if (isPackageOrTiles(url)) return false;
+  if (request.mode === "navigate") return true;
+  if (url.pathname.startsWith("/assets/")) return true;
+  return /\.(?:js|css|mjs|woff2?|ttf|otf|svg|ico|webp|png)$/i.test(
+    url.pathname,
+  );
+}
+
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-  // Never intercept PMTiles / package binaries — OPFS + Range reads own those.
-  if (
-    url.pathname.includes(".pmtiles") ||
-    url.pathname.startsWith("/packages/")
-  ) {
-    return;
-  }
-  if (event.request.mode !== "navigate") return;
+  if (isPackageOrTiles(url)) return;
+  if (!isAppShellRequest(event.request, url)) return;
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        const copy = response.clone();
-        void caches.open(SHELL_CACHE).then((cache) => cache.put(event.request, copy));
+        if (response && response.ok) {
+          const copy = response.clone();
+          void caches.open(SHELL_CACHE).then((cache) => {
+            void cache.put(event.request, copy);
+          });
+        }
         return response;
       })
-      .catch(() => caches.match(event.request).then((hit) => hit || caches.match("/"))),
+      .catch(async () => {
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+        if (event.request.mode === "navigate") {
+          return (
+            (await caches.match("/index.html")) ||
+            (await caches.match("/")) ||
+            Response.error()
+          );
+        }
+        return Response.error();
+      }),
   );
 });

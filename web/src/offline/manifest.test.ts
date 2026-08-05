@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CORRIDOR_BBOX, MAX_PACK_BYTES } from "../map/meter-bands.ts";
 import {
   assertCorridorBbox,
+  isTerrainOfflineReady,
   parseManifest,
   sha256Hex,
   verifyPackFiles,
@@ -18,6 +19,7 @@ const fixtureManifest = {
   bbox: [...CORRIDOR_BBOX] as [number, number, number, number],
   bytes: 22,
   createdAt: "2026-08-05T00:00:00Z",
+  kind: "stub" as const,
   files: [
     {
       path: "localities.geojson",
@@ -31,15 +33,18 @@ const fixtureManifest = {
     cache: ["manifest.json"],
   },
   notForNavigation: true as const,
+  notes: "Tiny Vitest fixture — not terrain-offline capable.",
 };
 
 describe("corridor pack manifest contracts", () => {
-  it("accepts the Qaarsut→Kullorsuaq fixture manifest", () => {
+  it("accepts the Qaarsut→Kullorsuaq fixture manifest as a stub", () => {
     const parsed = parseManifest(fixtureManifest);
     expect(parsed.id).toContain("qaarsut_kullorsuaq");
     expect(assertCorridorBbox(parsed.bbox)).toBe(true);
     expect(parsed.bytes).toBeLessThanOrEqual(MAX_PACK_BYTES);
     expect(parsed.notForNavigation).toBe(true);
+    expect(parsed.kind).toBe("stub");
+    expect(isTerrainOfflineReady(parsed)).toBe(false);
   });
 
   it("rejects packs over the 250 MB cap", () => {
@@ -54,6 +59,27 @@ describe("corridor pack manifest contracts", () => {
   it("rejects manifests that omit not-for-navigation", () => {
     const { notForNavigation: _, ...rest } = fixtureManifest;
     expect(() => parseManifest(rest)).toThrow(/notForNavigation/);
+  });
+
+  it("rejects invalid title/sha256/storage fields", () => {
+    expect(() =>
+      parseManifest({ ...fixtureManifest, title: { kl: "x" } }),
+    ).toThrow(/title/);
+    expect(() =>
+      parseManifest({
+        ...fixtureManifest,
+        files: [{ path: "a", bytes: 1, sha256: "nope" }],
+      }),
+    ).toThrow(/sha256/);
+    expect(() =>
+      parseManifest({ ...fixtureManifest, storage: { opfs: [], cache: 1 } }),
+    ).toThrow(/storage/);
+  });
+
+  it("rejects kind=full without terrain PMTiles", () => {
+    expect(() =>
+      parseManifest({ ...fixtureManifest, kind: "full" }),
+    ).toThrow(/land-relief\.pmtiles/);
   });
 
   it("verifies fixture file checksums", async () => {

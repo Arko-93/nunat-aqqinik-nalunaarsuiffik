@@ -1,4 +1,5 @@
 import type {
+  ExpressionSpecification,
   FilterSpecification,
   LayerSpecification,
   StyleSpecification,
@@ -7,7 +8,7 @@ import {
   LAND_BREAKS_M,
   METER_BAND_POLICY,
   OCEAN_BREAKS_M,
-  oceanBandColor,
+  oceanFillColorExpression,
 } from "./meter-bands.ts";
 
 /** Same basemap family as today's product map. */
@@ -46,29 +47,83 @@ export type TerrainStyleMeta = {
   "nunat:ocean-under-land": true;
 };
 
+export class StyleError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StyleError";
+  }
+}
+
+/** Runtime validation for remote Liberty (or equivalent) style JSON. */
+export function parseLibertyStyle(raw: unknown): StyleSpecification {
+  if (!raw || typeof raw !== "object") {
+    throw new StyleError("Style JSON must be an object");
+  }
+  const style = raw as Record<string, unknown>;
+  if (style.version !== 8) {
+    throw new StyleError(`Style version must be 8 (got ${String(style.version)})`);
+  }
+  if (!style.sources || typeof style.sources !== "object") {
+    throw new StyleError("Style missing sources object");
+  }
+  if (!Array.isArray(style.layers)) {
+    throw new StyleError("Style missing layers array");
+  }
+  for (const [i, layer] of style.layers.entries()) {
+    if (!layer || typeof layer !== "object") {
+      throw new StyleError(`Style layer[${i}] must be an object`);
+    }
+    const id = (layer as { id?: unknown }).id;
+    const type = (layer as { type?: unknown }).type;
+    if (typeof id !== "string" || id.length === 0) {
+      throw new StyleError(`Style layer[${i}] missing id`);
+    }
+    if (typeof type !== "string" || type.length === 0) {
+      throw new StyleError(`Style layer[${i}] missing type`);
+    }
+  }
+  return style as StyleSpecification;
+}
+
 /** First land-like fill id — ocean layers insert before this. */
 export function oceanInsertBeforeId(
   layers: ReadonlyArray<LayerSpecification>,
 ): string | undefined {
   const land = layers.find((layer) => {
     if (layer.type !== "fill") return false;
-    const id = layer.id.toLowerCase();
-    return (
-      id.includes("land") ||
-      id.includes("earth") ||
-      id.includes("landcover") ||
-      id.includes("landuse")
-    );
+    return isBasemapLandFillId(layer.id);
   });
   if (land) return land.id;
-  const water = layers.find((layer) => layer.id.toLowerCase().includes("water"));
+  const water = layers.find(
+    (layer) =>
+      !layer.id.startsWith("terrain-") &&
+      layer.id.toLowerCase().includes("water"),
+  );
   return water?.id;
 }
 
+/**
+ * Contour filter: Seascape stores signed `depth_m` and absolute `depth_abs_m`.
+ * Hybrid D breaks are positive meters — match `depth_abs_m`, metric ladder only.
+ */
 export function contourBreakFilter(
   breaks: ReadonlyArray<number>,
 ): FilterSpecification {
-  return ["in", ["get", "depth_m"], ["literal", [...breaks]]];
+  return [
+    "all",
+    ["in", ["get", "depth_abs_m"], ["literal", [...breaks]]],
+    ["any", ["!", ["has", "sys"]], ["!=", ["get", "sys"], "ft"]],
+  ];
+}
+
+/** Metric depth-area polygons only (exclude overlapping fathom ladder). */
+export function oceanFillFilter(): FilterSpecification {
+  return [
+    "all",
+    ["has", "drval1"],
+    [">=", ["get", "drval1"], 0],
+    ["any", ["!", ["has", "sys"]], ["==", ["get", "sys"], "m"]],
+  ];
 }
 
 function isBasemapLandFillId(id: string): boolean {
@@ -96,7 +151,6 @@ export function assertOceanUnderLand(
   ];
   const landIdx = layerIds.findIndex(isBasemapLandFillId);
   if (landIdx < 0) {
-    // Liberty always has water; ocean must still sit under water chrome.
     const waterIdx = layerIds.findIndex(
       (id) => !id.startsWith("terrain-") && id.toLowerCase().includes("water"),
     );
@@ -143,7 +197,8 @@ function softenBasemapWater(layers: LayerSpecification[]): void {
 export function composeTerrainStyle(
   liberty: StyleSpecification,
 ): StyleSpecification {
-  const style = structuredClone(liberty) as StyleSpecification;
+  const validated = parseLibertyStyle(liberty);
+  const style = structuredClone(validated) as StyleSpecification;
   style.sources = {
     ...(style.sources ?? {}),
     "land-relief": {
@@ -196,28 +251,9 @@ export function composeTerrainStyle(
     type: "fill",
     source: "ocean-depth-vector",
     "source-layer": "depare",
+    filter: oceanFillFilter(),
     paint: {
-      "fill-color": [
-        "interpolate",
-        ["linear"],
-        ["get", "drval2"],
-        0,
-        oceanBandColor(5),
-        10,
-        oceanBandColor(10),
-        20,
-        oceanBandColor(20),
-        50,
-        oceanBandColor(50),
-        100,
-        oceanBandColor(100),
-        200,
-        oceanBandColor(200),
-        500,
-        oceanBandColor(500),
-        1000,
-        oceanBandColor(1000),
-      ],
+      "fill-color": oceanFillColorExpression() as ExpressionSpecification,
       "fill-opacity": 0.48,
     },
   };
@@ -237,7 +273,6 @@ export function composeTerrainStyle(
 
   layers.splice(insertAt, 0, oceanHillshade, oceanFills, oceanContours);
 
-  // Land hillshade after ocean so islands stay above sea; under land chrome.
   const landHillshade: LayerSpecification = {
     id: TERRAIN_LAYER_IDS.landHillshade,
     type: "hillshade",
@@ -255,7 +290,6 @@ export function composeTerrainStyle(
   const landInsert = landCoverIdx >= 0 ? landCoverIdx : insertAt + 3;
   layers.splice(landInsert, 0, landHillshade);
 
-  // Contour labels above land chrome; peaks-only policy in metadata.
   layers.push({
     id: TERRAIN_LAYER_IDS.oceanContourLabels,
     type: "symbol",
@@ -265,7 +299,7 @@ export function composeTerrainStyle(
     minzoom: 6,
     layout: {
       "symbol-placement": "line",
-      "text-field": ["concat", ["to-string", ["get", "depth_m"]], " m"],
+      "text-field": ["concat", ["to-string", ["get", "depth_abs_m"]], " m"],
       "text-size": 11,
       "text-font": ["Noto Sans Regular"],
     },
@@ -294,6 +328,8 @@ export function composeTerrainStyle(
     ...meta,
     "nunat:land-breaks-m": [...LAND_BREAKS_M],
     "nunat:ocean-breaks-m": [...OCEAN_BREAKS_M],
+    "nunat:ocean-fill": "discrete-step-drval1-metric",
+    "nunat:contour-field": "depth_abs_m",
   };
 
   return style;
@@ -304,8 +340,13 @@ export async function loadTerrainStyle(
 ): Promise<StyleSpecification> {
   const response = await fetchImpl(LIBERTY_STYLE_URL);
   if (!response.ok) {
-    throw new Error(`Liberty style HTTP ${response.status}`);
+    throw new StyleError(`Liberty style HTTP ${response.status}`);
   }
-  const liberty = (await response.json()) as StyleSpecification;
-  return composeTerrainStyle(liberty);
+  let raw: unknown;
+  try {
+    raw = await response.json();
+  } catch {
+    throw new StyleError("Liberty style response is not JSON");
+  }
+  return composeTerrainStyle(parseLibertyStyle(raw));
 }

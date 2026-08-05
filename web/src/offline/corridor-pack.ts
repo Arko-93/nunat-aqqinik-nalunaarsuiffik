@@ -4,11 +4,17 @@
  */
 
 import {
+  isTerrainOfflineReady,
   parseManifest,
   verifyPackFiles,
   type CorridorPackManifest,
   PackError,
 } from "./manifest.ts";
+import {
+  browserOpfsRoot,
+  type OpfsDirectory,
+  type OpfsRootProvider,
+} from "./opfs.ts";
 
 export type PackProgress = {
   path: string;
@@ -18,28 +24,36 @@ export type PackProgress = {
 
 export type PackInstallState =
   | { status: "absent" }
-  | { status: "ready"; manifest: CorridorPackManifest }
+  | {
+      status: "installed";
+      manifest: CorridorPackManifest;
+      /** True only when land+ocean PMTiles are in the pack. */
+      terrainOffline: boolean;
+    }
   | { status: "downloading"; progress: PackProgress; packId: string }
   | { status: "error"; message: string };
 
 const META_DIR = "corridor-packs";
 const ACTIVE_KEY = "active.json";
 
-const opfsAvailable = (): boolean =>
-  typeof navigator !== "undefined" &&
-  "storage" in navigator &&
-  typeof navigator.storage.getDirectory === "function";
+let opfsProvider: OpfsRootProvider = browserOpfsRoot;
 
-async function packsRoot(): Promise<FileSystemDirectoryHandle> {
-  if (!opfsAvailable()) {
-    throw new PackError("OPFS unavailable in this browser");
-  }
-  const root = await navigator.storage.getDirectory();
+/** Test seam — swap OPFS root without touching navigator. */
+export function setOpfsRootProvider(provider: OpfsRootProvider): void {
+  opfsProvider = provider;
+}
+
+export function resetOpfsRootProvider(): void {
+  opfsProvider = browserOpfsRoot;
+}
+
+async function packsRoot(): Promise<OpfsDirectory> {
+  const root = await opfsProvider();
   return root.getDirectoryHandle(META_DIR, { create: true });
 }
 
 async function writeOpfsFile(
-  dir: FileSystemDirectoryHandle,
+  dir: OpfsDirectory,
   path: string,
   buffer: ArrayBuffer,
 ): Promise<void> {
@@ -56,7 +70,7 @@ async function writeOpfsFile(
 }
 
 async function deleteOpfsTree(
-  dir: FileSystemDirectoryHandle,
+  dir: OpfsDirectory,
   name: string,
 ): Promise<void> {
   try {
@@ -67,7 +81,6 @@ async function deleteOpfsTree(
 }
 
 export async function readInstalledManifest(): Promise<CorridorPackManifest | null> {
-  if (!opfsAvailable()) return null;
   try {
     const root = await packsRoot();
     const handle = await root.getFileHandle(ACTIVE_KEY);
@@ -82,7 +95,11 @@ export async function readInstalledManifest(): Promise<CorridorPackManifest | nu
 export async function getPackInstallState(): Promise<PackInstallState> {
   const manifest = await readInstalledManifest();
   if (!manifest) return { status: "absent" };
-  return { status: "ready", manifest };
+  return {
+    status: "installed",
+    manifest,
+    terrainOffline: isTerrainOfflineReady(manifest),
+  };
 }
 
 export async function requestPersistentStorage(): Promise<boolean> {
@@ -116,7 +133,13 @@ export async function installCorridorPack(
       `Failed to load pack manifest (${manifestResponse.status})`,
     );
   }
-  const manifest = parseManifest(await manifestResponse.json());
+  let raw: unknown;
+  try {
+    raw = await manifestResponse.json();
+  } catch {
+    throw new PackError("Pack manifest response is not JSON");
+  }
+  const manifest = parseManifest(raw);
   const buffers = new Map<string, ArrayBuffer>();
 
   for (const file of manifest.files) {
@@ -151,26 +174,29 @@ export async function installCorridorPack(
 }
 
 export async function deleteCorridorPack(): Promise<void> {
-  if (!opfsAvailable()) return;
-  const root = await packsRoot();
-  const active = await readInstalledManifest();
-  if (active) {
-    await deleteOpfsTree(root, active.id);
+  try {
+    const root = await packsRoot();
+    const active = await readInstalledManifest();
+    if (active) {
+      await deleteOpfsTree(root, active.id);
+    }
+    await deleteOpfsTree(root, ACTIVE_KEY);
+  } catch (cause) {
+    if (cause instanceof PackError) return;
+    /* OPFS unavailable — nothing to delete */
   }
-  await deleteOpfsTree(root, ACTIVE_KEY);
 }
 
-/** Resolve a local OPFS file URL for MapLibre when pack is installed. */
+/** Resolve a local OPFS file for MapLibre when a full pack is installed. */
 export async function readPackFile(
   packId: string,
   path: string,
 ): Promise<ArrayBuffer | null> {
-  if (!opfsAvailable()) return null;
   try {
     const root = await packsRoot();
     const packDir = await root.getDirectoryHandle(packId);
     const parts = path.split("/").filter(Boolean);
-    let current: FileSystemDirectoryHandle = packDir;
+    let current: OpfsDirectory = packDir;
     for (let i = 0; i < parts.length - 1; i++) {
       current = await current.getDirectoryHandle(parts[i]!);
     }

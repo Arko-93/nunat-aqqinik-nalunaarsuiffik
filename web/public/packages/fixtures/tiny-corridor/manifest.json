@@ -9,6 +9,7 @@
   "bbox": [-58.5, 70.4, -50.5, 74.9],
   "bytes": 22,
   "createdAt": "2026-08-05T00:00:00Z",
+  "kind": "stub",
   "files": [
     {
       "path": "localities.geojson",
@@ -20,5 +21,6 @@
     "opfs": ["localities.geojson"],
     "cache": ["manifest.json"]
   },
-  "notForNavigation": true
+  "notForNavigation": true,
+  "notes": "Tiny Vitest fixture — not terrain-offline capable."
 }

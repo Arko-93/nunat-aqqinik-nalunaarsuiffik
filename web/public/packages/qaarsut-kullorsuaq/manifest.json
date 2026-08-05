@@ -9,6 +9,7 @@
   "bbox": [-58.5, 70.4, -50.5, 74.9],
   "bytes": 43,
   "createdAt": "2026-08-05T00:00:00Z",
+  "kind": "stub",
   "files": [
     {
       "path": "localities.geojson",
@@ -17,9 +18,9 @@
     }
   ],
   "storage": {
-    "opfs": ["localities.geojson", "land-relief.pmtiles", "ocean-depth.pmtiles"],
+    "opfs": ["localities.geojson"],
     "cache": ["manifest.json"]
   },
   "notForNavigation": true,
-  "notes": "Stub pack for Download area wiring. Full land DEM + IBCAO ocean PMTiles extracts still to host (budget 80–180 MB, ≤250 MB)."
+  "notes": "Stub pack for Download area wiring only. Does not provide offline terrain. Full land-relief.pmtiles + IBCAO ocean-depth.pmtiles still to host (budget 80–180 MB, ≤250 MB)."
 }

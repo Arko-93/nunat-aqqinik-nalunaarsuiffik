@@ -9,6 +9,7 @@ import {
   installCorridorPack,
   type PackInstallState,
 } from "../offline/corridor-pack.ts";
+import { isTerrainOfflineReady } from "../offline/manifest.ts";
 
 type Props = {
   packageBase?: string;
@@ -44,7 +45,11 @@ export function DownloadArea({
           progress,
         });
       });
-      setState({ status: "ready", manifest });
+      setState({
+        status: "installed",
+        manifest,
+        terrainOffline: isTerrainOfflineReady(manifest),
+      });
     } catch (cause) {
       setState({
         status: "error",
@@ -65,20 +70,28 @@ export function DownloadArea({
           {t.downloadAreaHint}
         </Text>
       </p>
-      {state.status === "ready" ? (
+      {state.status === "installed" ? (
         <>
           <Button type="button" size="sm" variant="secondary" disabled>
-            {t.downloadReady}
+            {state.terrainOffline ? t.downloadReady : t.downloadStubInstalled}
           </Button>
           <Text as="span" variant="secondary" size="xs">
             {t.packVersion} {state.manifest.id}
           </Text>
+          {!state.terrainOffline ? (
+            <p className="download-area-stub-hint">
+              <Text as="span" variant="secondary" size="xs">
+                {state.manifest.notes?.trim() || t.downloadStubHint}
+              </Text>
+            </p>
+          ) : (
+            <Text as="p" variant="secondary" size="xs">
+              {t.iosHomeScreenHint}
+            </Text>
+          )}
           <Button type="button" size="sm" variant="ghost" onClick={onDelete}>
             {t.downloadDelete}
           </Button>
-          <Text as="p" variant="secondary" size="xs">
-            {t.iosHomeScreenHint}
-          </Text>
         </>
       ) : state.status === "downloading" ? (
         <Text as="span" variant="secondary" size="sm">
@@ -100,7 +113,7 @@ export function DownloadArea({
           </Text>
         </p>
       ) : null}
-      {state.status === "ready" ? (
+      {state.status === "installed" ? (
         <span className="sr-only">{state.manifest.title[locale]}</span>
       ) : null}
     </div>

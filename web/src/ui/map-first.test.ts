@@ -60,6 +60,11 @@ describe("map-first UI contracts", () => {
       const t = MESSAGES[locale];
       expect(t.downloadArea.length).toBeGreaterThan(0);
       expect(t.notForNavigation.length).toBeGreaterThan(0);
+      expect(t.downloadStubInstalled.length).toBeGreaterThan(0);
+      expect(t.downloadStubHint.toLowerCase()).toMatch(
+        /stub|network|netværk|internet/,
+      );
+      expect(t.downloadReady).not.toEqual(t.downloadStubInstalled);
       expect(t.appTagline.length).toBeLessThan(80);
     }
   });

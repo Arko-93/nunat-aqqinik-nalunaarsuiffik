@@ -132,6 +132,10 @@ body,
   color: #8a2b1e;
 }
 
+.download-area-stub-hint {
+  margin: 0;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

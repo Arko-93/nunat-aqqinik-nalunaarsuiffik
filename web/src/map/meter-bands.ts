@@ -23,6 +23,12 @@ export const CORRIDOR_BBOX: readonly [number, number, number, number] = [
 
 export const MAX_PACK_BYTES = 250 * 1024 * 1024;
 
+/** Files required before the UI may claim terrain is ready offline. */
+export const TERRAIN_OFFLINE_FILES = [
+  "land-relief.pmtiles",
+  "ocean-depth.pmtiles",
+] as const;
+
 export function oceanBandColor(depthM: number): string {
   if (depthM <= 10) return "#b9e0f0";
   if (depthM <= 20) return "#7eb8d4";
@@ -37,4 +43,18 @@ export function landPeakBandColor(elevM: number): string {
   if (elevM < 1000) return "#8a7a5c";
   if (elevM < 2000) return "#6b5e4a";
   return "#4a463f";
+}
+
+/**
+ * Discrete meter-band fill colors keyed on Seascape `drval1` (shallow edge).
+ * MapLibre step: output0 when value < stop1, then each stop’s color until the next.
+ */
+export function oceanFillColorExpression(): unknown[] {
+  const expr: unknown[] = ["step", ["get", "drval1"], oceanBandColor(5)];
+  for (let i = 0; i < OCEAN_BREAKS_M.length; i++) {
+    const stop = OCEAN_BREAKS_M[i]!;
+    const next = OCEAN_BREAKS_M[i + 1] ?? stop;
+    expr.push(stop, oceanBandColor(next));
+  }
+  return expr;
 }
