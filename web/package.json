@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:prototype-meter-bands": "vite --open /prototype-meter-bands.html?variant=D",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 3457",
     "typecheck": "tsc --noEmit --pretty false",

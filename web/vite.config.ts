@@ -11,4 +11,13 @@ export default defineConfig({
     host: "127.0.0.1",
     port: 3457,
   },
+  // PROTOTYPE entry: meter band breaks (wayfinder #9). Throwaway.
+  build: {
+    rollupOptions: {
+      input: {
+        main: "index.html",
+        "prototype-meter-bands": "prototype-meter-bands.html",
+      },
+    },
+  },
 });

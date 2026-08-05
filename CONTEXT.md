@@ -9,8 +9,8 @@ The main `web/` map where land relief and ocean depth are the primary visual sig
 _Avoid_: Pretty basemap, Liberty-only map
 
 **Meter bands**:
-Height and depth class layers in meters (land tallness, ocean depth) shown with the relief.
-_Avoid_: Contours only, topography (ambiguous), bathymetry alone
+Ocean depth class fills plus contour metering in meters; land height classes only on high peaks (not a full land wash). Ocean layers must stay under land so islands are never painted as sea.
+_Avoid_: Contours only, topography (ambiguous), bathymetry alone, land color wash on all elevations
 
 **Offline corridor pack**:
 One downloadable offline region covering Qaarsut through Kullorsuaq for family dogfood.
