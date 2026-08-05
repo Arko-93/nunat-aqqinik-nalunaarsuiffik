@@ -11,11 +11,16 @@ export const CORRIDOR_BBOX: readonly [number, number, number, number] = [
 /** Hard size cap for a family-phone corridor pack. */
 export const MAX_PACK_BYTES = 250 * 1024 * 1024;
 
-/** Files required before the UI may claim terrain is ready offline. */
+/**
+ * Files required before the UI may claim terrain is ready offline.
+ * Paths are pack-relative. `coastline-land/land.pmtiles` mirrors the online
+ * same-origin mask source (`packages/coastline-land/land.pmtiles`, stripped
+ * of the pack base) so a full pack can serve the identical path.
+ */
 export const TERRAIN_OFFLINE_FILES = [
   "land-relief.pmtiles",
   "ocean-depth.pmtiles",
-  "coastline-land.pmtiles",
+  "coastline-land/land.pmtiles",
 ] as const;
 
 export const CORRIDOR_PACKAGE_BASE = "/packages/qaarsut-kullorsuaq";

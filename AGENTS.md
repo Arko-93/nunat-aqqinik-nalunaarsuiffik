@@ -16,7 +16,7 @@ Read `docs/STATUS.md` before changing the data contract. It is the source of tru
 - **One record per place** — A place can have multiple names but exactly one canonical Greenlandic name.
 - **Composable extensions** — Operational datasets reference permanent place IDs. Do not copy place records into extension sources.
 - **Structural reachability only** — Connections describe maintained transport relationships, not live departures or booking availability.
-- **Shared coastline** — One complete OSM coastline land polygon surface (ODbL) is the single land/sea boundary for the display mask and for clipping bathymetry. Never use Natural Earth or partial landuse/landcover fills as the mask, and never let ocean layers paint above it.
+- **Shared coastline** — The complete OSM coastline land polygon surface (ODbL) is the V1 interim land/sea boundary: it drives the display mask above all ocean layers and is the reference shoreline for future bathymetry clipping. Asiaq may replace OSM when authoritative distributable geometry arrives. Clipping depth bands before tile generation is future IBCAO/GEBCO tiling work — the V1 fix is the display mask only. Never use Natural Earth or partial landuse/landcover fills as the mask, and never let ocean layers paint above it.
 - **Slow, careful updates** — Batch updates and preserve validity periods. Never patch an assertion without a paper trail.
 
 ## Canonical source files
