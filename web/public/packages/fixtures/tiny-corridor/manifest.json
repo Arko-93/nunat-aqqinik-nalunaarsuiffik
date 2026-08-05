@@ -1,0 +1,26 @@
+{
+  "id": "corridor_qaarsut_kullorsuaq_fixture_2026-08-05",
+  "slug": "qaarsut-kullorsuaq",
+  "title": {
+    "kl": "Qaarsut–Kullorsuaq (fixture)",
+    "da": "Qaarsut–Kullorsuaq (fixture)",
+    "en": "Qaarsut–Kullorsuaq (fixture)"
+  },
+  "bbox": [-58.5, 70.4, -50.5, 74.9],
+  "bytes": 22,
+  "createdAt": "2026-08-05T00:00:00Z",
+  "kind": "stub",
+  "files": [
+    {
+      "path": "localities.geojson",
+      "bytes": 22,
+      "sha256": "e9f838dc5320ce31ce76ee05a451d634defa01f5e119d7041773a2fb8d4ba7c7"
+    }
+  ],
+  "storage": {
+    "opfs": ["localities.geojson"],
+    "cache": ["manifest.json"]
+  },
+  "notForNavigation": true,
+  "notes": "Tiny Vitest fixture — not terrain-offline capable."
+}

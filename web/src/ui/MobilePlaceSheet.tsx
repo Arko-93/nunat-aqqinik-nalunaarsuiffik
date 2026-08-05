@@ -1,35 +1,39 @@
 import { Button } from "@cloudflare/kumo/components/button";
 import { Text } from "@cloudflare/kumo/components/text";
 import type { Placename } from "../domain/placename.ts";
-import type { ReachabilityLink } from "../domain/reachability.ts";
+import type { SearchHit } from "../domain/search.ts";
 import { useI18n } from "../i18n/I18nContext.tsx";
 import type { LoadedRelease } from "../services/release.ts";
 import { PlaceDossier } from "./PlaceDossier.tsx";
+import { PlaceResultCard } from "./PlaceResultCard.tsx";
 
 export type SheetState = "collapsed" | "half" | "full";
 
 type Props = {
   place: Placename | null;
   release: LoadedRelease | null;
-  reachLinks: ReadonlyArray<ReachabilityLink>;
+  /** Search results when query is active; empty query dismisses this mode. */
+  searchHits: ReadonlyArray<SearchHit>;
+  queryActive: boolean;
   sheet: SheetState;
   onSheetChange: (sheet: SheetState) => void;
-  onSelectPlaceId: (placeId: string) => void;
+  onSelect: (place: Placename) => void;
   onClose: () => void;
 };
 
 export function MobilePlaceSheet({
   place,
   release,
-  reachLinks,
+  searchHits,
+  queryActive,
   sheet,
   onSheetChange,
-  onSelectPlaceId,
+  onSelect,
   onClose,
 }: Props) {
   const { t } = useI18n();
 
-  if (!place) return null;
+  if (!queryActive && !place) return null;
 
   const cycle = () => {
     if (sheet === "collapsed") onSheetChange("half");
@@ -37,11 +41,15 @@ export function MobilePlaceSheet({
     else onSheetChange("half");
   };
 
+  const title = queryActive
+    ? t.results
+    : (place?.officialName ?? t.placesList);
+
   return (
     <div
       className={`mobile-place-sheet is-${sheet}`}
       role="dialog"
-      aria-label={place.officialName}
+      aria-label={title}
     >
       <div className="mobile-place-sheet-handle">
         <Button
@@ -54,7 +62,7 @@ export function MobilePlaceSheet({
         >
           <span className="sheet-grip" aria-hidden="true" />
           <Text as="span" variant="secondary" size="xs">
-            {place.officialName}
+            {title}
           </Text>
         </Button>
         <Button
@@ -69,12 +77,29 @@ export function MobilePlaceSheet({
       </div>
       {sheet !== "collapsed" ? (
         <div className="mobile-place-sheet-body">
-          <PlaceDossier
-            place={place}
-            release={release}
-            reachLinks={reachLinks}
-            onSelectPlaceId={onSelectPlaceId}
-          />
+          {queryActive ? (
+            searchHits.length === 0 ? (
+              <p className="place-list-empty">
+                <Text as="span" variant="secondary" size="sm">
+                  {t.searchEmpty}
+                </Text>
+              </p>
+            ) : (
+              <ul className="place-list-items" role="listbox" aria-label={t.results}>
+                {searchHits.map((hit) => (
+                  <li key={hit.place.featureId} role="option">
+                    <PlaceResultCard
+                      place={hit.place}
+                      selected={place?.recordId === hit.place.recordId}
+                      onSelect={onSelect}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )
+          ) : place ? (
+            <PlaceDossier place={place} release={release} />
+          ) : null}
         </div>
       ) : null}
     </div>

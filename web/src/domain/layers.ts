@@ -56,6 +56,14 @@ export const MUNICIPALITY_OPTIONS: ReadonlyArray<{
   { value: "outside", label: "Outside municipalities" },
 ];
 
+/**
+ * Map-first gazetteer: all names discoverable by zoom/browse.
+ * Locality shadow duplicates stay hidden.
+ */
+export const gazetteerVisible = (place: Placename): boolean =>
+  !place.isLocalityShadow;
+
+/** @deprecated Lens filters removed from map-first UI; prefer gazetteerVisible. */
 export const placeVisible = (
   place: Placename,
   layers: LayerState,

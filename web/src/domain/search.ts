@@ -7,6 +7,13 @@ export type SearchHit = {
   match: "exact" | "prefix" | "word" | "contains" | "fuzzy";
 };
 
+/** Minimum trimmed length before search results / sheet open. */
+export const SEARCH_MIN_CHARS = 2;
+
+/** True when the query is long enough to open the result sheet. */
+export const isSearchQueryActive = (query: string): boolean =>
+  query.trim().length >= SEARCH_MIN_CHARS;
+
 const normalize = (value: string): string =>
   value.trim().toLocaleLowerCase("kl").replace(/\s+/g, " ");
 
@@ -113,7 +120,7 @@ export const searchPlacenames = (
   limit = 12,
 ): ReadonlyArray<SearchHit> => {
   const query = normalize(rawQuery);
-  if (query.length < 2) return [];
+  if (query.length < SEARCH_MIN_CHARS) return [];
 
   const hits: SearchHit[] = [];
   for (const place of places) {

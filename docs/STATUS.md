@@ -12,7 +12,7 @@ This document is the product and implementation source of truth.
 - Identity crosswalk: release-mounted `identity-crosswalk.json` — 15 candidate mappings (0 canonical `xid_` yet)
 - Selected release: `data/releases/CURRENT` → `2026.08.01.1` (web mounts via `scripts/sync-web-release.sh`)
 - Read API: `api/` on `:8787` (`make api-dev`)
-- Phase 5 UI: list–map–dossier shell, mobile bottom sheet, KL/DA/EN switch (KL first; KL copy provisional), full-index search, place result cards, release/offline status; no Google Fonts
+- Phase 5 UI: terrain-first map on `web/` (land hillshade + ocean meter bands hybrid D via `depth_abs_m` + discrete metric fills), map-first shell (search → Overview+Sources; no lens/Access/List–Map), KL/DA/EN switch (KL first; KL copy provisional), Download area corridor pack (OPFS; **stub** — not terrain-offline until full PMTiles), app-shell SW (`nunat-shell-*` only), not-for-navigation; gaps remain: IBCAO self-tiles, full corridor PMTiles, land peak color bands, gap-label polish; no Google Fonts
 - Locality inclusion rule: `docs/LOCALITY_SPINE_INCLUSION.md`
 - Implementation ledger: `docs/IMPLEMENTATION_LEDGER.md`
 - Product plan: `docs/nunat-decision-geography-product-implementation-plan.md`

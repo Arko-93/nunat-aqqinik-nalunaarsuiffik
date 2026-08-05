@@ -17,3 +17,12 @@ createRoot(root).render(
     </I18nProvider>
   </StrictMode>,
 );
+
+/** App-shell Service Worker only — corridor PMTiles stay in OPFS. */
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    void navigator.serviceWorker.register("/sw.js").catch(() => {
+      /* shell still works without SW */
+    });
+  });
+}

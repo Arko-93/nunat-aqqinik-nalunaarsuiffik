@@ -3,42 +3,17 @@ import maplibregl, { type Map, type GeoJSONSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { disclosureMinZoom } from "../domain/disclosure.ts";
 import type { ZoomBand } from "../domain/importance.ts";
-import type {
-  ContentLens,
-  MunicipalityFilter,
-} from "../domain/layers.ts";
 import type { Placename } from "../domain/placename.ts";
+import { loadTerrainStyle } from "../map/terrain-style.ts";
 
 const SOURCE_ID = "placenames";
 const SELECTED_SOURCE_ID = "placenames-selected";
-const REACH_SOURCE_ID = "reachability";
-const REACH_LAYER_ID = "reachability-line";
 const ADMIN_SOURCE_ID = "administrative-areas";
-const ADMIN_FILL_ID = "administrative-areas-fill";
 const ADMIN_LINE_ID = "administrative-areas-outline";
 const SELECTED_HALO_ID = "placenames-selected-halo";
 const SELECTED_RING_ID = "placenames-selected-ring";
 const SELECTED_DOT_ID = "placenames-selected-dot";
 const SELECTED_LABEL_ID = "placenames-selected-label";
-
-/** Soft fills — readable at country scale without drowning town labels. */
-const ADMIN_FILL_COLOR: maplibregl.ExpressionSpecification = [
-  "match",
-  ["get", "municipalityCode"],
-  955,
-  "#d4b896",
-  956,
-  "#9ec4cf",
-  957,
-  "#b5c9a8",
-  959,
-  "#c2b3d4",
-  960,
-  "#a8c0d4",
-  999,
-  "#e6ebe8",
-  "#d8d2c4",
-];
 
 const EMPTY_POINTS: GeoJSON.FeatureCollection = {
   type: "FeatureCollection",
@@ -60,13 +35,11 @@ const labelLayerId = (band: ZoomBand) => `placenames-label-${band}`;
 
 type Props = {
   collection: GeoJSON.FeatureCollection<GeoJSON.Point, Placename> | null;
-  reachabilityLines: GeoJSON.FeatureCollection<GeoJSON.LineString> | null;
   selectedId: number | null;
-  lens: ContentLens;
-  municipalityFilter: MunicipalityFilter;
   onSelect: (place: Placename) => void;
 };
 
+/** Admin outlines only — no fills so terrain stays visible. */
 function addAdministrativeLayers(map: Map) {
   map.addSource(ADMIN_SOURCE_ID, {
     type: "geojson",
@@ -74,29 +47,6 @@ function addAdministrativeLayers(map: Map) {
     data: {
       type: "FeatureCollection",
       features: [],
-    },
-  });
-
-  map.addLayer({
-    id: ADMIN_FILL_ID,
-    type: "fill",
-    source: ADMIN_SOURCE_ID,
-    paint: {
-      "fill-color": ADMIN_FILL_COLOR,
-      "fill-opacity": [
-        "case",
-        ["boolean", ["feature-state", "dimmed"], false],
-        0.04,
-        [
-          "match",
-          ["get", "kind"],
-          "national_park",
-          0.22,
-          "other",
-          0.14,
-          0.16,
-        ],
-      ],
     },
   });
 
@@ -124,16 +74,11 @@ function addAdministrativeLayers(map: Map) {
         1.6,
       ],
       "line-opacity": [
-        "case",
-        ["boolean", ["feature-state", "dimmed"], false],
-        0.2,
-        [
-          "match",
-          ["get", "kind"],
-          "national_park",
-          0.55,
-          0.7,
-        ],
+        "match",
+        ["get", "kind"],
+        "national_park",
+        0.55,
+        0.7,
       ],
     },
   });
@@ -239,7 +184,6 @@ function addBandLayers(map: Map, band: ZoomBand, minzoom: number) {
     minzoom,
     filter,
     paint: {
-      // Zoom expressions must be top-level step/interpolate only — no nesting.
       "circle-radius": [
         "case",
         ["boolean", ["feature-state", "selected"], false],
@@ -327,7 +271,6 @@ function addBandLayers(map: Map, band: ZoomBand, minzoom: number) {
           12,
         ],
       ],
-      // Try alternate anchors so labels sit in open space instead of stacking.
       "text-variable-anchor": [
         "top",
         "bottom",
@@ -342,9 +285,7 @@ function addBandLayers(map: Map, band: ZoomBand, minzoom: number) {
       "text-optional": true,
       "text-padding": band === "town" ? 8 : 10,
       "text-max-width": 8,
-      // Higher importance wins when two labels compete for the same space.
       "symbol-sort-key": ["get", "importance"],
-      // Never paint overlapping name tags — hide the loser until zoom frees space.
       "text-allow-overlap": false,
       "text-ignore-placement": false,
       "icon-allow-overlap": false,
@@ -495,35 +436,34 @@ function selectedCollection(
   };
 }
 
-export function MapCanvas({
-  collection,
-  reachabilityLines,
-  selectedId,
-  lens,
-  municipalityFilter,
-  onSelect,
-}: Props) {
+export function MapCanvas({ collection, selectedId, onSelect }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
   const onSelectRef = useRef(onSelect);
   const collectionRef = useRef(collection);
-  const reachRef = useRef(reachabilityLines);
-  const lensRef = useRef(lens);
   const fittedRef = useRef(false);
   const prevSelectedRef = useRef<number | null>(null);
   const inactiveIdsRef = useRef<Set<number>>(new Set());
-  const adminCodesRef = useRef<number[]>([]);
   onSelectRef.current = onSelect;
   collectionRef.current = collection;
-  reachRef.current = reachabilityLines;
-  lensRef.current = lens;
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
+    let cancelled = false;
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: "https://tiles.openfreemap.org/styles/liberty",
+      style: {
+        version: 8,
+        sources: {},
+        layers: [
+          {
+            id: "background",
+            type: "background",
+            paint: { "background-color": "#0c2430" },
+          },
+        ],
+      },
       center: [-42.5, 69.2],
       zoom: 3.4,
       maxPitch: 0,
@@ -538,7 +478,6 @@ export function MapCanvas({
     const ensureLayers = () => {
       if (map.getSource(SOURCE_ID)) return;
 
-      // Administrative areas under places — country-scale kommune outlines.
       addAdministrativeLayers(map);
 
       map.addSource(SOURCE_ID, {
@@ -555,32 +494,11 @@ export function MapCanvas({
         data: EMPTY_POINTS,
       });
 
-      map.addSource(REACH_SOURCE_ID, {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: [],
-        },
-      });
-
-      map.addLayer({
-        id: REACH_LAYER_ID,
-        type: "line",
-        source: REACH_SOURCE_ID,
-        paint: {
-          "line-color": "#c45c26",
-          "line-width": 2.4,
-          "line-opacity": 0.85,
-          "line-dasharray": [1.2, 1.4],
-        },
-      });
-
-      const mins = disclosureMinZoom(lensRef.current);
+      const mins = disclosureMinZoom("geography");
       for (const band of BANDS) {
         addBandLayers(map, band, mins[band]);
       }
 
-      // Selected marker/label paint above band layers and reach lines.
       addSelectedLayers(map);
     };
 
@@ -615,102 +533,67 @@ export function MapCanvas({
       bindPointer(SELECTED_LABEL_ID);
     };
 
-    map.on("load", () => {
-      ensureLayers();
-      bindInteractions();
-      void fetch("/data/administrative-areas.geojson")
-        .then(async (response) => {
-          if (!response.ok) return null;
-          return response.json() as Promise<GeoJSON.FeatureCollection>;
-        })
-        .then((admin) => {
-          if (!admin || !map.getSource(ADMIN_SOURCE_ID)) return;
-          const source = map.getSource(ADMIN_SOURCE_ID) as GeoJSONSource;
-          source.setData(admin);
-          adminCodesRef.current = admin.features.map((feature) =>
-            Number(
-              (feature.properties as { municipalityCode?: number } | null)
-                ?.municipalityCode ?? 0,
-            ),
-          );
-        })
-        .catch(() => {
-          /* basemap still usable without admin outlines */
-        });
-      const data = collectionRef.current;
-      if (data) {
-        const source = map.getSource(SOURCE_ID) as GeoJSONSource;
-        source.setData(data);
-        if (!fittedRef.current && data.features.length > 0) {
-          const bounds = new maplibregl.LngLatBounds();
-          for (const feature of data.features) {
-            if (feature.properties?.isLocality) {
-              bounds.extend(feature.geometry.coordinates as [number, number]);
+    void loadTerrainStyle()
+      .then((style) => {
+        if (cancelled) return;
+        map.setStyle(style);
+        map.once("style.load", () => {
+          ensureLayers();
+          bindInteractions();
+          void fetch("/data/administrative-areas.geojson")
+            .then(async (response) => {
+              if (!response.ok) return null;
+              return response.json() as Promise<GeoJSON.FeatureCollection>;
+            })
+            .then((admin) => {
+              if (!admin || !map.getSource(ADMIN_SOURCE_ID)) return;
+              const source = map.getSource(ADMIN_SOURCE_ID) as GeoJSONSource;
+              source.setData(admin);
+            })
+            .catch(() => {
+              /* basemap still usable without admin outlines */
+            });
+          const data = collectionRef.current;
+          if (data) {
+            const source = map.getSource(SOURCE_ID) as GeoJSONSource;
+            source.setData(data);
+            if (!fittedRef.current && data.features.length > 0) {
+              const bounds = new maplibregl.LngLatBounds();
+              for (const feature of data.features) {
+                if (feature.properties?.isLocality) {
+                  bounds.extend(
+                    feature.geometry.coordinates as [number, number],
+                  );
+                }
+              }
+              if (!bounds.isEmpty()) {
+                map.fitBounds(bounds, {
+                  padding: 72,
+                  maxZoom: 5.2,
+                  duration: 0,
+                });
+                fittedRef.current = true;
+              }
             }
           }
-          if (!bounds.isEmpty()) {
-            map.fitBounds(bounds, { padding: 72, maxZoom: 5.2, duration: 0 });
-            fittedRef.current = true;
-          }
-        }
-      }
-      const reach = reachRef.current;
-      if (reach) {
-        const reachSource = map.getSource(REACH_SOURCE_ID) as GeoJSONSource;
-        reachSource.setData(reach);
-      }
-    });
+        });
+      })
+      .catch(() => {
+        // Fallback: Liberty alone if terrain compose fails — still usable.
+        map.setStyle("https://tiles.openfreemap.org/styles/liberty");
+        map.once("style.load", () => {
+          ensureLayers();
+          bindInteractions();
+        });
+      });
 
     mapRef.current = map;
     return () => {
+      cancelled = true;
       map.remove();
       mapRef.current = null;
     };
   }, []);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    return whenSourceReady(map, () => {
-      const mins = disclosureMinZoom(lens);
-      for (const band of BANDS) {
-        const circleId = circleLayerId(band);
-        const labelId = labelLayerId(band);
-        if (map.getLayer(circleId)) {
-          map.setLayerZoomRange(circleId, mins[band], 24);
-        }
-        if (map.getLayer(labelId)) {
-          map.setLayerZoomRange(labelId, mins[band], 24);
-        }
-      }
-    });
-  }, [lens]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    return whenSourceReady(map, () => {
-      if (!map.getSource(ADMIN_SOURCE_ID)) return;
-      const activeCode =
-        typeof municipalityFilter === "number"
-          ? municipalityFilter
-          : municipalityFilter === "outside"
-            ? 999
-            : null;
-      for (const code of adminCodesRef.current) {
-        const dimmed =
-          activeCode != null &&
-          code !== activeCode &&
-          !(activeCode === 999 && code === 0);
-        map.setFeatureState(
-          { source: ADMIN_SOURCE_ID, id: code },
-          { dimmed },
-        );
-      }
-    });
-  }, [municipalityFilter]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -747,7 +630,6 @@ export function MapCanvas({
       if (!sourceReady(map)) return;
       if (!map.getSource(SELECTED_SOURCE_ID)) return;
 
-      // Clear prior selection/inactive flags without walking every feature.
       const clearId = (id: number) => {
         map.setFeatureState(
           { source: SOURCE_ID, id },
@@ -763,8 +645,6 @@ export function MapCanvas({
           { source: SOURCE_ID, id: selectedId },
           { selected: true, inactive: false },
         );
-        // Soft-dim only nearby same-band peers would be ideal; skip mass-dim
-        // when the geography source is large (tens of thousands of points).
         if (collection.features.length <= 400) {
           for (const feature of collection.features) {
             const id = feature.properties.recordId;
@@ -801,33 +681,6 @@ export function MapCanvas({
       });
     });
   }, [collection, selectedId]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !reachabilityLines) return;
-
-    return whenSourceReady(map, () => {
-      if (!map.getSource(REACH_SOURCE_ID)) return;
-      const source = map.getSource(REACH_SOURCE_ID) as GeoJSONSource;
-      source.setData(reachabilityLines);
-
-      if (reachabilityLines.features.length === 0) return;
-      const bounds = new maplibregl.LngLatBounds();
-      for (const feature of reachabilityLines.features) {
-        for (const coord of feature.geometry.coordinates) {
-          bounds.extend(coord as [number, number]);
-        }
-      }
-      if (!bounds.isEmpty()) {
-        map.fitBounds(bounds, {
-          padding: 96,
-          maxZoom: 8.2,
-          duration: 320,
-          easing: (t) => 1 - Math.pow(1 - t, 3),
-        });
-      }
-    });
-  }, [reachabilityLines]);
 
   return <div className="map-root" ref={containerRef} />;
 }

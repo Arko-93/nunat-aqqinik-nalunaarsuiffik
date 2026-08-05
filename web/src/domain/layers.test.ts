@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { defaultLayerState, placeVisible } from "./layers.ts";
+import {
+  defaultLayerState,
+  gazetteerVisible,
+  placeVisible,
+} from "./layers.ts";
 import { withMapRank, type Placename } from "./placename.ts";
 
 const base = (
@@ -33,7 +37,21 @@ const base = (
   };
 };
 
-describe("placeVisible", () => {
+describe("gazetteerVisible (map-first)", () => {
+  const town = base({ typeCode: 21, featureKind: "town", isLocality: true });
+  const fjord = base({ typeCode: 57, featureKind: "other", isLocality: false });
+
+  it("shows localities and geography without a lens", () => {
+    expect(gazetteerVisible(town)).toBe(true);
+    expect(gazetteerVisible(fjord)).toBe(true);
+  });
+
+  it("hides locality shadow duplicates", () => {
+    expect(gazetteerVisible({ ...town, isLocalityShadow: true })).toBe(false);
+  });
+});
+
+describe("placeVisible (legacy lens helpers)", () => {
   const town = base({ typeCode: 21, featureKind: "town", isLocality: true });
   const settlement = base({
     typeCode: 23,

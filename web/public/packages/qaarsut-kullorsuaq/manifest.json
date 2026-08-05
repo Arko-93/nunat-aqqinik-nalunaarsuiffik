@@ -1,0 +1,26 @@
+{
+  "id": "corridor_qaarsut_kullorsuaq_2026-08-05-stub",
+  "slug": "qaarsut-kullorsuaq",
+  "title": {
+    "kl": "Qaarsut–Kullorsuaq",
+    "da": "Qaarsut–Kullorsuaq",
+    "en": "Qaarsut–Kullorsuaq"
+  },
+  "bbox": [-58.5, 70.4, -50.5, 74.9],
+  "bytes": 43,
+  "createdAt": "2026-08-05T00:00:00Z",
+  "kind": "stub",
+  "files": [
+    {
+      "path": "localities.geojson",
+      "bytes": 43,
+      "sha256": "6d18edfe75b3149104038dcbca4d0096bbcb923f0f9fa4b49f4815344e75bb90"
+    }
+  ],
+  "storage": {
+    "opfs": ["localities.geojson"],
+    "cache": ["manifest.json"]
+  },
+  "notForNavigation": true,
+  "notes": "Stub pack for Download area wiring only. Does not provide offline terrain. Full land-relief.pmtiles + IBCAO ocean-depth.pmtiles still to host (budget 80–180 MB, ≤250 MB)."
+}
