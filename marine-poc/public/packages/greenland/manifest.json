@@ -15,9 +15,9 @@
   ],
   "minZoom": 3,
   "maxZoom": 14,
-  "bytes": 14769605,
-  "sha256": "dc9e08fc849c808aad0e3f9ae46e3abc2fb012b435983e1ac98c04248b4461d9",
-  "createdAt": "2026-08-04T14:21:12Z",
+  "bytes": 138144956,
+  "sha256": "127f08274df9d13dcd1b0e837e73fad0651724d24d464a09b4edd1a4a42ad617",
+  "createdAt": "2026-08-05T01:06:35Z",
   "primaryFile": "places.geojson",
   "primaryBytes": 3504890,
   "primarySha256": "592ccedc5b2762ab443d77b9e0b0924da45747aec68341a85875d8bab9d2dbf3",
@@ -29,13 +29,18 @@
     },
     {
       "path": "land.geojson",
-      "bytes": 2762058,
-      "sha256": "680d469296da65ec259c20315b7d8fcd8647838cd119d04b1f38d352afd900f5"
+      "bytes": 66579931,
+      "sha256": "8d1687ce2cb72aba49ea1b7a3de0f5dffab93e0781096790cac66f8e5d8706c9"
+    },
+    {
+      "path": "land.pmtiles",
+      "bytes": 61938169,
+      "sha256": "bb261bc0bee8b7d17e4a2a0c25244ab6c4000746d25f44bee413236a717b85ff"
     },
     {
       "path": "ocean-bands.geojson",
-      "bytes": 4534643,
-      "sha256": "ebdfda05e1bcc5351269ab1d89aa779def5a77a5a0ea8fced52f661281722253"
+      "bytes": 2153789,
+      "sha256": "05e8b5c048704cc9b4870ba457b5a148ba665b30823b1196ba870ddf80f3e7d7"
     },
     {
       "path": "water.geojson",
@@ -44,8 +49,8 @@
     },
     {
       "path": "style.json",
-      "bytes": 3049,
-      "sha256": "0641ea5e4e949c5c4f577878dbec2df7780eb98e769d0798255824e631b6233c"
+      "bytes": 3212,
+      "sha256": "0e78b3da62a20aae7c6cc0551b563b464b9c74345e5ad5894af8028bc3ab97a2"
     }
   ],
   "stats": {
@@ -63,10 +68,11 @@
     },
     {
       "id": "land",
-      "source": "OpenStreetMap simplified land polygons (ODbL) + OpenStreetMap water",
+      "source": "OpenStreetMap land polygons (full coastline, ODbL) + OpenStreetMap water",
       "licence": "ODbL",
       "dataAsOf": "2026-08-04",
-      "file": "land.geojson",
+      "file": "land.pmtiles",
+      "routingFile": "land.geojson",
       "safety": "not-for-navigation"
     },
     {
@@ -81,7 +87,7 @@
   "style": "style.json",
   "attributions": [
     "Place names: Nunat Aqqinik Aalajangiisartut / Oqaasileriffik via NunaGIS",
-    "OpenStreetMap simplified land polygons (ODbL) + OpenStreetMap water",
+    "OpenStreetMap land polygons (full coastline, ODbL) + OpenStreetMap water",
     "\u00a9 OpenStreetMap contributors (ODbL) when OSM land is used",
     "Not an official nautical chart \u2014 companion context only"
   ],

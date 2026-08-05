@@ -9,8 +9,9 @@
   },
   "sources": {
     "land": {
-      "type": "geojson",
-      "data": "land.geojson"
+      "type": "vector",
+      "url": "pmtiles://land.pmtiles",
+      "attribution": "\u00a9 OpenStreetMap contributors (ODbL)"
     },
     "places": {
       "type": "geojson",
@@ -82,7 +83,8 @@
       "paint": {
         "fill-color": "#243a2f",
         "fill-opacity": 0.98
-      }
+      },
+      "source-layer": "land"
     },
     {
       "id": "water-fill",
@@ -108,7 +110,8 @@
       "paint": {
         "fill-color": "#b8995a",
         "fill-opacity": 0.88
-      }
+      },
+      "source-layer": "land"
     },
     {
       "id": "land-outline",
@@ -125,7 +128,8 @@
       "paint": {
         "line-color": "#8ec9a8",
         "line-width": 1.7
-      }
+      },
+      "source-layer": "land"
     },
     {
       "id": "places-circle",

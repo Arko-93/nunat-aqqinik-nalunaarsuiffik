@@ -626,15 +626,17 @@ def try_build_pmtiles(
     """Build a PMTiles vector tileset with tippecanoe (or Docker image)."""
     out = out_dir / out_name
     tippecanoe = shutil.which("tippecanoe")
+    # Cap maxzoom at 13 and allow densest-drop so land.pmtiles stays under
+    # GitHub's 100 MB file limit; MapLibre overzooms cleanly to package maxZoom 14.
     tippecanoe_args = [
         "-o",
         str(out) if tippecanoe else f"/data/{out_name}",
         "-Z3",
-        "-z14",
+        "-z13",
         "-l",
         layer,
-        "--no-feature-limit",
-        "--no-tile-size-limit",
+        "--drop-densest-as-needed",
+        "--extend-zooms-if-still-dropping",
         "--simplify-only-low-zooms",
         "--force",
         str(geojson) if tippecanoe else f"/data/{geojson.name}",
@@ -680,17 +682,7 @@ def try_build_pmtiles(
             f"{out_dir}:/data",
             image,
             "tippecanoe",
-            "-o",
-            f"/data/{out_name}",
-            "-Z3",
-            "-z14",
-            "-l",
-            layer,
-            "--no-feature-limit",
-            "--no-tile-size-limit",
-            "--simplify-only-low-zooms",
-            "--force",
-            f"/data/{geojson.name}",
+            *tippecanoe_args,
         ]
 
     print("Building", out_name, "…")
