@@ -1,6 +1,13 @@
 {
-  "source": "web/public/data/placenames.geojson",
-  "note": "Expected GlobalIDs for NunaGIS coastal gazetteer types. Update only with reviewable source-snapshot evidence.",
+  "manifestVersion": 1,
+  "source": {
+    "path": "public/data/placenames.geojson",
+    "sha256": "56cbb65db9b4826810fde134a84245f1e3303ec044ee1d2f03d21ac9c7b29324",
+    "byteSize": 17476050,
+    "mediaType": "application/geo+json",
+    "upstreamLayerUrl": "https://kort.nunagis.gl/refserver/rest/services/PlacenamesRegister/PlacenamesRegisterSearch/MapServer/1",
+    "note": "Immutable baked NunaGIS midpoint snapshot used by web coverage tests. Update GlobalIDs and checksum together with reviewable evidence."
+  },
   "expectedCounts": {
     "143": 237,
     "181": 4335,

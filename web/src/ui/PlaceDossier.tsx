@@ -10,7 +10,7 @@ import {
 import { useI18n } from "../i18n/I18nContext.tsx";
 import type { LoadedRelease } from "../services/release.ts";
 import { OfflineStatus } from "./OfflineStatus.tsx";
-import { selectionDisplay } from "./selection-display.ts";
+import { displayTypeLabel, placeProvenance } from "./map-selection.ts";
 
 type TabId = "overview" | "sources";
 
@@ -18,14 +18,23 @@ type Props = {
   place: Placename;
   release: LoadedRelease | null;
   onClose?: () => void;
+  /** Test/default seam — production leaves this unset (overview). */
+  initialTab?: TabId;
 };
 
-export function PlaceDossier({ place, release, onClose }: Props) {
+export function PlaceDossier({
+  place,
+  release,
+  onClose,
+  initialTab = "overview",
+}: Props) {
   const { t } = useI18n();
   const areaLabel = responsibilityLabel(
     place.municipalityCode,
     place.municipalityName,
   );
+  const typeLabel = displayTypeLabel(place, t);
+  const provenance = placeProvenance(place);
 
   const tabs = useMemo(
     () => [
@@ -35,12 +44,11 @@ export function PlaceDossier({ place, release, onClose }: Props) {
     [t],
   );
 
-  const [tab, setTab] = useState<TabId>("overview");
+  const [tab, setTab] = useState<TabId>(initialTab);
   const activeTab = tabs.some((entry) => entry.value === tab)
     ? tab
     : tabs[0]!.value;
 
-  const selected = selectionDisplay(place, t);
   const identityBadge =
     place.identityStatus === "canonical"
       ? t.identityCanonical
@@ -52,7 +60,7 @@ export function PlaceDossier({ place, release, onClose }: Props) {
     <article className="place-dossier" aria-live="polite">
       <header className="place-dossier-header">
         <div className="place-panel-meta">
-          <Badge variant="secondary">{selected.typeLabel}</Badge>
+          <Badge variant="secondary">{typeLabel}</Badge>
           {areaLabel ? <Badge variant="outline">{areaLabel}</Badge> : null}
           <Badge variant="outline">{identityBadge}</Badge>
         </div>
@@ -135,6 +143,32 @@ export function PlaceDossier({ place, release, onClose }: Props) {
         <div className="dossier-sources">
           <OfflineStatus release={release} />
           <dl className="names">
+            <div>
+              <dt>{t.provenanceSource}</dt>
+              <dd>{provenance.registerName}</dd>
+            </div>
+            <div>
+              <dt>{t.provenanceGeometry}</dt>
+              <dd>{t.provenanceMidpoint}</dd>
+            </div>
+            <div>
+              <dt>{t.provenanceType}</dt>
+              <dd>
+                {provenance.registerTypeLabel} ({provenance.typeCode})
+              </dd>
+            </div>
+            <div>
+              <dt>{t.provenanceGlobalId}</dt>
+              <dd>
+                <code>{provenance.globalId}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>{t.provenanceLayer}</dt>
+              <dd>
+                <code className="provenance-url">{provenance.layerUrl}</code>
+              </dd>
+            </div>
             <div>
               <dt>{t.featureId}</dt>
               <dd>

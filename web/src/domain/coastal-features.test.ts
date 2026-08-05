@@ -1,48 +1,53 @@
 import { describe, expect, it } from "vitest";
 import {
+  COASTAL_KINDS,
   COASTAL_MARKER_GLYPH,
   COASTAL_MARKER_MIN_ZOOM,
+  COASTAL_REGISTRY,
   COASTAL_TYPE,
   coastalMarkerKind,
   coastalMarkerMinZoomForType,
+  coastalMetaForType,
   coastalTypeExemptFromLocalityShadow,
   isCoastalGazetteerType,
 } from "./coastal-features.ts";
-import { rankForType } from "./importance.ts";
+import { rankForType, typeLabel } from "./importance.ts";
 
-describe("coastal gazetteer types (NunaGIS)", () => {
-  it("keeps the four source type codes distinct", () => {
+describe("coastal gazetteer registry (NunaGIS)", () => {
+  it("owns codes, zooms, markers, and register labels in one registry", () => {
     expect(COASTAL_TYPE.skerry).toBe(143);
     expect(COASTAL_TYPE.island).toBe(181);
     expect(COASTAL_TYPE.islandPart).toBe(182);
     expect(COASTAL_TYPE.islandGroup).toBe(183);
-    expect(coastalMarkerKind(143)).toBe("skerry");
-    expect(coastalMarkerKind(181)).toBe("island");
-    expect(coastalMarkerKind(182)).toBe("island_part");
-    expect(coastalMarkerKind(183)).toBe("island_group");
-    expect(coastalMarkerKind(21)).toBeNull();
+
+    expect(COASTAL_REGISTRY.skerry.markerShape).toBe("cross");
+    expect(COASTAL_REGISTRY.island.markerShape).toBe("circle");
+    expect(COASTAL_REGISTRY.island_part.markerShape).toBe("dot");
+    expect(COASTAL_REGISTRY.island_group.markerShape).toBe("ring");
+
+    expect(COASTAL_REGISTRY.skerry.glyph).toBe("×");
+    expect(COASTAL_REGISTRY.skerry.registerLabelDa).toBe("Skær");
+    expect(COASTAL_REGISTRY.skerry.typeLabelKey).toBe("typeLabelSkerry");
+
+    for (const kind of COASTAL_KINDS) {
+      const meta = COASTAL_REGISTRY[kind];
+      expect(coastalMetaForType(meta.typeCode)).toEqual(meta);
+      expect(coastalMarkerKind(meta.typeCode)).toBe(kind);
+      expect(COASTAL_MARKER_MIN_ZOOM[kind]).toBe(meta.minZoom);
+      expect(COASTAL_MARKER_GLYPH[kind]).toBe(meta.glyph);
+      expect(typeLabel(meta.typeCode)).toBe(meta.registerLabelDa);
+      expect(rankForType(meta.typeCode)).toEqual({
+        importance: meta.importance,
+        minZoom: meta.minZoom,
+      });
+    }
   });
 
-  it("gates markers at issue thresholds, independent of label collision", () => {
-    expect(COASTAL_MARKER_MIN_ZOOM.island_group).toBe(5.8);
-    expect(COASTAL_MARKER_MIN_ZOOM.island).toBe(7.0);
-    expect(COASTAL_MARKER_MIN_ZOOM.island_part).toBe(9.0);
-    expect(COASTAL_MARKER_MIN_ZOOM.skerry).toBe(9.6);
+  it("gates markers at issue thresholds", () => {
     expect(coastalMarkerMinZoomForType(143)).toBe(9.6);
     expect(coastalMarkerMinZoomForType(181)).toBe(7.0);
     expect(coastalMarkerMinZoomForType(182)).toBe(9.0);
     expect(coastalMarkerMinZoomForType(183)).toBe(5.8);
-    expect(rankForType(143).minZoom).toBe(9.6);
-    expect(rankForType(181).minZoom).toBe(7.0);
-    expect(rankForType(182).minZoom).toBe(9.0);
-    expect(rankForType(183).minZoom).toBe(5.8);
-  });
-
-  it("uses × for skerry and distinct glyphs for the other three", () => {
-    expect(COASTAL_MARKER_GLYPH.skerry).toBe("×");
-    expect(COASTAL_MARKER_GLYPH.island).toBe("○");
-    expect(COASTAL_MARKER_GLYPH.island_part).toBe("·");
-    expect(COASTAL_MARKER_GLYPH.island_group).toBe("◎");
   });
 
   it("exempts all four types from automatic locality-shadow", () => {

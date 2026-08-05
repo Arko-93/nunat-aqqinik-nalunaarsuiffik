@@ -6,22 +6,25 @@ import type { ZoomBand } from "../domain/importance.ts";
 import type { Placename } from "../domain/placename.ts";
 import {
   allCoastalMarkerLayers,
+  allSelectedCoastalMarkerLayers,
   bandCircleLayerId,
   bandLabelLayerId,
   coastalInteractiveLayerIds,
   nonCoastalBandFilter,
   PLACENAMES_SOURCE_ID,
+  SELECTED_SOURCE_ID,
+  selectedCoastalInteractiveLayerIds,
+  selectedNonCoastalDotLayer,
 } from "../map/gazetteer-markers.ts";
 import { loadTerrainStyle } from "../map/terrain-style.ts";
+import { placenameFromMapFeature } from "./map-selection.ts";
 
 const SOURCE_ID = PLACENAMES_SOURCE_ID;
-const SELECTED_SOURCE_ID = "placenames-selected";
 const ADMIN_SOURCE_ID = "administrative-areas";
 const ADMIN_LINE_ID = "administrative-areas-outline";
 const SELECTED_HALO_ID = "placenames-selected-halo";
 const SELECTED_RING_ID = "placenames-selected-ring";
 const SELECTED_DOT_ID = "placenames-selected-dot";
-const SELECTED_SKERRY_ID = "placenames-selected-skerry";
 const SELECTED_LABEL_ID = "placenames-selected-label";
 
 const EMPTY_POINTS: GeoJSON.FeatureCollection = {
@@ -112,67 +115,6 @@ function whenSourceReady(map: Map, run: () => void): () => void {
   return () => {
     map.off("load", tryRun);
     map.off("styledata", tryRun);
-  };
-}
-
-function parsePlacename(props: GeoJSON.GeoJsonProperties): Placename | null {
-  if (!props) return null;
-  const isLocality =
-    props.isLocality === true ||
-    props.isLocality === "true" ||
-    props.isLocality === 1;
-  const globalId = String(props.globalId ?? "");
-  const identityStatus =
-    props.identityStatus === "canonical" ||
-    props.identityStatus === "candidate" ||
-    props.identityStatus === "upstream_only"
-      ? props.identityStatus
-      : "upstream_only";
-  return {
-    ...(props as Placename),
-    featureId:
-      typeof props.featureId === "string" && props.featureId.length > 0
-        ? props.featureId
-        : `nunagis:${globalId}`,
-    placeId:
-      props.placeId == null || props.placeId === ""
-        ? null
-        : String(props.placeId),
-    identityStatus,
-    globalId,
-    isLocality,
-    isLocalityShadow:
-      props.isLocalityShadow === true ||
-      props.isLocalityShadow === "true" ||
-      props.isLocalityShadow === 1,
-    typeCode: Number(props.typeCode),
-    recordId: Number(props.recordId),
-    importance: Number(props.importance),
-    minZoom: Number(props.minZoom),
-    longitude: Number(props.longitude),
-    latitude: Number(props.latitude),
-    typeLabel: String(props.typeLabel ?? ""),
-    zoomBand: props.zoomBand as Placename["zoomBand"],
-    municipalityCode:
-      props.municipalityCode == null || props.municipalityCode === ""
-        ? null
-        : Number(props.municipalityCode),
-    danishName:
-      props.danishName == null || props.danishName === ""
-        ? null
-        : String(props.danishName),
-    oldOfficialName:
-      props.oldOfficialName == null || props.oldOfficialName === ""
-        ? null
-        : String(props.oldOfficialName),
-    municipalityName:
-      props.municipalityName == null || props.municipalityName === ""
-        ? null
-        : String(props.municipalityName),
-    localityCode:
-      props.localityCode == null || props.localityCode === ""
-        ? null
-        : String(props.localityCode),
   };
 }
 
@@ -371,58 +313,10 @@ function addSelectedLayers(map: Map) {
     },
   });
 
-  map.addLayer({
-    id: SELECTED_DOT_ID,
-    type: "circle",
-    source: SELECTED_SOURCE_ID,
-    filter: ["!=", ["get", "typeCode"], 143],
-    paint: {
-      "circle-radius": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        3,
-        6.5,
-        8,
-        8.5,
-        12,
-        9.5,
-      ],
-      "circle-color": "#c45c26",
-      "circle-opacity": 1,
-      "circle-stroke-width": 1.8,
-      "circle-stroke-color": "#0d2a38",
-    },
-  });
-
-  map.addLayer({
-    id: SELECTED_SKERRY_ID,
-    type: "symbol",
-    source: SELECTED_SOURCE_ID,
-    filter: ["==", ["get", "typeCode"], 143],
-    layout: {
-      "text-field": "×",
-      "text-font": ["Noto Sans Bold", "Noto Sans Regular"],
-      "text-size": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        3,
-        16,
-        8,
-        20,
-        12,
-        22,
-      ],
-      "text-allow-overlap": true,
-      "text-ignore-placement": true,
-    },
-    paint: {
-      "text-color": "#f4f7f8",
-      "text-halo-color": "#0d2a38",
-      "text-halo-width": 2,
-    },
-  });
+  for (const layer of allSelectedCoastalMarkerLayers()) {
+    map.addLayer(layer);
+  }
+  map.addLayer(selectedNonCoastalDotLayer());
 
   map.addLayer({
     id: SELECTED_LABEL_ID,
@@ -548,7 +442,9 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
           features?: maplibregl.MapGeoJSONFeature[];
         },
       ) => {
-        const place = parsePlacename(event.features?.[0]?.properties ?? null);
+        const place = placenameFromMapFeature(
+          event.features?.[0]?.properties ?? null,
+        );
         if (!place) return;
         onSelectRef.current(place);
       };
@@ -572,7 +468,9 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       }
 
       bindPointer(SELECTED_DOT_ID);
-      bindPointer(SELECTED_SKERRY_ID);
+      for (const layerId of selectedCoastalInteractiveLayerIds()) {
+        bindPointer(layerId);
+      }
       bindPointer(SELECTED_RING_ID);
       bindPointer(SELECTED_LABEL_ID);
     };

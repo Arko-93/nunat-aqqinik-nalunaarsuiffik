@@ -1,37 +1,30 @@
 import type {
   CircleLayerSpecification,
+  ExpressionSpecification,
   FilterSpecification,
   SymbolLayerSpecification,
 } from "maplibre-gl";
 import {
-  COASTAL_MARKER_GLYPH,
-  COASTAL_MARKER_MIN_ZOOM,
-  COASTAL_TYPE,
+  COASTAL_KINDS,
+  COASTAL_REGISTRY,
+  COASTAL_TYPE_CODES,
+  coastalMetaForKind,
   type CoastalMarkerKind,
 } from "../domain/coastal-features.ts";
 import type { ZoomBand } from "../domain/importance.ts";
 
 export const PLACENAMES_SOURCE_ID = "placenames";
-
-const COASTAL_KINDS: ReadonlyArray<CoastalMarkerKind> = [
-  "island_group",
-  "island",
-  "island_part",
-  "skerry",
-];
-
-const TYPE_FOR_KIND: Readonly<Record<CoastalMarkerKind, number>> = {
-  skerry: COASTAL_TYPE.skerry,
-  island: COASTAL_TYPE.island,
-  island_part: COASTAL_TYPE.islandPart,
-  island_group: COASTAL_TYPE.islandGroup,
-};
+export const SELECTED_SOURCE_ID = "placenames-selected";
 
 export const coastalMarkerLayerId = (kind: CoastalMarkerKind): string =>
   `placenames-marker-${kind}`;
 
 export const coastalLabelLayerId = (kind: CoastalMarkerKind): string =>
   `placenames-label-${kind}`;
+
+export const selectedCoastalMarkerLayerId = (
+  kind: CoastalMarkerKind,
+): string => `placenames-selected-marker-${kind}`;
 
 export const bandCircleLayerId = (band: ZoomBand): string =>
   `placenames-circle-${band}`;
@@ -45,7 +38,10 @@ export const nonCoastalBandFilter = (
 ): FilterSpecification => [
   "all",
   ["==", ["get", "zoomBand"], band],
-  ["!", ["in", ["get", "typeCode"], ["literal", [143, 181, 182, 183]]]],
+  [
+    "!",
+    ["in", ["get", "typeCode"], ["literal", [...COASTAL_TYPE_CODES]]],
+  ],
 ];
 
 export const coastalTypeFilter = (
@@ -53,14 +49,14 @@ export const coastalTypeFilter = (
 ): FilterSpecification => [
   "==",
   ["get", "typeCode"],
-  TYPE_FOR_KIND[kind],
+  COASTAL_REGISTRY[kind].typeCode,
 ];
 
 export type GazetteerMarkerLayer =
   | CircleLayerSpecification
   | SymbolLayerSpecification;
 
-const GEO_COLOR = [
+const GEO_COLOR: ExpressionSpecification = [
   "interpolate",
   ["linear"],
   ["get", "importance"],
@@ -68,21 +64,30 @@ const GEO_COLOR = [
   "#8eb9c6",
   700,
   "#d9e7ee",
-] as unknown as NonNullable<
-  NonNullable<CircleLayerSpecification["paint"]>["circle-color"]
->;
+];
 
-export function coastalMarkerLayers(
+const selectedFalse: ExpressionSpecification = [
+  "boolean",
+  ["feature-state", "selected"],
+  false,
+];
+
+const inactiveFalse: ExpressionSpecification = [
+  "boolean",
+  ["feature-state", "inactive"],
+  false,
+];
+
+function coastalLabelLayer(
   kind: CoastalMarkerKind,
-): ReadonlyArray<GazetteerMarkerLayer> {
-  const minzoom = COASTAL_MARKER_MIN_ZOOM[kind];
-  const filter = coastalTypeFilter(kind);
-  const label: SymbolLayerSpecification = {
+): SymbolLayerSpecification {
+  const meta = coastalMetaForKind(kind);
+  return {
     id: coastalLabelLayerId(kind),
     type: "symbol",
     source: PLACENAMES_SOURCE_ID,
-    minzoom,
-    filter,
+    minzoom: meta.minZoom,
+    filter: coastalTypeFilter(kind),
     layout: {
       "text-field": ["get", "officialName"],
       "text-font": ["Noto Sans Regular"],
@@ -103,42 +108,45 @@ export function coastalMarkerLayers(
       "text-max-width": 8,
       "symbol-sort-key": ["get", "importance"],
       "text-allow-overlap": false,
-      "text-ignore-placement": false,
+      // Passive coastal labels must not reserve space ahead of town/settlement labels.
+      "text-ignore-placement": true,
     },
     paint: {
       "text-color": [
         "case",
-        ["boolean", ["feature-state", "selected"], false],
+        selectedFalse,
         "rgba(244, 247, 248, 0)",
         "#f4f7f8",
       ],
       "text-halo-color": "#0d2a38",
-      "text-halo-width": [
-        "case",
-        ["boolean", ["feature-state", "selected"], false],
-        0,
-        1.45,
-      ],
+      "text-halo-width": ["case", selectedFalse, 0, 1.45],
       "text-opacity": [
         "case",
-        ["boolean", ["feature-state", "selected"], false],
+        selectedFalse,
         0,
-        ["boolean", ["feature-state", "inactive"], false],
+        inactiveFalse,
         0.48,
         0.92,
       ],
     },
   };
+}
 
-  if (kind === "skerry") {
+function coastalMarkerLayer(
+  kind: CoastalMarkerKind,
+): GazetteerMarkerLayer {
+  const meta = coastalMetaForKind(kind);
+  const filter = coastalTypeFilter(kind);
+
+  if (meta.markerShape === "cross") {
     const marker: SymbolLayerSpecification = {
       id: coastalMarkerLayerId(kind),
       type: "symbol",
       source: PLACENAMES_SOURCE_ID,
-      minzoom,
+      minzoom: meta.minZoom,
       filter,
       layout: {
-        "text-field": COASTAL_MARKER_GLYPH.skerry,
+        "text-field": meta.glyph,
         "text-font": ["Noto Sans Bold", "Noto Sans Regular"],
         "text-size": 14,
         "text-allow-overlap": true,
@@ -148,7 +156,7 @@ export function coastalMarkerLayers(
       paint: {
         "text-color": [
           "case",
-          ["boolean", ["feature-state", "selected"], false],
+          selectedFalse,
           "rgba(244, 247, 248, 0)",
           "#e8f0f4",
         ],
@@ -156,73 +164,143 @@ export function coastalMarkerLayers(
         "text-halo-width": 1.2,
         "text-opacity": [
           "case",
-          ["boolean", ["feature-state", "selected"], false],
+          selectedFalse,
           0,
-          ["boolean", ["feature-state", "inactive"], false],
+          inactiveFalse,
           0.45,
           0.95,
         ],
       },
     };
-    return [marker, label];
+    return marker;
   }
 
-  const radius =
-    kind === "island" ? 3.4 : kind === "island_group" ? 4.2 : 2.0;
-  const strokeWidth =
-    kind === "island_group" ? 1.6 : kind === "island_part" ? 0.5 : 0.75;
-  const fillOpacity =
-    kind === "island_group" ? 0 : kind === "island_part" ? 0.7 : 0.78;
+  const fillColor: ExpressionSpecification | string =
+    meta.markerShape === "dot"
+      ? "#9aa7ad"
+      : meta.markerShape === "ring"
+        ? "transparent"
+        : GEO_COLOR;
+
   const marker: CircleLayerSpecification = {
     id: coastalMarkerLayerId(kind),
     type: "circle",
     source: PLACENAMES_SOURCE_ID,
-    minzoom,
+    minzoom: meta.minZoom,
     filter,
     paint: {
-      "circle-radius": [
-        "case",
-        ["boolean", ["feature-state", "selected"], false],
-        0,
-        radius,
-      ],
+      "circle-radius": ["case", selectedFalse, 0, meta.circleRadius],
       "circle-stroke-width": [
         "case",
-        ["boolean", ["feature-state", "selected"], false],
+        selectedFalse,
         0,
-        strokeWidth,
+        meta.circleStrokeWidth,
       ],
-      "circle-color":
-        kind === "island_part"
-          ? "#9aa7ad"
-          : kind === "island_group"
-            ? "transparent"
-            : GEO_COLOR,
+      "circle-color": fillColor,
       "circle-opacity": [
         "case",
-        ["boolean", ["feature-state", "selected"], false],
+        selectedFalse,
         0,
-        ["boolean", ["feature-state", "inactive"], false],
+        inactiveFalse,
         0.42,
-        fillOpacity,
+        meta.circleFillOpacity,
       ],
       "circle-stroke-color":
-        kind === "island_group" ? "#d9e7ee" : "#102029",
+        meta.markerShape === "ring" ? "#d9e7ee" : "#102029",
       "circle-stroke-opacity": [
         "case",
-        ["boolean", ["feature-state", "selected"], false],
+        selectedFalse,
         0,
-        kind === "island_group" ? 0.9 : 1,
+        meta.markerShape === "ring" ? 0.9 : 1,
       ],
     },
   };
+  return marker;
+}
 
-  return [marker, label];
+/** Selected-state coastal markers — preserve each source shape. */
+export function selectedCoastalMarkerLayer(
+  kind: CoastalMarkerKind,
+): GazetteerMarkerLayer {
+  const meta = coastalMetaForKind(kind);
+  const filter = coastalTypeFilter(kind);
+
+  if (meta.markerShape === "cross") {
+    const marker: SymbolLayerSpecification = {
+      id: selectedCoastalMarkerLayerId(kind),
+      type: "symbol",
+      source: SELECTED_SOURCE_ID,
+      filter,
+      layout: {
+        "text-field": meta.glyph,
+        "text-font": ["Noto Sans Bold", "Noto Sans Regular"],
+        "text-size": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          3,
+          16,
+          8,
+          20,
+          12,
+          22,
+        ],
+        "text-allow-overlap": true,
+        "text-ignore-placement": true,
+      },
+      paint: {
+        "text-color": "#f4f7f8",
+        "text-halo-color": "#0d2a38",
+        "text-halo-width": 2,
+      },
+    };
+    return marker;
+  }
+
+  const selectedRadius =
+    meta.markerShape === "ring"
+      ? meta.circleRadius + 1.5
+      : meta.markerShape === "dot"
+        ? meta.circleRadius + 1.2
+        : meta.circleRadius + 2;
+  const selectedStroke =
+    meta.markerShape === "ring" ? 2.5 : meta.circleStrokeWidth + 0.8;
+
+  const marker: CircleLayerSpecification = {
+    id: selectedCoastalMarkerLayerId(kind),
+    type: "circle",
+    source: SELECTED_SOURCE_ID,
+    filter,
+    paint: {
+      "circle-radius": selectedRadius,
+      "circle-stroke-width": selectedStroke,
+      "circle-color":
+        meta.markerShape === "ring"
+          ? "transparent"
+          : meta.markerShape === "dot"
+            ? "#c4a882"
+            : "#c45c26",
+      "circle-opacity": meta.markerShape === "ring" ? 0 : 1,
+      "circle-stroke-color": "#f4f7f8",
+      "circle-stroke-opacity": 0.95,
+    },
+  };
+  return marker;
+}
+
+export function coastalMarkerLayers(
+  kind: CoastalMarkerKind,
+): ReadonlyArray<GazetteerMarkerLayer> {
+  return [coastalMarkerLayer(kind), coastalLabelLayer(kind)];
 }
 
 /** All coastal marker + label layers in draw order (groups first, skerries last). */
 export function allCoastalMarkerLayers(): ReadonlyArray<GazetteerMarkerLayer> {
   return COASTAL_KINDS.flatMap((kind) => coastalMarkerLayers(kind));
+}
+
+export function allSelectedCoastalMarkerLayers(): ReadonlyArray<GazetteerMarkerLayer> {
+  return COASTAL_KINDS.map((kind) => selectedCoastalMarkerLayer(kind));
 }
 
 export function coastalInteractiveLayerIds(): ReadonlyArray<string> {
@@ -232,9 +310,43 @@ export function coastalInteractiveLayerIds(): ReadonlyArray<string> {
   ]);
 }
 
+export function selectedCoastalInteractiveLayerIds(): ReadonlyArray<string> {
+  return COASTAL_KINDS.map((kind) => selectedCoastalMarkerLayerId(kind));
+}
+
 export function markerKindAppearsAtZoom(
   kind: CoastalMarkerKind,
   zoom: number,
 ): boolean {
-  return zoom >= COASTAL_MARKER_MIN_ZOOM[kind];
+  return zoom >= COASTAL_REGISTRY[kind].minZoom;
+}
+
+/** Non-coastal selected marker (towns / other geography). */
+export function selectedNonCoastalDotLayer(): CircleLayerSpecification {
+  return {
+    id: "placenames-selected-dot",
+    type: "circle",
+    source: SELECTED_SOURCE_ID,
+    filter: [
+      "!",
+      ["in", ["get", "typeCode"], ["literal", [...COASTAL_TYPE_CODES]]],
+    ],
+    paint: {
+      "circle-radius": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        3,
+        6.5,
+        8,
+        8.5,
+        12,
+        9.5,
+      ],
+      "circle-color": "#c45c26",
+      "circle-opacity": 1,
+      "circle-stroke-width": 1.8,
+      "circle-stroke-color": "#0d2a38",
+    },
+  };
 }

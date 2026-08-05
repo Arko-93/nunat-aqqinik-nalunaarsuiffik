@@ -134,6 +134,11 @@ body,
   font-size: 0.62rem;
 }
 
+.provenance-url {
+  word-break: break-all;
+  font-size: 0.72em;
+}
+
 .download-area {
   display: grid;
   gap: 0.3rem;

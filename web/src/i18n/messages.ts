@@ -64,6 +64,12 @@ export type Messages = {
   typeLabelIsland: string;
   typeLabelIslandPart: string;
   typeLabelIslandGroup: string;
+  provenanceSource: string;
+  provenanceGeometry: string;
+  provenanceMidpoint: string;
+  provenanceType: string;
+  provenanceGlobalId: string;
+  provenanceLayer: string;
 };
 
 const en: Messages = {
@@ -126,6 +132,12 @@ const en: Messages = {
   typeLabelIsland: "Island",
   typeLabelIslandPart: "Island part",
   typeLabelIslandGroup: "Island group",
+  provenanceSource: "Source register",
+  provenanceGeometry: "Geometry",
+  provenanceMidpoint: "NunaGIS midpoint point",
+  provenanceType: "Register type",
+  provenanceGlobalId: "GlobalID",
+  provenanceLayer: "Source layer",
 };
 
 const da: Messages = {
@@ -188,6 +200,12 @@ const da: Messages = {
   typeLabelIsland: "Ø",
   typeLabelIslandPart: "Del af ø",
   typeLabelIslandGroup: "Øgruppe",
+  provenanceSource: "Kilderegister",
+  provenanceGeometry: "Geometri",
+  provenanceMidpoint: "NunaGIS-midtpunkt",
+  provenanceType: "Registertype",
+  provenanceGlobalId: "GlobalID",
+  provenanceLayer: "Kildelag",
 };
 
 const kl: Messages = {
@@ -245,12 +263,19 @@ const kl: Messages = {
   iosHomeScreenHint:
     "iPhone/iPad-imi: Home Screen-imut ilanngutikkit offline-pakke peerneqannginnissaa.",
   packVersion: "Pakke",
-  legendLabel: "Named coastal features",
+  // Accessibility chrome reuses existing KL UI word; type words stay NunaGIS Danish.
+  legendLabel: "Takussutissat — Skær · Ø · Del af ø · Øgruppe",
   // NunaGIS Danish register terms until native Kalaallisut review — do not invent KL.
   typeLabelSkerry: "Skær",
   typeLabelIsland: "Ø",
   typeLabelIslandPart: "Del af ø",
   typeLabelIslandGroup: "Øgruppe",
+  provenanceSource: "Kingumut",
+  provenanceGeometry: "Sumiiffik",
+  provenanceMidpoint: "NunaGIS midpoint",
+  provenanceType: "Type",
+  provenanceGlobalId: "GlobalID",
+  provenanceLayer: "Source layer",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { kl, da, en };

@@ -1,4 +1,7 @@
-import { COASTAL_MARKER_GLYPH } from "../domain/coastal-features.ts";
+import {
+  COASTAL_LEGEND_ORDER,
+  COASTAL_REGISTRY,
+} from "../domain/coastal-features.ts";
 import { TYPE_LABELS_NEED_NATIVE_REVIEW } from "../i18n/messages.ts";
 import { useI18n } from "../i18n/I18nContext.tsx";
 
@@ -9,21 +12,17 @@ export function MapLegend() {
   return (
     <div className="map-legend" role="note" aria-label={t.legendLabel}>
       <p className="map-legend-line">
-        <span>
-          {COASTAL_MARKER_GLYPH.skerry} {t.typeLabelSkerry}
-        </span>
-        <span aria-hidden="true"> · </span>
-        <span>
-          {COASTAL_MARKER_GLYPH.island} {t.typeLabelIsland}
-        </span>
-        <span aria-hidden="true"> · </span>
-        <span>
-          {COASTAL_MARKER_GLYPH.island_part} {t.typeLabelIslandPart}
-        </span>
-        <span aria-hidden="true"> · </span>
-        <span>
-          {COASTAL_MARKER_GLYPH.island_group} {t.typeLabelIslandGroup}
-        </span>
+        {COASTAL_LEGEND_ORDER.map((kind, index) => {
+          const meta = COASTAL_REGISTRY[kind];
+          return (
+            <span key={kind}>
+              {index > 0 ? <span aria-hidden="true"> · </span> : null}
+              <span>
+                {meta.glyph} {t[meta.typeLabelKey]}
+              </span>
+            </span>
+          );
+        })}
       </p>
       {TYPE_LABELS_NEED_NATIVE_REVIEW[locale] ? (
         <p className="map-legend-review">{t.pendingReviewNote}</p>
