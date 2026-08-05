@@ -815,11 +815,15 @@ const tryWaterRoute = (
       }
       return out;
     };
-    chosen = densify(raw) ?? densify(waterCoords);
-    if (!chosen || pathCrossesLand(chosen, mask, { allowHarborEnds: true })) {
+    const densified = densify(raw) ?? densify(waterCoords);
+    if (
+      !densified ||
+      pathCrossesLand(densified, mask, { allowHarborEnds: true })
+    ) {
       lastRouteFail = `repair-fail pad=${pad.toFixed(2)} q=${quality} cells=${cells.length}`;
       return null;
     }
+    chosen = densified;
   }
   const simplified = simplifyWaterPath(chosen, mask);
   if (!pathCrossesLand(simplified, mask, { allowHarborEnds: true })) {
@@ -890,7 +894,10 @@ const routeWithPads = (
         quality,
         deadlineMs,
       );
-      if (typeof process !== "undefined" && process.env?.ROUTE_DEBUG) {
+      const routeDebug = (
+        globalThis as { process?: { env?: { ROUTE_DEBUG?: string } } }
+      ).process?.env?.ROUTE_DEBUG;
+      if (routeDebug) {
         console.error(
           `[route] ${quality} pad=${pad.toFixed(2)} ${route ? "ok" : lastRouteFail} ${(performance.now() - attemptT0).toFixed(0)}ms`,
         );
