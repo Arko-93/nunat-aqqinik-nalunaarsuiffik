@@ -4,15 +4,24 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { disclosureMinZoom } from "../domain/disclosure.ts";
 import type { ZoomBand } from "../domain/importance.ts";
 import type { Placename } from "../domain/placename.ts";
+import {
+  allCoastalMarkerLayers,
+  bandCircleLayerId,
+  bandLabelLayerId,
+  coastalInteractiveLayerIds,
+  nonCoastalBandFilter,
+  PLACENAMES_SOURCE_ID,
+} from "../map/gazetteer-markers.ts";
 import { loadTerrainStyle } from "../map/terrain-style.ts";
 
-const SOURCE_ID = "placenames";
+const SOURCE_ID = PLACENAMES_SOURCE_ID;
 const SELECTED_SOURCE_ID = "placenames-selected";
 const ADMIN_SOURCE_ID = "administrative-areas";
 const ADMIN_LINE_ID = "administrative-areas-outline";
 const SELECTED_HALO_ID = "placenames-selected-halo";
 const SELECTED_RING_ID = "placenames-selected-ring";
 const SELECTED_DOT_ID = "placenames-selected-dot";
+const SELECTED_SKERRY_ID = "placenames-selected-skerry";
 const SELECTED_LABEL_ID = "placenames-selected-label";
 
 const EMPTY_POINTS: GeoJSON.FeatureCollection = {
@@ -29,9 +38,6 @@ const BANDS: ReadonlyArray<ZoomBand> = [
   "settlement",
   "town",
 ];
-
-const circleLayerId = (band: ZoomBand) => `placenames-circle-${band}`;
-const labelLayerId = (band: ZoomBand) => `placenames-label-${band}`;
 
 type Props = {
   collection: GeoJSON.FeatureCollection<GeoJSON.Point, Placename> | null;
@@ -171,14 +177,10 @@ function parsePlacename(props: GeoJSON.GeoJsonProperties): Placename | null {
 }
 
 function addBandLayers(map: Map, band: ZoomBand, minzoom: number) {
-  const filter: maplibregl.FilterSpecification = [
-    "==",
-    ["get", "zoomBand"],
-    band,
-  ];
+  const filter = nonCoastalBandFilter(band);
 
   map.addLayer({
-    id: circleLayerId(band),
+    id: bandCircleLayerId(band),
     type: "circle",
     source: SOURCE_ID,
     minzoom,
@@ -246,7 +248,7 @@ function addBandLayers(map: Map, band: ZoomBand, minzoom: number) {
   });
 
   map.addLayer({
-    id: labelLayerId(band),
+    id: bandLabelLayerId(band),
     type: "symbol",
     source: SOURCE_ID,
     minzoom,
@@ -316,6 +318,12 @@ function addBandLayers(map: Map, band: ZoomBand, minzoom: number) {
   });
 }
 
+function addCoastalLayers(map: Map) {
+  for (const layer of allCoastalMarkerLayers()) {
+    map.addLayer(layer);
+  }
+}
+
 function addSelectedLayers(map: Map) {
   map.addLayer({
     id: SELECTED_HALO_ID,
@@ -367,6 +375,7 @@ function addSelectedLayers(map: Map) {
     id: SELECTED_DOT_ID,
     type: "circle",
     source: SELECTED_SOURCE_ID,
+    filter: ["!=", ["get", "typeCode"], 143],
     paint: {
       "circle-radius": [
         "interpolate",
@@ -383,6 +392,35 @@ function addSelectedLayers(map: Map) {
       "circle-opacity": 1,
       "circle-stroke-width": 1.8,
       "circle-stroke-color": "#0d2a38",
+    },
+  });
+
+  map.addLayer({
+    id: SELECTED_SKERRY_ID,
+    type: "symbol",
+    source: SELECTED_SOURCE_ID,
+    filter: ["==", ["get", "typeCode"], 143],
+    layout: {
+      "text-field": "×",
+      "text-font": ["Noto Sans Bold", "Noto Sans Regular"],
+      "text-size": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        3,
+        16,
+        8,
+        20,
+        12,
+        22,
+      ],
+      "text-allow-overlap": true,
+      "text-ignore-placement": true,
+    },
+    paint: {
+      "text-color": "#f4f7f8",
+      "text-halo-color": "#0d2a38",
+      "text-halo-width": 2,
     },
   });
 
@@ -495,6 +533,8 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       });
 
       const mins = disclosureMinZoom("geography");
+      // Coastal markers first (under locality labels), then band layers, then selection.
+      addCoastalLayers(map);
       for (const band of BANDS) {
         addBandLayers(map, band, mins[band]);
       }
@@ -524,11 +564,15 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       };
 
       for (const band of BANDS) {
-        bindPointer(circleLayerId(band));
-        bindPointer(labelLayerId(band));
+        bindPointer(bandCircleLayerId(band));
+        bindPointer(bandLabelLayerId(band));
+      }
+      for (const layerId of coastalInteractiveLayerIds()) {
+        bindPointer(layerId);
       }
 
       bindPointer(SELECTED_DOT_ID);
+      bindPointer(SELECTED_SKERRY_ID);
       bindPointer(SELECTED_RING_ID);
       bindPointer(SELECTED_LABEL_ID);
     };

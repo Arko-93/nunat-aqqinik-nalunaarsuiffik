@@ -1,3 +1,4 @@
+import { coastalTypeExemptFromLocalityShadow } from "./coastal-features.ts";
 import type { Placename } from "./placename.ts";
 
 const normalize = (value: string): string =>
@@ -66,13 +67,16 @@ export const nearbyCoordinates = (
 
 /**
  * Geographic features that only echo a nearby locality name
- * (e.g. Øgruppe "Naajat" beside Bygd "Naajaat").
+ * (e.g. a landform "Naajat" beside Bygd "Naajaat").
+ * Coastal types 143/181/182/183 are exempt without explicit review.
  */
 export const isLocalityNameShadow = (
   candidate: Placename,
   localities: ReadonlyArray<Placename>,
 ): boolean => {
   if (candidate.isLocality) return false;
+  // Coastal gazetteer types stay discoverable; shadowing them needs explicit review.
+  if (coastalTypeExemptFromLocalityShadow(candidate.typeCode)) return false;
   for (const locality of localities) {
     if (!namesNearDuplicate(candidate.officialName, locality.officialName)) {
       continue;

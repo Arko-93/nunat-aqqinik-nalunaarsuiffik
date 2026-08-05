@@ -101,7 +101,7 @@ const TYPE_RANK: Readonly<
   57: { importance: 760, minZoom: 4.6 }, // Fjord
   166: { importance: 740, minZoom: 5.0 }, // Sund
   164: { importance: 730, minZoom: 5.2 }, // Stræde
-  183: { importance: 720, minZoom: 5.0 }, // Øgruppe
+  183: { importance: 720, minZoom: 5.8 }, // Øgruppe
   10: { importance: 700, minZoom: 5.2 }, // Bredning
   18: { importance: 680, minZoom: 5.6 }, // Bugt
   73: { importance: 670, minZoom: 5.6 }, // Halvø
@@ -109,7 +109,7 @@ const TYPE_RANK: Readonly<
   12: { importance: 650, minZoom: 5.8 }, // Bræ
 
   // Islands & landforms (dense — collision thins them)
-  181: { importance: 600, minZoom: 6.4 }, // Ø
+  181: { importance: 600, minZoom: 7.0 }, // Ø
   105: { importance: 560, minZoom: 7.0 }, // Landareal
   44: { importance: 540, minZoom: 7.2 }, // Fjeldområde
   49: { importance: 520, minZoom: 7.4 }, // Fjeld

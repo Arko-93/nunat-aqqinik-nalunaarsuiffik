@@ -10,6 +10,7 @@ import {
 import { useI18n } from "../i18n/I18nContext.tsx";
 import type { LoadedRelease } from "../services/release.ts";
 import { OfflineStatus } from "./OfflineStatus.tsx";
+import { selectionDisplay } from "./selection-display.ts";
 
 type TabId = "overview" | "sources";
 
@@ -39,6 +40,7 @@ export function PlaceDossier({ place, release, onClose }: Props) {
     ? tab
     : tabs[0]!.value;
 
+  const selected = selectionDisplay(place, t);
   const identityBadge =
     place.identityStatus === "canonical"
       ? t.identityCanonical
@@ -50,7 +52,7 @@ export function PlaceDossier({ place, release, onClose }: Props) {
     <article className="place-dossier" aria-live="polite">
       <header className="place-dossier-header">
         <div className="place-panel-meta">
-          <Badge variant="secondary">{place.typeLabel}</Badge>
+          <Badge variant="secondary">{selected.typeLabel}</Badge>
           {areaLabel ? <Badge variant="outline">{areaLabel}</Badge> : null}
           <Badge variant="outline">{identityBadge}</Badge>
         </div>
