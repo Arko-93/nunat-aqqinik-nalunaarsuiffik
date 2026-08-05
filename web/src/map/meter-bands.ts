@@ -1,7 +1,7 @@
 /**
  * Hybrid D meter-band policy (wayfinder #9 / issue #10).
  * Ocean: filled depth classes + contour metering under land.
- * Land: peaks-only classes; hillshade carries general relief.
+ * Land: peaks-only classes when peak layers exist; hillshade carries relief today.
  */
 
 export const OCEAN_BREAKS_M = [5, 10, 20, 50, 100, 200, 500, 1000] as const;
@@ -13,21 +13,9 @@ export const METER_BAND_POLICY = {
   oceanBreaksM: OCEAN_BREAKS_M,
   landBreaksM: LAND_BREAKS_M,
   oceanStyle: "filled-plus-contours-masked" as const,
+  /** Product policy for a future peak color-relief layer — not shipped yet. */
   landPeaksOnly: true as const,
 };
-
-/** Planning bbox for Qaarsut→Kullorsuaq offline corridor (W,S,E,N). */
-export const CORRIDOR_BBOX: readonly [number, number, number, number] = [
-  -58.5, 70.4, -50.5, 74.9,
-];
-
-export const MAX_PACK_BYTES = 250 * 1024 * 1024;
-
-/** Files required before the UI may claim terrain is ready offline. */
-export const TERRAIN_OFFLINE_FILES = [
-  "land-relief.pmtiles",
-  "ocean-depth.pmtiles",
-] as const;
 
 export function oceanBandColor(depthM: number): string {
   if (depthM <= 10) return "#b9e0f0";

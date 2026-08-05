@@ -2,6 +2,7 @@ import type {
   ExpressionSpecification,
   FilterSpecification,
   LayerSpecification,
+  SourceSpecification,
   StyleSpecification,
 } from "maplibre-gl";
 import {
@@ -28,13 +29,13 @@ export const OCEAN_DEM_URL =
 export const OCEAN_VECTOR_URL =
   "https://tiles.openwaters.io/seascape/vector.json";
 
+/** Layers that exist in the composed style today (no deferred peak layer id). */
 export const TERRAIN_LAYER_IDS = {
   oceanHillshade: "terrain-ocean-hillshade",
   oceanFills: "terrain-ocean-fills",
   oceanContours: "terrain-ocean-contours",
   oceanContourLabels: "terrain-ocean-contour-labels",
   landHillshade: "terrain-land-hillshade",
-  landPeakBands: "terrain-land-peak-bands",
 } as const;
 
 export type TerrainStyleMeta = {
@@ -43,7 +44,8 @@ export type TerrainStyleMeta = {
   "nunat:meter-bands": typeof METER_BAND_POLICY.key;
   "nunat:ocean-source": "open-waters-seascape-interim" | "ibcao-v5.2";
   "nunat:land-source": "mapterhorn-terrarium";
-  "nunat:land-peaks-only": true;
+  /** Peak color bands are product policy only — not a live layer yet. */
+  "nunat:land-peak-bands": "deferred";
   "nunat:ocean-under-land": true;
 };
 
@@ -54,35 +56,86 @@ export class StyleError extends Error {
   }
 }
 
-/** Runtime validation for remote Liberty (or equivalent) style JSON. */
-export function parseLibertyStyle(raw: unknown): StyleSpecification {
-  if (!raw || typeof raw !== "object") {
-    throw new StyleError("Style JSON must be an object");
-  }
-  const style = raw as Record<string, unknown>;
-  if (style.version !== 8) {
-    throw new StyleError(`Style version must be 8 (got ${String(style.version)})`);
-  }
-  if (!style.sources || typeof style.sources !== "object") {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function parseSources(
+  raw: unknown,
+): { [key: string]: SourceSpecification } {
+  if (!isRecord(raw)) {
     throw new StyleError("Style missing sources object");
   }
-  if (!Array.isArray(style.layers)) {
+  const sources: { [key: string]: SourceSpecification } = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (!isRecord(value)) {
+      throw new StyleError(`Style source "${key}" must be an object`);
+    }
+    if (typeof value.type !== "string" || value.type.length === 0) {
+      throw new StyleError(`Style source "${key}" missing type`);
+    }
+    sources[key] = value as SourceSpecification;
+  }
+  return sources;
+}
+
+function parseLayers(raw: unknown): LayerSpecification[] {
+  if (!Array.isArray(raw)) {
     throw new StyleError("Style missing layers array");
   }
-  for (const [i, layer] of style.layers.entries()) {
-    if (!layer || typeof layer !== "object") {
+  const layers: LayerSpecification[] = [];
+  for (const [i, layer] of raw.entries()) {
+    if (!isRecord(layer)) {
       throw new StyleError(`Style layer[${i}] must be an object`);
     }
-    const id = (layer as { id?: unknown }).id;
-    const type = (layer as { type?: unknown }).type;
-    if (typeof id !== "string" || id.length === 0) {
+    if (typeof layer.id !== "string" || layer.id.length === 0) {
       throw new StyleError(`Style layer[${i}] missing id`);
     }
-    if (typeof type !== "string" || type.length === 0) {
+    if (typeof layer.type !== "string" || layer.type.length === 0) {
       throw new StyleError(`Style layer[${i}] missing type`);
     }
+    layers.push(layer as LayerSpecification);
   }
-  return style as StyleSpecification;
+  return layers;
+}
+
+/**
+ * Runtime validation for remote Liberty (or equivalent) style JSON.
+ * Returns a constructed StyleSpecification — not a whole-object unchecked cast.
+ */
+export function parseLibertyStyle(raw: unknown): StyleSpecification {
+  if (!isRecord(raw)) {
+    throw new StyleError("Style JSON must be an object");
+  }
+  if (raw.version !== 8) {
+    throw new StyleError(`Style version must be 8 (got ${String(raw.version)})`);
+  }
+
+  const style: StyleSpecification = {
+    version: 8,
+    sources: parseSources(raw.sources),
+    layers: parseLayers(raw.layers),
+  };
+
+  if (typeof raw.name === "string") style.name = raw.name;
+  if (typeof raw.sprite === "string") style.sprite = raw.sprite;
+  if (typeof raw.glyphs === "string") style.glyphs = raw.glyphs;
+  if (raw.metadata !== undefined) style.metadata = raw.metadata;
+  if (typeof raw.center !== "undefined") {
+    if (
+      !Array.isArray(raw.center) ||
+      raw.center.length < 2 ||
+      raw.center.some((n) => typeof n !== "number")
+    ) {
+      throw new StyleError("Style center must be [lng, lat]");
+    }
+    style.center = raw.center as [number, number];
+  }
+  if (typeof raw.zoom === "number") style.zoom = raw.zoom;
+  if (typeof raw.bearing === "number") style.bearing = raw.bearing;
+  if (typeof raw.pitch === "number") style.pitch = raw.pitch;
+
+  return style;
 }
 
 /** First land-like fill id — ocean layers insert before this. */
@@ -198,9 +251,22 @@ export function composeTerrainStyle(
   liberty: StyleSpecification,
 ): StyleSpecification {
   const validated = parseLibertyStyle(liberty);
-  const style = structuredClone(validated) as StyleSpecification;
+  const style: StyleSpecification = {
+    version: 8,
+    sources: { ...validated.sources },
+    layers: [...validated.layers],
+    ...(validated.name != null ? { name: validated.name } : {}),
+    ...(validated.sprite != null ? { sprite: validated.sprite } : {}),
+    ...(validated.glyphs != null ? { glyphs: validated.glyphs } : {}),
+    ...(validated.metadata != null ? { metadata: validated.metadata } : {}),
+    ...(validated.center != null ? { center: validated.center } : {}),
+    ...(validated.zoom != null ? { zoom: validated.zoom } : {}),
+    ...(validated.bearing != null ? { bearing: validated.bearing } : {}),
+    ...(validated.pitch != null ? { pitch: validated.pitch } : {}),
+  };
+
   style.sources = {
-    ...(style.sources ?? {}),
+    ...style.sources,
     "land-relief": {
       type: "raster-dem",
       url: LAND_DEM_TILEJSON,
@@ -318,7 +384,7 @@ export function composeTerrainStyle(
     "nunat:meter-bands": METER_BAND_POLICY.key,
     "nunat:ocean-source": "open-waters-seascape-interim",
     "nunat:land-source": "mapterhorn-terrarium",
-    "nunat:land-peaks-only": true,
+    "nunat:land-peak-bands": "deferred",
     "nunat:ocean-under-land": true,
   };
   style.metadata = {

@@ -119,4 +119,38 @@ describe("OPFS corridor pack behavior", () => {
     ).rejects.toThrow(/Byte size mismatch|Checksum mismatch/);
     expect(await readInstalledManifest()).toBeNull();
   });
+
+  it("surfaces OPFS deletion failures instead of swallowing them", async () => {
+    const { provider, root } = createMemoryOpfsRoot();
+    setOpfsRootProvider(provider);
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith("/manifest.json")) {
+          return new Response(JSON.stringify(stubManifest), { status: 200 });
+        }
+        if (url.endsWith("/localities.geojson")) {
+          return new Response(FIXTURE_BYTES, { status: 200 });
+        }
+        return new Response("missing", { status: 404 });
+      }),
+    );
+
+    await installCorridorPack("/packages/fixtures/tiny-corridor");
+    const packs = await root.getDirectoryHandle("corridor-packs");
+    const original = packs.removeEntry.bind(packs);
+    packs.removeEntry = async (name: string) => {
+      if (name === stubManifest.id) {
+        throw Object.assign(new Error("QuotaExceededError"), {
+          name: "QuotaExceededError",
+        });
+      }
+      return original(name);
+    };
+
+    await expect(deleteCorridorPack()).rejects.toThrow(/Failed to delete/);
+    expect(await readInstalledManifest()).not.toBeNull();
+  });
 });

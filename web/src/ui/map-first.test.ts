@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MESSAGES } from "../i18n/messages.ts";
 import { gazetteerVisible } from "../domain/layers.ts";
 import { withMapRank, type Placename } from "../domain/placename.ts";
+import { isSearchQueryActive } from "../domain/search.ts";
 
 const place = (
   partial: Partial<Placename> &
@@ -77,9 +78,10 @@ describe("map-first UI contracts", () => {
   });
 
   it("dismisses search sheet when query is empty (< 2 chars)", () => {
-    const queryActive = (q: string) => q.trim().length >= 2;
-    expect(queryActive("")).toBe(false);
-    expect(queryActive("a")).toBe(false);
-    expect(queryActive("qa")).toBe(true);
+    expect(isSearchQueryActive("")).toBe(false);
+    expect(isSearchQueryActive("a")).toBe(false);
+    expect(isSearchQueryActive("  a  ")).toBe(false);
+    expect(isSearchQueryActive("qa")).toBe(true);
+    expect(isSearchQueryActive("  qa  ")).toBe(true);
   });
 });

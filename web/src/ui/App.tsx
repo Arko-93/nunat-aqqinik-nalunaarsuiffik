@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { gazetteerVisible } from "../domain/layers.ts";
 import { type IdentityCrosswalk } from "../domain/identity.ts";
 import { enrichCollection, type Placename } from "../domain/placename.ts";
-import { searchPlacenames } from "../domain/search.ts";
+import { isSearchQueryActive, searchPlacenames } from "../domain/search.ts";
 import { useI18n } from "../i18n/I18nContext.tsx";
 import {
   loadSelectedRelease,
@@ -93,7 +93,7 @@ export function App() {
     setSheet("half");
   };
 
-  const queryActive = query.trim().length >= 2;
+  const queryActive = isSearchQueryActive(query);
   const railExpanded = queryActive || selected != null;
 
   // Empty query dismisses the search sheet; selected place can remain.

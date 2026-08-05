@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CORRIDOR_BBOX, MAX_PACK_BYTES } from "../map/meter-bands.ts";
+import { CORRIDOR_BBOX, MAX_PACK_BYTES } from "./corridor-policy.ts";
 import {
   assertCorridorBbox,
   isTerrainOfflineReady,

@@ -53,8 +53,10 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(meta["nunat:basemap"]).toBe("terrain-first");
     expect(meta["nunat:safety"]).toBe("not-for-navigation");
     expect(meta["nunat:meter-bands"]).toBe(METER_BAND_POLICY.key);
-    expect(meta["nunat:land-peaks-only"]).toBe(true);
+    expect(meta["nunat:land-peak-bands"]).toBe("deferred");
+    expect(meta["nunat:land-peaks-only"]).toBeUndefined();
     expect(meta["nunat:ocean-under-land"]).toBe(true);
+    expect(JSON.stringify(style.layers)).not.toContain("peak-bands");
     expect(meta["nunat:contour-field"]).toBe("depth_abs_m");
     expect(meta["nunat:ocean-fill"]).toBe("discrete-step-drval1-metric");
     expect(meta["nunat:ocean-breaks-m"]).toEqual([...OCEAN_BREAKS_M]);

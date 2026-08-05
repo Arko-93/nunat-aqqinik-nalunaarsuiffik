@@ -10,11 +10,14 @@ import {
   type CorridorPackManifest,
   PackError,
 } from "./manifest.ts";
+import { CORRIDOR_PACKAGE_BASE } from "./corridor-policy.ts";
 import {
   browserOpfsRoot,
   type OpfsDirectory,
   type OpfsRootProvider,
 } from "./opfs.ts";
+
+export { CORRIDOR_PACKAGE_BASE };
 
 export type PackProgress = {
   path: string;
@@ -69,14 +72,22 @@ async function writeOpfsFile(
   await writable.close();
 }
 
+function isNotFoundError(cause: unknown): boolean {
+  if (!cause || typeof cause !== "object") return false;
+  const name = (cause as { name?: unknown }).name;
+  return name === "NotFoundError" || name === "NotFound";
+}
+
 async function deleteOpfsTree(
   dir: OpfsDirectory,
   name: string,
 ): Promise<void> {
   try {
     await dir.removeEntry(name, { recursive: true });
-  } catch {
-    /* absent is fine */
+  } catch (cause) {
+    if (isNotFoundError(cause)) return;
+    const detail = cause instanceof Error ? cause.message : String(cause);
+    throw new PackError(`Failed to delete ${name}: ${detail}`);
   }
 }
 
@@ -174,17 +185,12 @@ export async function installCorridorPack(
 }
 
 export async function deleteCorridorPack(): Promise<void> {
-  try {
-    const root = await packsRoot();
-    const active = await readInstalledManifest();
-    if (active) {
-      await deleteOpfsTree(root, active.id);
-    }
-    await deleteOpfsTree(root, ACTIVE_KEY);
-  } catch (cause) {
-    if (cause instanceof PackError) return;
-    /* OPFS unavailable — nothing to delete */
+  const root = await packsRoot();
+  const active = await readInstalledManifest();
+  if (active) {
+    await deleteOpfsTree(root, active.id);
   }
+  await deleteOpfsTree(root, ACTIVE_KEY);
 }
 
 /** Resolve a local OPFS file for MapLibre when a full pack is installed. */
@@ -207,5 +213,3 @@ export async function readPackFile(
     return null;
   }
 }
-
-export const CORRIDOR_PACKAGE_BASE = "/packages/qaarsut-kullorsuaq";

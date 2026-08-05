@@ -20,6 +20,7 @@ export function DownloadArea({
 }: Props) {
   const { t, locale } = useI18n();
   const [state, setState] = useState<PackInstallState>({ status: "absent" });
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -32,6 +33,7 @@ export function DownloadArea({
   }, []);
 
   const onDownload = async () => {
+    setActionError(null);
     setState({
       status: "downloading",
       packId: "pending",
@@ -59,9 +61,17 @@ export function DownloadArea({
   };
 
   const onDelete = async () => {
-    await deleteCorridorPack();
-    setState({ status: "absent" });
+    setActionError(null);
+    try {
+      await deleteCorridorPack();
+      setState({ status: "absent" });
+    } catch (cause) {
+      setActionError(cause instanceof Error ? cause.message : String(cause));
+    }
   };
+
+  const errorText =
+    actionError ?? (state.status === "error" ? state.message : null);
 
   return (
     <div className="download-area" aria-label={t.downloadArea}>
@@ -106,10 +116,10 @@ export function DownloadArea({
           {t.downloadArea}
         </Button>
       )}
-      {state.status === "error" ? (
+      {errorText ? (
         <p className="download-area-error">
           <Text as="span" variant="secondary" size="xs">
-            {state.message}
+            {errorText}
           </Text>
         </p>
       ) : null}

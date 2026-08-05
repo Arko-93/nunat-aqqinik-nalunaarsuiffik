@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { withMapRank, type Placename } from "./placename.ts";
-import { searchPlacenames, scorePlacename } from "./search.ts";
+import {
+  isSearchQueryActive,
+  searchPlacenames,
+  scorePlacename,
+} from "./search.ts";
 
 const place = (partial: {
   globalId: string;
@@ -164,5 +168,11 @@ describe("placename search ranking", () => {
     places[1] = { ...places[1]!, isLocalityShadow: true };
     const hits = searchPlacenames(places, "Naajat", 5);
     expect(hits.map((hit) => hit.place.globalId)).toEqual(["bygd-naajaat"]);
+  });
+
+  it("isSearchQueryActive matches the sheet open threshold", () => {
+    expect(isSearchQueryActive("")).toBe(false);
+    expect(isSearchQueryActive("q")).toBe(false);
+    expect(isSearchQueryActive("qa")).toBe(true);
   });
 });

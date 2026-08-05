@@ -2,7 +2,7 @@ import {
   CORRIDOR_BBOX,
   MAX_PACK_BYTES,
   TERRAIN_OFFLINE_FILES,
-} from "../map/meter-bands.ts";
+} from "./corridor-policy.ts";
 
 export type PackFile = {
   path: string;

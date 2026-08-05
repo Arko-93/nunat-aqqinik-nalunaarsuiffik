@@ -1,4 +1,5 @@
-/* App-shell Service Worker only — large corridor PMTiles stay in OPFS. */
+/* App-shell Service Worker only — large corridor PMTiles stay in OPFS.
+ * PRECACHE_URLS is replaced at production build with hashed Vite assets. */
 const SHELL_CACHE = "nunat-shell-v1";
 const SHELL_PREFIX = "nunat-shell-";
 const PRECACHE_URLS = ["/", "/index.html"];
@@ -45,23 +46,26 @@ function isAppShellRequest(request, url) {
   );
 }
 
+async function putInShellCache(request, response) {
+  const cache = await caches.open(SHELL_CACHE);
+  await cache.put(request, response);
+}
+
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (isPackageOrTiles(url)) return;
   if (!isAppShellRequest(event.request, url)) return;
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
+    (async () => {
+      try {
+        const response = await fetch(event.request);
         if (response && response.ok) {
-          const copy = response.clone();
-          void caches.open(SHELL_CACHE).then((cache) => {
-            void cache.put(event.request, copy);
-          });
+          // Await the write so install/fetch completion includes the cache entry.
+          await putInShellCache(event.request, response.clone());
         }
         return response;
-      })
-      .catch(async () => {
+      } catch {
         const cached = await caches.match(event.request);
         if (cached) return cached;
         if (event.request.mode === "navigate") {
@@ -72,6 +76,7 @@ self.addEventListener("fetch", (event) => {
           );
         }
         return Response.error();
-      }),
+      }
+    })(),
   );
 });
