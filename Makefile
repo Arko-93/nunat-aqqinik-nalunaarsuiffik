@@ -2,7 +2,7 @@
 
 SHELL := /bin/bash
 
-.PHONY: preview-assemble map-fetch map-build map-omarchy preview-omarchy api-install api-typecheck api-test api-dev marine-install marine-test marine-build marine-omarchy
+.PHONY: preview-assemble map-fetch map-build map-omarchy preview-omarchy api-install api-typecheck api-test api-dev marine-install marine-test marine-fetch-land-assets marine-publish-land-assets marine-build marine-omarchy
 
 map-fetch:
 	bash scripts/sync-web-release.sh
@@ -48,7 +48,14 @@ marine-install:
 marine-test: marine-install
 	pnpm --dir marine-poc test
 
-marine-build: marine-install
+# Fat land.geojson / land.pmtiles stay local (gitignored). Fetch or prepare:regions.
+marine-fetch-land-assets:
+	bash scripts/fetch-marine-land-assets.sh
+
+marine-publish-land-assets: marine-fetch-land-assets
+	bash scripts/publish-marine-land-assets.sh
+
+marine-build: marine-install marine-fetch-land-assets
 	pnpm --dir marine-poc build
 
 # Omarchy marine POC on :3459 (does not replace place-names map on :3457)

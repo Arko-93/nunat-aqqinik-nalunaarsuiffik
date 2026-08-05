@@ -18,16 +18,14 @@ Cloud VM kept dying during the ~900 MB land download / full coastline rebuild. *
 3. README note for full coastline + PMTiles
 4. Earlier marine routing/UX work also on this branch (shore snap, edge-safe A*, locate FAB, etc.)
 
-## What is NOT done
+## Status (2026-08-05)
 
-[`marine-poc/public/packages/greenland/`](../marine-poc/public/packages/greenland/) still has:
+Full coastline package is built. Fat files are **not** in git:
 
-- `land.geojson` ~2.7 MB, **1 feature**, GeometryCollection
-- Manifest source still says **“simplified land polygons”**
-- **No `land.pmtiles`**
-- Style still points at geojson land
-
-So the map/router still use the crude coastline until you rebuild.
+- Local: `pnpm prepare:regions` (keep on disk while developing)
+- Publish: `make marine-publish-land-assets` → GitHub Release `marine-<package_id>`
+- Fetch: `make marine-fetch-land-assets` (also runs before `marine-build` / Omarchy deploy)
+- Tracked in git: `manifest.json`, `style.json`, places/water/ocean-bands only
 
 ## Local continue prompt (copy into Cursor)
 

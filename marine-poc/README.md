@@ -61,17 +61,23 @@ Do not use plain `http://omarchy…:3459` for GPS — browsers force a corridor 
 One downloadable package at `public/packages/greenland/`:
 
 - `places.geojson` — localities + higher-importance geography (NunaGIS midpoints)
-- `land.geojson` — full OSM coastline land polygons (for routing; NOT simplified-land / NE10m)
-- `land.pmtiles` — vector tiles of the same land fill for offline map display (when tippecanoe is available)
+- `land.geojson` — full OSM coastline land polygons (routing mask; **gitignored**, keep local)
+- `land.pmtiles` — vector tiles for offline map display (**gitignored**, keep local)
 - `water.geojson` — simplified OSM inland/coastal water
 - `style.json` + `manifest.json` (SHA-256)
 
-Build validates that every town/village sits on/near the land fill.
+Fat land files stay on disk while you develop. They are not committed. Deploy and
+`make marine-build` fetch them from the GitHub Release for the package id when
+missing (or hash-mismatched).
 
 ```sh
-# once: .venv with pyshp + shapely + pyproj
+# Build locally (preferred while iterating on coastline):
 python3 -m venv .venv && .venv/bin/pip install -r requirements-prepare.txt
-pnpm prepare:regions
+pnpm prepare:regions          # needs tippecanoe for land.pmtiles
+make marine-publish-land-assets   # when hashes change — upload Release
+
+# Or download published artefacts:
+make marine-fetch-land-assets
 ```
 
 Catalog: `public/packages/catalog.json`.

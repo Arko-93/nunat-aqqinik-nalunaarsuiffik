@@ -20,6 +20,9 @@ if [[ ! -f public/packages/greenland/manifest.json ]]; then
 	exit 1
 fi
 
+# Fat land artefacts are gitignored — use local prepare output or GitHub Release.
+bash "$root_dir/scripts/fetch-marine-land-assets.sh"
+
 ssh "$remote_host" "mkdir -p '$remote_dir'"
 
 rsync -az --delete \

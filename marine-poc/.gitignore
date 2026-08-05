@@ -8,3 +8,8 @@ data/raw/
 ios/App/Pods/
 android/.gradle/
 android/app/build/
+
+# Fat land artefacts — build with prepare:regions or fetch from GitHub Releases.
+# Keep them local while developing; do not commit.
+public/packages/*/land.geojson
+public/packages/*/land.pmtiles
