@@ -69,3 +69,10 @@ make -C data publish-check  # test + block pending provenance
 Validation checks IDs, uniqueness, coordinates, source references, connection endpoints, temporal validity, seasonality, and other invariants.
 
 Do not commit changes that fail `test`.
+
+### Map UI (Omarchy)
+
+- Live test surface: `http://omarchy.tail189279.ts.net:3457/` (Tailscale; not Cloudflare)
+- Deploy from the worktree: `make map-omarchy`
+- Verify after deploy: `curl -fsS http://omarchy.tail189279.ts.net:3457/healthz` → `ok`
+- Local Vite (`pnpm --dir web dev`) is for development only; UI acceptance is against Omarchy `:3457`
