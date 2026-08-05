@@ -17,6 +17,7 @@ import {
   selectedCoastalInteractiveLayerIds,
   selectedNonCoastalDotLayer,
 } from "../map/gazetteer-markers.ts";
+import { applyMapStyle } from "../map/apply-style.ts";
 import {
   loadNameOwnedLibertyStyle,
   loadTerrainStyle,
@@ -485,61 +486,60 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       bindPointer(SELECTED_LABEL_ID);
     };
 
+    const onStyleReady = () => {
+      if (cancelled) return;
+      ensureLayers();
+      bindInteractions();
+      void fetch("/data/administrative-areas.geojson")
+        .then(async (response) => {
+          if (!response.ok) return null;
+          return response.json() as Promise<GeoJSON.FeatureCollection>;
+        })
+        .then((admin) => {
+          if (!admin || !map.getSource(ADMIN_SOURCE_ID)) return;
+          const source = map.getSource(ADMIN_SOURCE_ID) as GeoJSONSource;
+          source.setData(admin);
+        })
+        .catch(() => {
+          /* basemap still usable without admin outlines */
+        });
+      const data = collectionRef.current;
+      if (data) {
+        const source = map.getSource(SOURCE_ID) as GeoJSONSource;
+        source.setData(data);
+        if (!fittedRef.current && data.features.length > 0) {
+          const bounds = new maplibregl.LngLatBounds();
+          for (const feature of data.features) {
+            if (feature.properties?.isLocality) {
+              bounds.extend(
+                feature.geometry.coordinates as [number, number],
+              );
+            }
+          }
+          if (!bounds.isEmpty()) {
+            map.fitBounds(bounds, {
+              padding: 72,
+              maxZoom: 5.2,
+              duration: 0,
+            });
+            fittedRef.current = true;
+          }
+        }
+      }
+    };
+
     void loadTerrainStyle()
       .then((style) => {
         if (cancelled) return;
-        map.setStyle(style);
-        map.once("style.load", () => {
-          ensureLayers();
-          bindInteractions();
-          void fetch("/data/administrative-areas.geojson")
-            .then(async (response) => {
-              if (!response.ok) return null;
-              return response.json() as Promise<GeoJSON.FeatureCollection>;
-            })
-            .then((admin) => {
-              if (!admin || !map.getSource(ADMIN_SOURCE_ID)) return;
-              const source = map.getSource(ADMIN_SOURCE_ID) as GeoJSONSource;
-              source.setData(admin);
-            })
-            .catch(() => {
-              /* basemap still usable without admin outlines */
-            });
-          const data = collectionRef.current;
-          if (data) {
-            const source = map.getSource(SOURCE_ID) as GeoJSONSource;
-            source.setData(data);
-            if (!fittedRef.current && data.features.length > 0) {
-              const bounds = new maplibregl.LngLatBounds();
-              for (const feature of data.features) {
-                if (feature.properties?.isLocality) {
-                  bounds.extend(
-                    feature.geometry.coordinates as [number, number],
-                  );
-                }
-              }
-              if (!bounds.isEmpty()) {
-                map.fitBounds(bounds, {
-                  padding: 72,
-                  maxZoom: 5.2,
-                  duration: 0,
-                });
-                fittedRef.current = true;
-              }
-            }
-          }
-        });
+        // Handlers before setStyle — style.load can fire during setStyle.
+        applyMapStyle(map, style, onStyleReady);
       })
       .catch(() => {
         // Fallback: Liberty without terrain, still name-owned labels.
         void loadNameOwnedLibertyStyle()
           .then((style) => {
             if (cancelled) return;
-            map.setStyle(style);
-            map.once("style.load", () => {
-              ensureLayers();
-              bindInteractions();
-            });
+            applyMapStyle(map, style, onStyleReady);
           })
           .catch(() => {
             /* map shell stays empty; product labels need a style */
