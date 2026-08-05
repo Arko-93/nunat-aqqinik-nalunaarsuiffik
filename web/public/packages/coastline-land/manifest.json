@@ -1,0 +1,44 @@
+{
+  "id": "coastline-land_2026-08-05",
+  "slug": "coastline-land",
+  "title": {
+    "kl": "Sinaa (land-mask)",
+    "da": "Kystlinje (land-maske)",
+    "en": "Coastline land mask"
+  },
+  "description": "Complete OSM coastline land polygon mask for the terrain-first map \u2014 one shared shoreline for the display mask and for clipping bathymetry. Not for navigation.",
+  "bbox": [
+    -75.0,
+    59.5,
+    -10.0,
+    84.0
+  ],
+  "minZoom": 0,
+  "maxZoom": 13,
+  "bytes": 133689340,
+  "createdAt": "2026-08-05T00:00:00Z",
+  "dataAsOf": "2026-08-05",
+  "files": [
+    {
+      "path": "land.geojson",
+      "bytes": 67973275,
+      "sha256": "c2c0c886b661e720e7192281e42cee1fbf9d07046e7d9f7c403489a5fddda7d8"
+    },
+    {
+      "path": "land.pmtiles",
+      "bytes": 65716065,
+      "sha256": "99d9b06c38fd12f56c6809ad2311c9c654edf36a9f0d4437f77a1f6e364a8ca3"
+    }
+  ],
+  "source": {
+    "title": "OpenStreetMap land polygons (full coastline)",
+    "publisher": "OpenStreetMap contributors via osmdata.openstreetmap.de",
+    "url": "https://osmdata.openstreetmap.de/download/land-polygons-split-4326.zip",
+    "licence": "ODbL",
+    "attribution": "\u00a9 OpenStreetMap contributors (ODbL)",
+    "redistribution": "ODbL share-alike: derived masks must keep OSM attribution and publish under ODbL (opendatacommons.org/licenses/odbl).",
+    "safety": "not-for-navigation"
+  },
+  "notForNavigation": true,
+  "notes": "land.pmtiles is hosted on a GitHub Release (repo precedent: files >50 MB are not committed). Fetch: bash scripts/fetch-coastline-mask-assets.sh"
+}

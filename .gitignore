@@ -13,3 +13,9 @@ api/dist/
 *.db-shm
 *.db-wal
 *.log
+
+# Fat coastline-mask land artefacts — GitHub Release hosts them
+# (fetch-coastline-mask-assets.sh / build-coastline-mask.py).
+web/public/packages/coastline-land/land.geojson
+web/public/packages/coastline-land/land.pmtiles
+.cache/

@@ -6,7 +6,10 @@ import {
   oceanFillColorExpression,
 } from "./meter-bands.ts";
 import {
+  assertMaskAboveOcean,
   assertOceanUnderLand,
+  COASTLINE_MASK_ATTRIBUTION,
+  COASTLINE_MASK_PMTILES_URL,
   composeNameOwnedLibertyStyle,
   composeTerrainStyle,
   contourBreakFilter,
@@ -118,6 +121,89 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(ids.indexOf(TERRAIN_LAYER_IDS.oceanFills)).toBeLessThan(
       ids.indexOf("landcover"),
     );
+  });
+
+  it("sits the complete coastline mask above every ocean layer", () => {
+    const style = composeTerrainStyle(libertyStub);
+    const ids = (style.layers ?? []).map((layer) => layer.id);
+    const maskIdx = ids.indexOf(TERRAIN_LAYER_IDS.coastlineMask);
+    expect(maskIdx).toBeGreaterThanOrEqual(0);
+    for (const oceanId of [
+      TERRAIN_LAYER_IDS.oceanHillshade,
+      TERRAIN_LAYER_IDS.oceanFills,
+      TERRAIN_LAYER_IDS.oceanContours,
+      TERRAIN_LAYER_IDS.oceanContourLabels,
+    ]) {
+      expect(ids.indexOf(oceanId)).toBeLessThan(maskIdx);
+    }
+    // Land relief stays visible above the mask.
+    expect(ids.indexOf(TERRAIN_LAYER_IDS.landHillshade)).toBeGreaterThan(
+      maskIdx,
+    );
+    expect(assertMaskAboveOcean(ids)).toEqual({ ok: true });
+  });
+
+  it("adds the OSM coastline PMTiles mask source with ODbL attribution", () => {
+    const style = composeTerrainStyle(libertyStub);
+    const source = style.sources?.["coastline-land"] as
+      | { type?: string; url?: string; attribution?: string }
+      | undefined;
+    expect(source?.type).toBe("vector");
+    expect(source?.url).toBe(COASTLINE_MASK_PMTILES_URL);
+    expect(COASTLINE_MASK_PMTILES_URL).toMatch(/^pmtiles:\/\//);
+    expect(source?.attribution).toContain("OpenStreetMap");
+    expect(source?.attribution).toContain("ODbL");
+    const maskLayer = style.layers?.find(
+      (layer) => layer.id === TERRAIN_LAYER_IDS.coastlineMask,
+    ) as
+      | { type?: string; source?: string; "source-layer"?: string }
+      | undefined;
+    expect(maskLayer?.type).toBe("fill");
+    expect(maskLayer?.source).toBe("coastline-land");
+    expect(maskLayer?.["source-layer"]).toBe("land");
+    const meta = style.metadata as Record<string, unknown>;
+    expect(meta["nunat:coastline-source"]).toBe("osm-land-polygons");
+    expect(meta["nunat:coastline-licence"]).toBe("ODbL");
+    expect(meta["nunat:ocean-under-land"]).toBe(true);
+  });
+
+  it("fails the style-order contract when any ocean layer sits above the mask", () => {
+    const base = [
+      "background",
+      TERRAIN_LAYER_IDS.oceanHillshade,
+      TERRAIN_LAYER_IDS.oceanFills,
+      TERRAIN_LAYER_IDS.oceanContours,
+      TERRAIN_LAYER_IDS.oceanContourLabels,
+      TERRAIN_LAYER_IDS.coastlineMask,
+      "landcover",
+    ];
+    expect(assertMaskAboveOcean(base)).toEqual({ ok: true });
+    // Missing mask → fail (ocean layers would be unmasked).
+    expect(
+      assertMaskAboveOcean(base.filter((id) => id !== TERRAIN_LAYER_IDS.coastlineMask)),
+    ).toEqual({
+      ok: false,
+      reason: expect.stringContaining("missing"),
+    });
+    // Each ocean layer above the mask → fail.
+    for (const oceanId of [
+      TERRAIN_LAYER_IDS.oceanHillshade,
+      TERRAIN_LAYER_IDS.oceanFills,
+      TERRAIN_LAYER_IDS.oceanContours,
+      TERRAIN_LAYER_IDS.oceanContourLabels,
+    ]) {
+      const shifted = base.filter((id) => id !== oceanId);
+      shifted.push(oceanId);
+      expect(assertMaskAboveOcean(shifted)).toEqual({
+        ok: false,
+        reason: expect.stringContaining("above the coastline mask"),
+      });
+    }
+  });
+
+  it("reports the mask source attribution for the attribution control", () => {
+    expect(COASTLINE_MASK_ATTRIBUTION).toMatch(/OpenStreetMap contributors/);
+    expect(COASTLINE_MASK_ATTRIBUTION).toContain("ODbL");
   });
 
   it("filters contours on depth_abs_m (not signed depth_m)", () => {

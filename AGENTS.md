@@ -16,6 +16,7 @@ Read `docs/STATUS.md` before changing the data contract. It is the source of tru
 - **One record per place** — A place can have multiple names but exactly one canonical Greenlandic name.
 - **Composable extensions** — Operational datasets reference permanent place IDs. Do not copy place records into extension sources.
 - **Structural reachability only** — Connections describe maintained transport relationships, not live departures or booking availability.
+- **Shared coastline** — One complete OSM coastline land polygon surface (ODbL) is the single land/sea boundary for the display mask and for clipping bathymetry. Never use Natural Earth or partial landuse/landcover fills as the mask, and never let ocean layers paint above it.
 - **Slow, careful updates** — Batch updates and preserve validity periods. Never patch an assertion without a paper trail.
 
 ## Canonical source files
@@ -23,7 +24,7 @@ Read `docs/STATUS.md` before changing the data contract. It is the source of tru
 All source files live under `data/source/` as newline-delimited JSON:
 
 | File | ID prefix | Contents |
-|---|---|---|
+| --- | --- | --- |
 | `places.ndjson` | `plc_` | Durable place identity |
 | `place-classifications.ndjson` | `cls_` | Time-bounded feature classification assertions |
 | `place-names.ndjson` | `nam_` | Name assertions (official, exonym, historical, alias) |

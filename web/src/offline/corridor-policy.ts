@@ -15,6 +15,7 @@ export const MAX_PACK_BYTES = 250 * 1024 * 1024;
 export const TERRAIN_OFFLINE_FILES = [
   "land-relief.pmtiles",
   "ocean-depth.pmtiles",
+  "coastline-land.pmtiles",
 ] as const;
 
 export const CORRIDOR_PACKAGE_BASE = "/packages/qaarsut-kullorsuaq";
