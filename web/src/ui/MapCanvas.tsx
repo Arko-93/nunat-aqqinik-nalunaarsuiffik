@@ -547,8 +547,12 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       });
 
     mapRef.current = map;
+    // Dogfood / console verify: map.getSource('placenames'), getStyle().layers
+    (window as Window & { __nunatMap?: Map }).__nunatMap = map;
     return () => {
       cancelled = true;
+      const win = window as Window & { __nunatMap?: Map };
+      if (win.__nunatMap === map) delete win.__nunatMap;
       map.remove();
       mapRef.current = null;
     };
