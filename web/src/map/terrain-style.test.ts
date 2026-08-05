@@ -123,6 +123,27 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(() => parseLibertyStyle({ version: 8, sources: {} })).toThrow(
       /layers/,
     );
+    expect(() =>
+      parseLibertyStyle({
+        version: 8,
+        sources: { bad: { type: "mystery" } },
+        layers: [],
+      }),
+    ).toThrow(/Unsupported source type/);
+    expect(() =>
+      parseLibertyStyle({
+        version: 8,
+        sources: { openmaptiles: { type: "vector" } },
+        layers: [],
+      }),
+    ).toThrow(/requires url or tiles/);
+    expect(() =>
+      parseLibertyStyle({
+        version: 8,
+        sources: {},
+        layers: [{ id: "x", type: "fill" }],
+      }),
+    ).toThrow(/requires source/);
     expect(parseLibertyStyle(libertyStub).version).toBe(8);
   });
 

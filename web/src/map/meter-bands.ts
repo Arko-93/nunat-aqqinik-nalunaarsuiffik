@@ -4,6 +4,8 @@
  * Land: peaks-only classes when peak layers exist; hillshade carries relief today.
  */
 
+import type { ExpressionSpecification } from "maplibre-gl";
+
 export const OCEAN_BREAKS_M = [5, 10, 20, 50, 100, 200, 500, 1000] as const;
 
 export const LAND_BREAKS_M = [500, 1000, 2000] as const;
@@ -37,12 +39,27 @@ export function landPeakBandColor(elevM: number): string {
  * Discrete meter-band fill colors keyed on Seascape `drval1` (shallow edge).
  * MapLibre step: output0 when value < stop1, then each stop’s color until the next.
  */
-export function oceanFillColorExpression(): unknown[] {
-  const expr: unknown[] = ["step", ["get", "drval1"], oceanBandColor(5)];
-  for (let i = 0; i < OCEAN_BREAKS_M.length; i++) {
-    const stop = OCEAN_BREAKS_M[i]!;
-    const next = OCEAN_BREAKS_M[i + 1] ?? stop;
-    expr.push(stop, oceanBandColor(next));
-  }
-  return expr;
+export function oceanFillColorExpression(): ExpressionSpecification {
+  const b = OCEAN_BREAKS_M;
+  return [
+    "step",
+    ["get", "drval1"],
+    oceanBandColor(5),
+    b[0],
+    oceanBandColor(b[1]),
+    b[1],
+    oceanBandColor(b[2]),
+    b[2],
+    oceanBandColor(b[3]),
+    b[3],
+    oceanBandColor(b[4]),
+    b[4],
+    oceanBandColor(b[5]),
+    b[5],
+    oceanBandColor(b[6]),
+    b[6],
+    oceanBandColor(b[7]),
+    b[7],
+    oceanBandColor(b[7]),
+  ];
 }
