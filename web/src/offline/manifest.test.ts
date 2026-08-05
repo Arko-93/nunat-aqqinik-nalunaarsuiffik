@@ -80,6 +80,27 @@ describe("corridor pack manifest contracts", () => {
     expect(() =>
       parseManifest({ ...fixtureManifest, kind: "full" }),
     ).toThrow(/land-relief\.pmtiles/);
+    // The coastline mask file is part of the offline terrain contract and
+    // must be named in the error (online path: packages/coastline-land/land.pmtiles).
+    expect(() =>
+      parseManifest({ ...fixtureManifest, kind: "full" }),
+    ).toThrow(/coastline-land\/land\.pmtiles/);
+  });
+
+  it("accepts kind=full when all terrain files are present", () => {
+    const files = [
+      ...fixtureManifest.files,
+      { path: "land-relief.pmtiles", bytes: 1, sha256: "a".repeat(64) },
+      { path: "ocean-depth.pmtiles", bytes: 1, sha256: "b".repeat(64) },
+      { path: "coastline-land/land.pmtiles", bytes: 1, sha256: "c".repeat(64) },
+    ];
+    const parsed = parseManifest({
+      ...fixtureManifest,
+      kind: "full",
+      files,
+    });
+    expect(parsed.kind).toBe("full");
+    expect(isTerrainOfflineReady(parsed)).toBe(true);
   });
 
   it("verifies fixture file checksums", async () => {

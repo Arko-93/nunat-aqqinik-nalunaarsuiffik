@@ -43,3 +43,7 @@ _Avoid_: Translating the primary label, appending island/fjord/ø suffixes, prom
 **Alternate name**:
 A Danish, historical, or other secondary spelling kept searchable and shown in the dossier as an explicitly labelled alternate below `officialName`. In search results it appears only when that alternate caused the match.
 _Avoid_: Showing every alternate on every result, treating alternates as primary map labels
+
+**Coastline mask**:
+The complete OSM coastline land polygon surface that hides ocean depth fills, hillshade, contours, and contour labels under land. V1 interim shared shoreline: the display mask sits above every ocean layer; clipping bathymetry before tile generation is future IBCAO/GEBCO tiling work. Asiaq geometry may replace OSM when authoritative distributable geometry arrives.
+_Avoid_: Partial land fills as the mask, letting any ocean layer paint above the mask, separate coastlines for mask and bathymetry, treating OSM as the permanent geometry authority

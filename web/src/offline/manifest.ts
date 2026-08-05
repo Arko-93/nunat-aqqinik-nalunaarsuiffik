@@ -183,7 +183,7 @@ export function parseManifest(raw: unknown): CorridorPackManifest {
   const kind = inferKind(m.kind, files);
   if (kind === "full" && !packHasTerrainTiles(files)) {
     throw new PackError(
-      "Manifest kind=full requires land-relief.pmtiles and ocean-depth.pmtiles",
+      `Manifest kind=full requires ${TERRAIN_OFFLINE_FILES.join(", ")}`,
     );
   }
   if (m.notes != null && typeof m.notes !== "string") {

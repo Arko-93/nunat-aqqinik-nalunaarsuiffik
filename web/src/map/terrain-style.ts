@@ -36,8 +36,23 @@ export const TERRAIN_LAYER_IDS = {
   oceanFills: "terrain-ocean-fills",
   oceanContours: "terrain-ocean-contours",
   oceanContourLabels: "terrain-ocean-contour-labels",
+  coastlineMask: "terrain-coastline-mask",
   landHillshade: "terrain-land-hillshade",
 } as const;
+
+/**
+ * Complete OSM coastline land polygons (ODbL) served as PMTiles.
+ * Same-origin path so the offline corridor pack can serve the same file.
+ * Package: web/public/packages/coastline-land (fetch-coastline-mask-assets.sh).
+ */
+export const COASTLINE_MASK_PMTILES_URL =
+  "pmtiles:///packages/coastline-land/land.pmtiles";
+
+export const COASTLINE_MASK_ATTRIBUTION =
+  "© OpenStreetMap contributors (ODbL) — coastline land polygons";
+
+/** Neutral land base painted above ocean layers; relief/markers stay above. */
+export const COASTLINE_MASK_FILL_COLOR = "#e8e0cf";
 
 export type TerrainStyleMeta = {
   "nunat:basemap": "terrain-first";
@@ -48,6 +63,8 @@ export type TerrainStyleMeta = {
   /** Peak color bands are product policy only — not a live layer yet. */
   "nunat:land-peak-bands": "deferred";
   "nunat:ocean-under-land": true;
+  "nunat:coastline-source": "osm-land-polygons";
+  "nunat:coastline-licence": "ODbL";
   /** NunaGIS officialName is the sole primary geography label. */
   "nunat:name-ownership": "official-kalaallisut-primary";
 };
@@ -57,8 +74,7 @@ export function oceanInsertBeforeId(
   layers: ReadonlyArray<LayerSpecification>,
 ): string | undefined {
   const land = layers.find((layer) => {
-    if (layer.type !== "fill") return false;
-    return isBasemapLandFillId(layer.id);
+    return isBasemapLandFillLayer(layer);
   });
   if (land) return land.id;
   const water = layers.find(
@@ -99,9 +115,49 @@ function isBasemapLandFillId(id: string): boolean {
   return (
     lower.includes("landcover") ||
     lower.includes("landuse") ||
-    lower === "land" ||
-    lower.includes("earth")
+    lower === "land"
   );
+}
+
+/** Land-fill detection on layer objects — rasters (e.g. `natural_earth`) never count. */
+function isBasemapLandFillLayer(layer: LayerSpecification): boolean {
+  return layer.type === "fill" && isBasemapLandFillId(layer.id);
+}
+
+function oceanLayerIds(): string[] {
+  return [
+    TERRAIN_LAYER_IDS.oceanHillshade,
+    TERRAIN_LAYER_IDS.oceanFills,
+    TERRAIN_LAYER_IDS.oceanContours,
+    TERRAIN_LAYER_IDS.oceanContourLabels,
+  ];
+}
+
+/**
+ * Coastline-mask order contract: the complete land mask sits above every
+ * ocean layer — hillshade, depth fills, contours, and contour labels — so
+ * no depth geometry or label can paint on land.
+ */
+export function assertMaskAboveOcean(
+  layerIds: ReadonlyArray<string>,
+): { ok: true } | { ok: false; reason: string } {
+  const maskIdx = layerIds.indexOf(TERRAIN_LAYER_IDS.coastlineMask);
+  if (maskIdx < 0) {
+    return {
+      ok: false,
+      reason: `${TERRAIN_LAYER_IDS.coastlineMask} is missing — ocean layers are unmasked`,
+    };
+  }
+  for (const oceanId of oceanLayerIds()) {
+    const idx = layerIds.indexOf(oceanId);
+    if (idx >= 0 && idx >= maskIdx) {
+      return {
+        ok: false,
+        reason: `${oceanId} sits above the coastline mask (index ${idx} >= ${maskIdx})`,
+      };
+    }
+  }
+  return { ok: true };
 }
 
 /**
@@ -308,6 +364,11 @@ export function composeTerrainStyle(
       attribution:
         "Ocean depth (open grid, interim) — not for navigation",
     },
+    "coastline-land": {
+      type: "vector",
+      url: COASTLINE_MASK_PMTILES_URL,
+      attribution: COASTLINE_MASK_ATTRIBUTION,
+    },
   };
 
   const layers = suppressCompetingGeographyLabels(style.layers ?? []);
@@ -356,26 +417,7 @@ export function composeTerrainStyle(
     },
   };
 
-  layers.splice(insertAt, 0, oceanHillshade, oceanFills, oceanContours);
-
-  const landHillshade: LayerSpecification = {
-    id: TERRAIN_LAYER_IDS.landHillshade,
-    type: "hillshade",
-    source: "land-relief",
-    paint: {
-      "hillshade-exaggeration": 0.55,
-      "hillshade-shadow-color": "#3a3228",
-      "hillshade-highlight-color": "#f0e6d4",
-      "hillshade-accent-color": "#6b5e4a",
-    },
-  };
-  const landCoverIdx = layers.findIndex((layer) =>
-    isBasemapLandFillId(layer.id),
-  );
-  const landInsert = landCoverIdx >= 0 ? landCoverIdx : insertAt + 3;
-  layers.splice(landInsert, 0, landHillshade);
-
-  layers.push({
+  const oceanContourLabels: LayerSpecification = {
     id: TERRAIN_LAYER_IDS.oceanContourLabels,
     type: "symbol",
     source: "ocean-depth-vector",
@@ -393,7 +435,46 @@ export function composeTerrainStyle(
       "text-halo-color": "#ffffff",
       "text-halo-width": 1.2,
     },
-  });
+  };
+
+  const coastlineMask: LayerSpecification = {
+    id: TERRAIN_LAYER_IDS.coastlineMask,
+    type: "fill",
+    source: "coastline-land",
+    "source-layer": "land",
+    paint: {
+      "fill-color": COASTLINE_MASK_FILL_COLOR,
+      "fill-opacity": 1,
+    },
+  };
+
+  // Order: ocean hillshade, fills, contours, contour labels, then the
+  // complete coastline mask, then land relief. The mask hides every ocean
+  // layer on land while land hillshade and NunaGIS markers stay above it.
+  layers.splice(
+    insertAt,
+    0,
+    oceanHillshade,
+    oceanFills,
+    oceanContours,
+    oceanContourLabels,
+    coastlineMask,
+  );
+
+  const landHillshade: LayerSpecification = {
+    id: TERRAIN_LAYER_IDS.landHillshade,
+    type: "hillshade",
+    source: "land-relief",
+    paint: {
+      "hillshade-exaggeration": 0.55,
+      "hillshade-shadow-color": "#3a3228",
+      "hillshade-highlight-color": "#f0e6d4",
+      "hillshade-accent-color": "#6b5e4a",
+    },
+  };
+  const landCoverIdx = layers.findIndex(isBasemapLandFillLayer);
+  const landInsert = landCoverIdx >= 0 ? landCoverIdx : insertAt + 5;
+  layers.splice(landInsert, 0, landHillshade);
 
   style.layers = layers;
 
@@ -405,6 +486,8 @@ export function composeTerrainStyle(
     "nunat:land-source": "mapterhorn-terrarium",
     "nunat:land-peak-bands": "deferred",
     "nunat:ocean-under-land": true,
+    "nunat:coastline-source": "osm-land-polygons",
+    "nunat:coastline-licence": "ODbL",
     "nunat:name-ownership": "official-kalaallisut-primary",
   };
   style.metadata = {
