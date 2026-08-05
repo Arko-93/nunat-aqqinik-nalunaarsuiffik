@@ -1,0 +1,15 @@
+{
+  "id": "snp_nunagis_placenames_midpoint_2026_08_05",
+  "source_dataset_id": "dsd_nunagis_placenames_midpoint",
+  "url": "https://kort.nunagis.gl/refserver/rest/services/PlacenamesRegister/PlacenamesRegisterSearch/MapServer/1",
+  "retrieved_at": "2026-08-05T00:00:00Z",
+  "checksum": "sha256:3f1377258a1ea27ce7c99779076a510fe79d58fe2eb0a8ce399bdae5f0fe4ae7",
+  "media_type": "application/geo+json",
+  "schema_fingerprint": null,
+  "licence_status": "unknown",
+  "storage_path": "snapshots/nunagis_placenames_midpoint/2026-08-05",
+  "byte_size": 3194551,
+  "record_count": 5594,
+  "payload_file": "coastal-midpoints.geojson",
+  "notes": "Immutable coastal extract (types 143/181/182/183) from NunaGIS PlacenamesRegisterSearch midpoint layer MapServer/1, used by web coverage tests. Update only with a new timestamped snapshot and reviewable evidence. Counts: {\"143\": 237, \"181\": 4335, \"182\": 20, \"183\": 1002}"
+}

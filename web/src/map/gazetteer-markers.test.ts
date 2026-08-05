@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { SymbolLayerSpecification } from "maplibre-gl";
+import type {
+  CircleLayerSpecification,
+  SymbolLayerSpecification,
+} from "maplibre-gl";
 import {
   COASTAL_KINDS,
   COASTAL_MARKER_GLYPH,
@@ -7,24 +10,32 @@ import {
   COASTAL_REGISTRY,
 } from "../domain/coastal-features.ts";
 import {
-  allCoastalMarkerLayers,
+  allCoastalLabelLayers,
+  allCoastalMarkerOnlyLayers,
   allSelectedCoastalMarkerLayers,
+  bandLabelLayerId,
   coastalInteractiveLayerIds,
+  coastalLabelLayerId,
   coastalMarkerLayerId,
   coastalTypeFilter,
+  gazetteerLayerAddOrder,
   markerKindAppearsAtZoom,
   nonCoastalBandFilter,
   selectedCoastalMarkerLayerId,
 } from "./gazetteer-markers.ts";
 
+function asSymbol(
+  layer: CircleLayerSpecification | SymbolLayerSpecification | undefined,
+): SymbolLayerSpecification | undefined {
+  return layer?.type === "symbol" ? layer : undefined;
+}
+
 describe("gazetteer marker style seam", () => {
-  it("builds distinct layers for each coastal type with issue minzoom", () => {
-    const layers = allCoastalMarkerLayers();
+  it("builds distinct marker layers for each coastal type with issue minzoom", () => {
+    const layers = allCoastalMarkerOnlyLayers();
     const byId = Object.fromEntries(layers.map((layer) => [layer.id, layer]));
 
-    const skerry = byId[coastalMarkerLayerId("skerry")] as
-      | SymbolLayerSpecification
-      | undefined;
+    const skerry = asSymbol(byId[coastalMarkerLayerId("skerry")]);
     expect(skerry?.type).toBe("symbol");
     expect(skerry?.minzoom).toBe(9.6);
     expect(skerry?.layout?.["text-field"]).toBe(COASTAL_MARKER_GLYPH.skerry);
@@ -41,12 +52,28 @@ describe("gazetteer marker style seam", () => {
     expect(JSON.stringify(group?.paint)).toContain("transparent");
   });
 
-  it("keeps coastal labels from stealing town/settlement placement", () => {
+  it("places locality labels before optional coastal labels (no ignore-placement)", () => {
+    const order = gazetteerLayerAddOrder();
+    const townLabel = bandLabelLayerId("town");
+    const settlementLabel = bandLabelLayerId("settlement");
+    const coastalLabel = coastalLabelLayerId("skerry");
+    expect(order.indexOf(townLabel)).toBeGreaterThan(-1);
+    expect(order.indexOf(settlementLabel)).toBeGreaterThan(-1);
+    expect(order.indexOf(coastalLabel)).toBeGreaterThan(
+      order.indexOf(townLabel),
+    );
+    expect(order.indexOf(coastalLabel)).toBeGreaterThan(
+      order.indexOf(settlementLabel),
+    );
+    expect(order.indexOf(coastalMarkerLayerId("skerry"))).toBeLessThan(
+      order.indexOf(townLabel),
+    );
+
     for (const kind of COASTAL_KINDS) {
-      const label = allCoastalMarkerLayers().find(
-        (layer) => layer.id === `placenames-label-${kind}`,
-      ) as SymbolLayerSpecification | undefined;
-      expect(label?.layout?.["text-ignore-placement"]).toBe(true);
+      const label = allCoastalLabelLayers().find(
+        (layer) => layer.id === coastalLabelLayerId(kind),
+      );
+      expect(label?.layout?.["text-ignore-placement"]).toBe(false);
       expect(label?.layout?.["text-optional"]).toBe(true);
     }
   });
@@ -55,13 +82,9 @@ describe("gazetteer marker style seam", () => {
     const selected = Object.fromEntries(
       allSelectedCoastalMarkerLayers().map((layer) => [layer.id, layer]),
     );
-    expect(selected[selectedCoastalMarkerLayerId("skerry")]?.type).toBe(
-      "symbol",
-    );
-    expect(
-      (selected[selectedCoastalMarkerLayerId("skerry")] as SymbolLayerSpecification)
-        .layout?.["text-field"],
-    ).toBe("×");
+    const skerry = asSymbol(selected[selectedCoastalMarkerLayerId("skerry")]);
+    expect(skerry?.type).toBe("symbol");
+    expect(skerry?.layout?.["text-field"]).toBe("×");
 
     expect(selected[selectedCoastalMarkerLayerId("island")]?.type).toBe(
       "circle",
@@ -91,7 +114,16 @@ describe("gazetteer marker style seam", () => {
   it("keeps markers interactive even when labels collide", () => {
     const ids = coastalInteractiveLayerIds();
     expect(ids).toContain(coastalMarkerLayerId("skerry"));
-    expect(ids).toContain("placenames-label-skerry");
+    expect(ids).toContain(coastalLabelLayerId("skerry"));
+    for (const kind of COASTAL_KINDS) {
+      const marker = allCoastalMarkerOnlyLayers().find(
+        (layer) => layer.id === coastalMarkerLayerId(kind),
+      );
+      expect(marker).toBeTruthy();
+      if (marker?.type === "symbol") {
+        expect(marker.layout?.["text-allow-overlap"]).toBe(true);
+      }
+    }
   });
 
   it("filters each coastal layer to one exact typeCode from the registry", () => {

@@ -5,7 +5,8 @@ import { disclosureMinZoom } from "../domain/disclosure.ts";
 import type { ZoomBand } from "../domain/importance.ts";
 import type { Placename } from "../domain/placename.ts";
 import {
-  allCoastalMarkerLayers,
+  allCoastalLabelLayers,
+  allCoastalMarkerOnlyLayers,
   allSelectedCoastalMarkerLayers,
   bandCircleLayerId,
   bandLabelLayerId,
@@ -17,7 +18,7 @@ import {
   selectedNonCoastalDotLayer,
 } from "../map/gazetteer-markers.ts";
 import { loadTerrainStyle } from "../map/terrain-style.ts";
-import { placenameFromMapFeature } from "./map-selection.ts";
+import { selectPlaceFromMapClick } from "./map-selection.ts";
 
 const SOURCE_ID = PLACENAMES_SOURCE_ID;
 const ADMIN_SOURCE_ID = "administrative-areas";
@@ -260,8 +261,14 @@ function addBandLayers(map: Map, band: ZoomBand, minzoom: number) {
   });
 }
 
-function addCoastalLayers(map: Map) {
-  for (const layer of allCoastalMarkerLayers()) {
+function addCoastalMarkerLayers(map: Map) {
+  for (const layer of allCoastalMarkerOnlyLayers()) {
+    map.addLayer(layer);
+  }
+}
+
+function addCoastalLabelLayers(map: Map) {
+  for (const layer of allCoastalLabelLayers()) {
     map.addLayer(layer);
   }
 }
@@ -427,12 +434,12 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       });
 
       const mins = disclosureMinZoom("geography");
-      // Coastal markers first (under locality labels), then band layers, then selection.
-      addCoastalLayers(map);
+      // Markers first; locality/band labels next (collision priority); coastal labels last.
+      addCoastalMarkerLayers(map);
       for (const band of BANDS) {
         addBandLayers(map, band, mins[band]);
       }
-
+      addCoastalLabelLayers(map);
       addSelectedLayers(map);
     };
 
@@ -442,7 +449,7 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
           features?: maplibregl.MapGeoJSONFeature[];
         },
       ) => {
-        const place = placenameFromMapFeature(
+        const place = selectPlaceFromMapClick(
           event.features?.[0]?.properties ?? null,
         );
         if (!place) return;

@@ -1,19 +1,22 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { COASTAL_REGISTRY } from "../domain/coastal-features.ts";
-import { withMapRank, type Placename } from "../domain/placename.ts";
+import {
+  placenameToGeoJsonFeature,
+  withMapRank,
+  type Placename,
+} from "../domain/placename.ts";
 import {
   MESSAGES,
   TYPE_LABELS_NEED_NATIVE_REVIEW,
 } from "../i18n/messages.ts";
 import { I18nProvider } from "../i18n/I18nContext.tsx";
-import { PlaceDossier } from "./PlaceDossier.tsx";
 import {
   displayTypeLabel,
-  dossierFromMapTap,
-  placenameFromMapFeature,
   placeProvenance,
+  selectPlaceFromMapClick,
 } from "./map-selection.ts";
+import { PlaceDossierSources } from "./PlaceDossierSources.tsx";
 
 const place = (partial: {
   officialName: string;
@@ -49,8 +52,12 @@ const place = (partial: {
   };
 };
 
-describe("map tap → dossier seam", () => {
-  it("parses map feature props into exact type + provenance for the dossier", () => {
+/** Typed map-click props from the same GeoJSON path MapCanvas uses. */
+const mapClickProps = (entry: Placename): GeoJSON.GeoJsonProperties =>
+  placenameToGeoJsonFeature(entry).properties;
+
+describe("map click → dossier Sources seam", () => {
+  it("uses the production click helper to select a place with exact type", () => {
     const skerry = place({
       officialName: "Qeqertaq",
       typeCode: 143,
@@ -58,22 +65,18 @@ describe("map tap → dossier seam", () => {
       danishName: "Alt",
       oldOfficialName: "Old",
     });
-    const props = { ...skerry } as unknown as GeoJSON.GeoJsonProperties;
-    const dossier = dossierFromMapTap(props, MESSAGES.en);
-    expect(dossier).not.toBeNull();
-    expect(dossier!.typeLabel).toBe("Skerry");
-    expect(dossier!.alternateNames).toEqual(["Alt", "Old"]);
-    expect(dossier!.claimsPhysicalSize).toBe(false);
-    expect(dossier!.provenance.globalId).toBe("AAA-SKERRY");
-    expect(dossier!.provenance.typeCode).toBe(143);
-    expect(dossier!.provenance.registerTypeLabel).toBe(
+    const selected = selectPlaceFromMapClick(mapClickProps(skerry));
+    expect(selected).not.toBeNull();
+    expect(selected!.typeCode).toBe(143);
+    expect(selected!.globalId).toBe("AAA-SKERRY");
+    expect(displayTypeLabel(selected!, MESSAGES.en)).toBe("Skerry");
+    expect(placeProvenance(selected!).registerTypeLabel).toBe(
       COASTAL_REGISTRY.skerry.registerLabelDa,
     );
-    expect(dossier!.provenance.layerUrl).toContain("MapServer/1");
-    expect(dossier!.provenance.sourceKind).toBe("nunagis_midpoint");
+    expect(placeProvenance(selected!).layerUrl).toContain("MapServer/1");
   });
 
-  it("keeps all four coastal types distinct after map tap", () => {
+  it("keeps all four coastal types distinct after map click", () => {
     for (const kind of [
       "skerry",
       "island",
@@ -81,41 +84,48 @@ describe("map tap → dossier seam", () => {
       "island_group",
     ] as const) {
       const meta = COASTAL_REGISTRY[kind];
-      const props = place({
-        officialName: kind,
-        typeCode: meta.typeCode,
-      }) as unknown as GeoJSON.GeoJsonProperties;
-      const dossier = dossierFromMapTap(props, MESSAGES.en);
-      expect(dossier!.typeLabel).toBe(MESSAGES.en[meta.typeLabelKey]);
-      expect(dossier!.provenance.typeCode).toBe(meta.typeCode);
+      const selected = selectPlaceFromMapClick(
+        mapClickProps(
+          place({
+            officialName: kind,
+            typeCode: meta.typeCode,
+          }),
+        ),
+      );
+      expect(selected).not.toBeNull();
+      expect(displayTypeLabel(selected!, MESSAGES.en)).toBe(
+        MESSAGES.en[meta.typeLabelKey],
+      );
+      expect(selected!.typeCode).toBe(meta.typeCode);
     }
   });
 
-  it("renders PlaceDossier Sources with exact NunaGIS provenance after tap", () => {
-    const props = place({
-      officialName: "Tiilerilaaq",
-      typeCode: 181,
-      globalId: "BBB-ISLAND",
-    }) as unknown as GeoJSON.GeoJsonProperties;
-    const selected = placenameFromMapFeature(props);
+  it("renders production PlaceDossierSources from the real click helper", () => {
+    const selected = selectPlaceFromMapClick(
+      mapClickProps(
+        place({
+          officialName: "Tiilerilaaq",
+          typeCode: 181,
+          globalId: "BBB-ISLAND",
+        }),
+      ),
+    );
     expect(selected).not.toBeNull();
     const provenance = placeProvenance(selected!);
     const html = renderToStaticMarkup(
       <I18nProvider>
-        <PlaceDossier
+        <PlaceDossierSources
           place={selected!}
           release={null}
-          initialTab="sources"
+          identityBadge={MESSAGES.kl.identityUpstream}
         />
       </I18nProvider>,
     );
-    expect(html).toContain(selected!.officialName);
     expect(html).toContain(provenance.globalId);
     expect(html).toContain(provenance.registerName);
     expect(html).toContain(provenance.layerUrl);
     expect(html).toContain("181");
     expect(html).toContain(COASTAL_REGISTRY.island.registerLabelDa);
-    expect(displayTypeLabel(selected!, MESSAGES.en)).toBe("Island");
     expect(TYPE_LABELS_NEED_NATIVE_REVIEW.kl).toBe(true);
   });
 

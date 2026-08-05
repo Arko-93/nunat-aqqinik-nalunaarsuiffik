@@ -108,8 +108,8 @@ function coastalLabelLayer(
       "text-max-width": 8,
       "symbol-sort-key": ["get", "importance"],
       "text-allow-overlap": false,
-      // Passive coastal labels must not reserve space ahead of town/settlement labels.
-      "text-ignore-placement": true,
+      // Optional labels yield to locality labels placed earlier in the style.
+      "text-ignore-placement": false,
     },
     paint: {
       "text-color": [
@@ -288,15 +288,22 @@ export function selectedCoastalMarkerLayer(
   return marker;
 }
 
-export function coastalMarkerLayers(
-  kind: CoastalMarkerKind,
-): ReadonlyArray<GazetteerMarkerLayer> {
-  return [coastalMarkerLayer(kind), coastalLabelLayer(kind)];
+/** Marker layers only — independently visible/tappable regardless of labels. */
+export function allCoastalMarkerOnlyLayers(): ReadonlyArray<GazetteerMarkerLayer> {
+  return COASTAL_KINDS.map((kind) => coastalMarkerLayer(kind));
 }
 
-/** All coastal marker + label layers in draw order (groups first, skerries last). */
+/**
+ * Coastal labels — add after locality/band labels so towns/settlements keep
+ * collision priority. Labels are optional; markers stay independent.
+ */
+export function allCoastalLabelLayers(): ReadonlyArray<SymbolLayerSpecification> {
+  return COASTAL_KINDS.map((kind) => coastalLabelLayer(kind));
+}
+
+/** Markers then labels (tests); production MapCanvas splits for locality priority. */
 export function allCoastalMarkerLayers(): ReadonlyArray<GazetteerMarkerLayer> {
-  return COASTAL_KINDS.flatMap((kind) => coastalMarkerLayers(kind));
+  return [...allCoastalMarkerOnlyLayers(), ...allCoastalLabelLayers()];
 }
 
 export function allSelectedCoastalMarkerLayers(): ReadonlyArray<GazetteerMarkerLayer> {
@@ -308,6 +315,17 @@ export function coastalInteractiveLayerIds(): ReadonlyArray<string> {
     coastalMarkerLayerId(kind),
     coastalLabelLayerId(kind),
   ]);
+}
+
+/** Style order contract: coastal markers → band/locality labels → coastal labels. */
+export function gazetteerLayerAddOrder(): ReadonlyArray<string> {
+  return [
+    ...allCoastalMarkerOnlyLayers().map((layer) => layer.id),
+    ...(["detail", "local", "regional", "major", "settlement", "town"] as const).flatMap(
+      (band) => [bandCircleLayerId(band), bandLabelLayerId(band)],
+    ),
+    ...allCoastalLabelLayers().map((layer) => layer.id),
+  ];
 }
 
 export function selectedCoastalInteractiveLayerIds(): ReadonlyArray<string> {

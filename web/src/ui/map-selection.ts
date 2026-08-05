@@ -2,8 +2,8 @@ import {
   coastalMetaForType,
   NUNAGIS_MIDPOINT_PROVENANCE,
 } from "../domain/coastal-features.ts";
-import { typeLabel } from "../domain/importance.ts";
-import type { Placename } from "../domain/placename.ts";
+import { typeLabel, type ZoomBand } from "../domain/importance.ts";
+import type { FeatureKind, Placename } from "../domain/placename.ts";
 import type { Messages } from "../i18n/messages.ts";
 
 /** Exact source provenance shown in PlaceDossier Sources. */
@@ -15,6 +15,52 @@ export type PlaceProvenance = {
   globalId: string;
   typeCode: number;
   registerTypeLabel: string;
+};
+
+const readString = (value: unknown): string | null => {
+  if (value == null || value === "") return null;
+  return String(value);
+};
+
+const readNumber = (value: unknown): number | null => {
+  if (value == null || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+};
+
+const readBoolean = (value: unknown): boolean =>
+  value === true || value === "true" || value === 1;
+
+const readZoomBand = (value: unknown): ZoomBand => {
+  if (
+    value === "town" ||
+    value === "settlement" ||
+    value === "major" ||
+    value === "regional" ||
+    value === "local" ||
+    value === "detail"
+  ) {
+    return value;
+  }
+  return "detail";
+};
+
+const readFeatureKind = (value: unknown): FeatureKind => {
+  if (value === "town" || value === "settlement") return value;
+  return "other";
+};
+
+const readIdentityStatus = (
+  value: unknown,
+): Placename["identityStatus"] => {
+  if (
+    value === "canonical" ||
+    value === "candidate" ||
+    value === "upstream_only"
+  ) {
+    return value;
+  }
+  return "upstream_only";
 };
 
 export const localizedCoastalTypeLabel = (
@@ -45,102 +91,58 @@ export const placeProvenance = (place: Placename): PlaceProvenance => {
 };
 
 /**
- * MapLibre feature properties → Placename (map tap seam).
- * Kept free of React so tests can exercise the real click path.
+ * Production map-click selection helper.
+ * MapLibre feature properties → Placename for App selection / PlaceDossier.
  */
-export function placenameFromMapFeature(
+export function selectPlaceFromMapClick(
   props: GeoJSON.GeoJsonProperties,
 ): Placename | null {
-  if (!props) return null;
-  const isLocality =
-    props.isLocality === true ||
-    props.isLocality === "true" ||
-    props.isLocality === 1;
-  const globalId = String(props.globalId ?? "");
-  if (!globalId) return null;
-  const identityStatus =
-    props.identityStatus === "canonical" ||
-    props.identityStatus === "candidate" ||
-    props.identityStatus === "upstream_only"
-      ? props.identityStatus
-      : "upstream_only";
-  return {
-    ...(props as Placename),
-    featureId:
-      typeof props.featureId === "string" && props.featureId.length > 0
-        ? props.featureId
-        : `nunagis:${globalId}`,
-    placeId:
-      props.placeId == null || props.placeId === ""
-        ? null
-        : String(props.placeId),
-    identityStatus,
+  if (props == null) return null;
+
+  const globalId = readString(props.globalId);
+  const officialName = readString(props.officialName);
+  const recordId = readNumber(props.recordId);
+  const typeCode = readNumber(props.typeCode);
+  const longitude = readNumber(props.longitude);
+  const latitude = readNumber(props.latitude);
+  const importance = readNumber(props.importance);
+  const minZoom = readNumber(props.minZoom);
+  if (
+    globalId == null ||
+    officialName == null ||
+    recordId == null ||
+    typeCode == null ||
+    longitude == null ||
+    latitude == null ||
+    importance == null ||
+    minZoom == null
+  ) {
+    return null;
+  }
+
+  const featureId = readString(props.featureId) ?? `nunagis:${globalId}`;
+  const place: Placename = {
+    featureId,
+    placeId: readString(props.placeId),
+    identityStatus: readIdentityStatus(props.identityStatus),
     globalId,
-    isLocality,
-    isLocalityShadow:
-      props.isLocalityShadow === true ||
-      props.isLocalityShadow === "true" ||
-      props.isLocalityShadow === 1,
-    typeCode: Number(props.typeCode),
-    recordId: Number(props.recordId),
-    importance: Number(props.importance),
-    minZoom: Number(props.minZoom),
-    longitude: Number(props.longitude),
-    latitude: Number(props.latitude),
-    typeLabel: String(props.typeLabel ?? ""),
-    zoomBand: props.zoomBand as Placename["zoomBand"],
-    municipalityCode:
-      props.municipalityCode == null || props.municipalityCode === ""
-        ? null
-        : Number(props.municipalityCode),
-    danishName:
-      props.danishName == null || props.danishName === ""
-        ? null
-        : String(props.danishName),
-    oldOfficialName:
-      props.oldOfficialName == null || props.oldOfficialName === ""
-        ? null
-        : String(props.oldOfficialName),
-    municipalityName:
-      props.municipalityName == null || props.municipalityName === ""
-        ? null
-        : String(props.municipalityName),
-    localityCode:
-      props.localityCode == null || props.localityCode === ""
-        ? null
-        : String(props.localityCode),
-    officialName: String(props.officialName ?? ""),
-    featureKind:
-      props.featureKind === "town" || props.featureKind === "settlement"
-        ? props.featureKind
-        : "other",
+    recordId,
+    officialName,
+    danishName: readString(props.danishName),
+    oldOfficialName: readString(props.oldOfficialName),
+    featureKind: readFeatureKind(props.featureKind),
+    typeCode,
+    typeLabel: readString(props.typeLabel) ?? typeLabel(typeCode),
+    isLocality: readBoolean(props.isLocality),
+    isLocalityShadow: readBoolean(props.isLocalityShadow),
+    importance,
+    minZoom,
+    zoomBand: readZoomBand(props.zoomBand),
+    municipalityCode: readNumber(props.municipalityCode),
+    municipalityName: readString(props.municipalityName),
+    localityCode: readString(props.localityCode),
+    longitude,
+    latitude,
   };
+  return place;
 }
-
-/** Fields PlaceDossier renders after a map tap — tap → dossier seam. */
-export type DossierFromTap = {
-  officialName: string;
-  typeLabel: string;
-  alternateNames: ReadonlyArray<string>;
-  provenance: PlaceProvenance;
-  /** Markers never encode area or hazard class. */
-  claimsPhysicalSize: false;
-};
-
-export const dossierFromMapTap = (
-  props: GeoJSON.GeoJsonProperties,
-  t: Messages,
-): DossierFromTap | null => {
-  const place = placenameFromMapFeature(props);
-  if (!place || !place.officialName) return null;
-  const alternateNames = [place.danishName, place.oldOfficialName].filter(
-    (name): name is string => Boolean(name) && name !== place.officialName,
-  );
-  return {
-    officialName: place.officialName,
-    typeLabel: displayTypeLabel(place, t),
-    alternateNames,
-    provenance: placeProvenance(place),
-    claimsPhysicalSize: false,
-  };
-};
