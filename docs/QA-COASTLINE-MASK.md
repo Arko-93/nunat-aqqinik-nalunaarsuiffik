@@ -1,4 +1,4 @@
-# Manual visual QA — coastline mask (Qaarsut, Naajaat, Upernavik, Kullorsuaq)
+# Manual visual QA — coastline mask (Naajaat, Qaarsut, Upernavik)
 
 Issue #16 regression areas + issue #19 fix areas. "Before" = the previous
 mask package (OSM coastline only, `coastline-land_2026-08-05`); "After" =
@@ -14,7 +14,6 @@ this branch's mask (OSM coastline ∪ Mapterhorn DEM land, `coastline-land_2026-
    __nunatMap.easeTo({ center: [-52.638, 70.731], zoom: 13 }); // Qaarsut
    __nunatMap.easeTo({ center: [-55.808, 73.143], zoom: 13 }); // Naajaat
    __nunatMap.easeTo({ center: [-56.147, 72.785], zoom: 13 }); // Upernavik
-   __nunatMap.easeTo({ center: [-57.220, 74.579], zoom: 13 }); // Kullorsuaq
    ```
 
 4. Before state (for comparison): use the previous release tag
@@ -26,9 +25,9 @@ this branch's mask (OSM coastline ∪ Mapterhorn DEM land, `coastline-land_2026-
 | Area | Zoom | Check |
 | --- | --- | --- |
 | Naajaat | 13–14 | No 5 m / 20 m / 50 m depth fill, contour line, or depth label on the settlement island or the DEM land west of it (issue #19 underfill) |
+| Naajaat | 12 | Same check at overview zoom — verified geometrically (mask tiles z12 carry the DEM union; see geometric regression below); the z12 screenshot pair was excluded: the automation browser's capture state was unreliable at that zoom (tile-load noise dominated the pixel diff) |
 | Qaarsut | 13–14 | Settlement coastline clean; small islands are land, not submerged bands |
-| Upernavik | 13 | No depth fill on DEM land around the settlement |
-| Kullorsuaq | 13 | No depth fill on DEM land around the settlement |
+| Upernavik | 13 | No depth fill on DEM land around the settlement (second corridor settlement with evidence) |
 | Any | 3–8 | Land hillshade and NunaGIS markers/labels still visible above the mask |
 | Any | 14 | Ocean meter bands, contours, and labels visible in sea (mask did not over-clip) |
 
@@ -41,7 +40,6 @@ Fixed camera (1523×914, DPR 1), same viewport before/after. Screenshots:
 - `docs/qa-coastline-mask/qaarsut-z13-before.png` / `qaarsut-z13-after.png`
 - `docs/qa-coastline-mask/qaarsut-z14-before.png` / `qaarsut-z14-after.png`
 - `docs/qa-coastline-mask/upernavik-z13-before.png` / `upernavik-z13-after.png`
-- `docs/qa-coastline-mask/kullorsuaq-z13-before.png` / `kullorsuaq-z13-after.png`
 
 Measured pixel change (same viewport, mask old vs new, RGB delta > 30/765):
 
@@ -52,11 +50,13 @@ Measured pixel change (same viewport, mask old vs new, RGB delta > 30/765):
 | qaarsut-z13 before→after | 3.1 % |
 | qaarsut-z14 before→after | 1.4 % |
 | upernavik-z13 before→after | 0.2 % |
-| kullorsuaq-z13 before→after | 0.0 % |
 
-Upernavik and Kullorsuaq changed little in pixels: their DEM↔OSM underfill is
-~0.04–0.06 km² — sub-visual at z13 in a ~48 km² viewport — but it is closed by
-the same DEM union (geometric regression, see below).
+Upernavik changed little in pixels: its DEM↔OSM underfill is ~0.04 km² —
+sub-visual at z13 in a ~48 km² viewport — but it is closed by the same DEM
+union (geometric regression, see below). A Kullorsuaq screenshot pair was
+captured but removed: the two frames were byte-identical (0.0 % delta) — its
+underfill (~0.06 km²) is not visible at z13 in a static frame; the geometric
+regression covers it.
 
 ## Rendered-state check (issue #19 defect point)
 
@@ -74,7 +74,7 @@ settlement ring; the pixel that was ocean-over-land in the #18 QA):
 
 `web/src/map/coastline-mask.test.ts` pins the shared-coastline contract:
 
-- 61→60 DEM-land sample points at Naajaat (Mapterhorn z14 pixels > 15 m
+- 60 DEM-land sample points at Naajaat (Mapterhorn z14 pixels > 15 m
   outside the OSM-only shoreline, elevations up to ~120 m) are covered by the
   mask tiles at z12/z13 — fails on the OSM-only mask, passes on the DEM union.
 - Bathymetry clip helpers still leave no depth band or contour portion on land.

@@ -24,3 +24,17 @@ misses (issue #19) — the mask matches the rendered land by construction.
 
 The map style carries this text in the `coastline-land` source attribution
 so the MapLibre attribution control shows it.
+
+## Redistribution terms
+
+- Licence: Open Database License (ODbL) 1.0 —
+  <https://opendatacommons.org/licenses/odbl/> — for the OSM-derived mask;
+  the DEM-derived portion keeps CC BY 4.0 (Klimadatastyrelsen / Mapterhorn).
+- Share-alike: derived data (including this mask and any bathymetry clipped
+  to this coastline) must be distributed under ODbL with the same
+  attribution.
+- Not for navigation: this mask is display context and cartographic repair;
+  it is not a nautical chart and carries no safety-of-life claims.
+- Asiaq geometry may replace OSM (and the DEM union) for the shared shoreline
+  when authoritative distributable geometry arrives (see issues #16/#19); the
+  licence section of this file must be updated together with that swap.
