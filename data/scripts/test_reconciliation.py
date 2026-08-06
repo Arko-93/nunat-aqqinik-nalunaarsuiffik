@@ -86,13 +86,16 @@ def test_nunagis_authority_produces_candidates() -> None:
         if row["authority_matches"]["oqaasileriffik"]["status"]
         == "candidate_exact_name"
     ]
-    if len(confirmed) != 1 or len(candidates) != 14:
+    if len(confirmed) != 15 or len(candidates) != 0:
         raise AssertionError(
-            "expected 1 confirmed + 14 candidate Oqaasileriffik rows, got "
+            "expected 15 confirmed + 0 candidate Oqaasileriffik rows, got "
             f"{len(confirmed)} + {len(candidates)}"
         )
-    if confirmed[0]["place_id"] != "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80":
-        raise AssertionError("expected Nuuk to be the confirmed Oqaasileriffik side")
+    nuuk = [
+        row for row in report if row["current_official_name"] == "Nuuk"
+    ]
+    if not nuuk or nuuk[0]["authority_matches"]["oqaasileriffik"]["status"] != "confirmed":
+        raise AssertionError("expected Nuuk to remain a confirmed Oqaasileriffik side")
     for row in report:
         asiaq = row["authority_matches"]["asiaq"]
         if asiaq["status"] != "waiting_for_export":
@@ -185,7 +188,7 @@ def main() -> None:
 
     print(
         "Reconciliation integration passed — 15-place waiting queue, "
-        "NunaGIS Type 21/23 normalize, candidate_exact_name path, "
+        "NunaGIS Type 21/23 normalize, confirmed Oqaasileriffik side (×15), "
         "explicit match, and conflict preservation verified"
     )
 

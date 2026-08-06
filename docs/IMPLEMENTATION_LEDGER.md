@@ -4,7 +4,7 @@
 **Working branch:** `feat/canonical-identity-e2e`  
 **Baseline commit:** `707d01767c568d1cea0a609ae4bbcf9067fdf4d2`  
 **Baseline date:** 2026-08-01  
-**Phase:** 5 UI finished (quiet shell); Phase 3 identity confirmation in progress — Nuuk confirmed (first canonical `xid_`, #29)
+**Phase:** 5 UI finished (quiet shell); Phase 3 identity confirmation done — all 15 seed identities confirmed (#29, #31)
 
 ## Phase 0 — Baseline
 
@@ -41,8 +41,8 @@ Clean on `main` at baseline; branch created with no discarded user changes.
 
 ### Known blockers
 
-1. `publish-check` blocked by `src_legacy_seed` pending provenance on the other 14 seeds (expected).
-2. Reconciliation: 1 confirmed `xid_` (Nuuk); 14 seeds still `candidate_exact_name`; Asiaq waiting.
+1. `publish-check` blocked by remaining `src_legacy_seed` references (place status, geometry, administrative records; expected).
+2. Reconciliation: 15 confirmed `xid_` (all seeds); overall 15 `unresolved` awaiting Asiaq.
 3. Web reachability joins by official name (`linksFromOfficialName`) — Phase 1 target (resolved on branch).
 4. Live NunaGIS fetch can still write `web/public/data/` directly — web must switch to `data/releases/CURRENT` mount (Phase 2 handoff).
 
@@ -80,6 +80,22 @@ No confirmed `external-identifiers` yet. Crosswalk is generated from `data/recon
 - Record count delta: external_identifiers 0 → 1.
 - Oqaasileriffik confirmation carried by `confirmed_place_id` on the Nuuk authority row; `make -C data reconcile` reports Nuuk `confirmed` (seed stays `unresolved` until Asiaq confirms). `normalize-nunagis` preserves confirmations by `record_id` (`carry_confirmations`) so re-fetch does not wipe them.
 
+### Phase 3 remaining 14 seed confirmations (2026-08-06, #31)
+
+| Command | Result |
+|---|---|
+| `make -C data test` | PASS — 115 records across 10 source files |
+| `make -C data publish-check` | FAIL (expected) — remaining `src_legacy_seed` on place status, geometry, administrative records |
+| `make -C data reconcile` | PASS — Oqaasileriffik `confirmed` ×15; `candidate_exact_name` ×0; overall 15 `unresolved` (Asiaq waiting) |
+| `python3 web/scripts/build-identity-crosswalk.py` | PASS — 15 entries (15 canonical, 0 candidate) |
+| `scripts/sync-web-release.sh` | PASS — 15 canonical in release-mounted crosswalk |
+
+- Confirmed the remaining 14 seeds against the committed 2026-08-01 NunaGIS register (GlobalID, Type 21/23, official name, decision id; Danish re-sourced only where the register asserts the matching value). Single candidate per seed; zero conflicts.
+- Added 14 canonical `xid_` (`nunagis.global_id`) rows → 15 total; `confirmed_place_id` on all 15 Oqaasileriffik authority rows.
+- Re-sourced 14 KL official names, 9 matching DA exonyms, and 14 classifications to` src_nunagis_placenames_register` (observed 2026-08-01).
+- Danish conflicts deliberately left on `src_legacy_seed` pending review: Kangerlussuaq (register `Danmarkshavn` vs seed `Søndre Strømfjord`, per issue stop-gate), Narsaq (register has no Danish vs seed `Narssaq`), Kulusuk (register `Kulusuk` vs seed `Kap Dan`).
+- Geometry stays legacy until Asiaq export; place status and admin records remain `src_legacy_seed`.
+
 ### Phase 4 read API scaffold (2026-08-01)
 
 | Command | Result |
@@ -97,7 +113,7 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 | 0 Baseline | complete | See above |
 | 1 Canonical identity | complete | `linksFromPlaceId`; no `linksFromOfficialName`; 25 web tests |
 | 2 Snapshots and releases | complete | Schemas, `2026.08.01.1`, web mounts release for identity/reachability |
-| 3 Locality spine | in progress | Inclusion rule; Nuuk confirmed first `xid_` (#29); 14 pending |
+| 3 Locality spine | in progress | All 15 seeds confirmed (#29, #31); full Type 21/23 import + Asiaq pending |
 | 4 Read API | scaffold complete | `api/` Hono + SQLite; 8 v1 endpoints; 7 tests; FTS follow-up |
 | 5 Greenland-first UI | foundations complete | AppShell, PlaceList, PlaceDossier, MobilePlaceSheet, i18n kl/da/en |
 | 6 Date-aware reachability | partial | Multi-service export done; effective-date filter + isolation reports remain |
@@ -113,8 +129,8 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 
 ### Residual / next integrator work
 
-1. **Phase 3 (done):** Nuuk confirmed → wrote first `xid_` + promoted crosswalk to canonical; no auto-merge.
-2. **Phase 3 (next):** Review and confirm the remaining 14 seeds the same way (one `xid_` per confirmed place).
+1. **Phase 3 (done):** all 15 seeds confirmed (Nuuk #29; remaining 14 #31) — 15 canonical `xid_`; no auto-merge.
+2. **Phase 3 (next):** import all qualifying Type 21/23 localities beyond the 15 seeds; Asiaq geometry export.
 3. **Phase 2 residual:** Package gazetteer midpoints into release snapshots (web still loads `/data/placenames.geojson`).
 4. **Phase 4 follow-up:** FTS5 + OpenAPI client generation.
 5. **Phase 5 follow-up:** Native KL review; AccessPlanner; full offline package UX; a11y pass with screen reader.
