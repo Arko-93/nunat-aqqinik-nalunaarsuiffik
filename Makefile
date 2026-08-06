@@ -2,7 +2,7 @@
 
 SHELL := /bin/bash
 
-.PHONY: preview-assemble map-fetch map-build map-omarchy preview-omarchy api-install api-typecheck api-test api-dev marine-install marine-test marine-fetch-land-assets marine-publish-land-assets marine-build marine-omarchy web-fetch-coastline-mask web-publish-coastline-mask web-fetch-corridor-pack web-publish-corridor-pack
+.PHONY: preview-assemble map-fetch map-build map-omarchy preview-omarchy api-install api-typecheck api-test api-dev marine-install marine-test marine-fetch-land-assets marine-publish-land-assets marine-build marine-omarchy web-fetch-coastline-mask web-publish-coastline-mask web-fetch-ocean-depth web-publish-ocean-depth web-fetch-corridor-pack web-publish-corridor-pack
 
 map-fetch:
 	bash scripts/sync-web-release.sh
@@ -11,6 +11,7 @@ map-fetch:
 map-build: map-fetch
 	pnpm --dir web install
 	bash scripts/fetch-coastline-mask-assets.sh
+	bash scripts/fetch-ocean-depth-assets.sh
 	pnpm --dir web build
 
 # Omarchy test surface (deploy from current worktree/branch; do not merge)
@@ -19,6 +20,7 @@ map-omarchy:
 	bash scripts/sync-web-release.sh
 	pnpm --dir web fetch:placenames
 	bash scripts/fetch-coastline-mask-assets.sh
+	bash scripts/fetch-ocean-depth-assets.sh
 	pnpm --dir web build
 	bash scripts/deploy-omarchy-preview.sh
 
@@ -64,6 +66,14 @@ web-fetch-coastline-mask:
 
 web-publish-coastline-mask: web-fetch-coastline-mask
 	bash scripts/publish-coastline-mask-assets.sh
+
+# Self-tiled IBCAO/GEBCO ocean depth (issue #23). PMTiles stay local
+# (gitignored). Fetch or build-ocean-depth.py.
+web-fetch-ocean-depth:
+	bash scripts/fetch-ocean-depth-assets.sh
+
+web-publish-ocean-depth: web-fetch-ocean-depth
+	bash scripts/publish-ocean-depth-assets.sh
 
 # Full Qaarsut→Kullorsuaq corridor offline pack. PMTiles stay local
 # (gitignored). Fetch or build-corridor-pack.py.

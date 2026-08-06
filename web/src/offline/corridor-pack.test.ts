@@ -171,7 +171,7 @@ describe("OPFS corridor pack behavior", () => {
         en: "Qaarsut–Kullorsuaq (full fixture)",
       },
       bbox: [-58.5, 70.4, -50.5, 74.9],
-      bytes: 18 * 3 + 22,
+      bytes: 18 * 4 + 22,
       createdAt: "2026-08-06T00:00:00Z",
       kind: "full",
       files: [
@@ -187,10 +187,16 @@ describe("OPFS corridor pack behavior", () => {
             "9f1c4c8d4f43b6f1f4d6c0d4b6f1e2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f",
         },
         {
-          path: "ocean-depth.pmtiles",
+          path: "ocean-depth-vector.pmtiles",
           bytes: 18,
           sha256:
             "8f1c4c8d4f43b6f1f4d6c0d4b6f1e2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f",
+        },
+        {
+          path: "ocean-depth-dem.pmtiles",
+          bytes: 18,
+          sha256:
+            "6f1c4c8d4f43b6f1f4d6c0d4b6f1e2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f",
         },
         {
           path: "coastline-land/land.pmtiles",
@@ -203,7 +209,8 @@ describe("OPFS corridor pack behavior", () => {
         opfs: [
           "localities.geojson",
           "land-relief.pmtiles",
-          "ocean-depth.pmtiles",
+          "ocean-depth-vector.pmtiles",
+          "ocean-depth-dem.pmtiles",
           "coastline-land/land.pmtiles",
         ],
         cache: ["manifest.json"],
@@ -224,6 +231,7 @@ describe("OPFS corridor pack behavior", () => {
     fullManifest.files[1]!.sha256 = landSha;
     fullManifest.files[2]!.sha256 = landSha;
     fullManifest.files[3]!.sha256 = landSha;
+    fullManifest.files[4]!.sha256 = landSha;
 
     vi.stubGlobal(
       "fetch",
@@ -255,7 +263,8 @@ describe("OPFS corridor pack behavior", () => {
     // Every terrain file is readable from OPFS, including nested paths.
     for (const path of [
       "land-relief.pmtiles",
-      "ocean-depth.pmtiles",
+      "ocean-depth-vector.pmtiles",
+      "ocean-depth-dem.pmtiles",
       "coastline-land/land.pmtiles",
     ]) {
       const buffer = await readPackFile(state.manifest.id, path);

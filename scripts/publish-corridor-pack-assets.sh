@@ -7,7 +7,7 @@ root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 pkg_dir="${CORRIDOR_PACKAGE_DIR:-$root_dir/web/public/packages/qaarsut-kullorsuaq}"
 manifest="$pkg_dir/manifest.json"
 repo="${CORRIDOR_PACK_ASSETS_REPO:-Arko-93/nunat-aqqinik-nalunaarsuiffik}"
-files=(land-relief.pmtiles ocean-depth.pmtiles coastline-land/land.pmtiles)
+files=(land-relief.pmtiles ocean-depth-vector.pmtiles ocean-depth-dem.pmtiles coastline-land/land.pmtiles)
 
 if [[ ! -f "$manifest" ]]; then
 	echo "Missing $manifest — run: .venv/bin/python web/scripts/build-corridor-pack.py" >&2

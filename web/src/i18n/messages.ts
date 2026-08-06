@@ -122,7 +122,7 @@ const en: Messages = {
   downloadStubHint:
     "Wiring stub only — no terrain offline. The full pack is in the Download area when it verifies (kind=full).",
   downloadFullHint:
-    "Full pack installed: land relief, ocean depth (fills, contours, labels — the hillshade raster stays online), coastline mask and localities work offline.",
+    "Full pack installed: land relief, ocean depth (fills, contours, labels and hillshade), coastline mask and localities work offline.",
   downloadDelete: "Delete download",
   downloadUpdate: "Update available",
   notForNavigation: "Not for navigation — open-grid depth, not a chart",
@@ -192,7 +192,7 @@ const da: Messages = {
   downloadStubHint:
     "Kun wiring-stub — ingen offline-terræn. Den fulde pakke er i Download-området, når den verificeres (kind=full).",
   downloadFullHint:
-    "Fuld pakke installeret: landrelief, havdybde (felter, konturer, etiketter — hillshade-raster forbliver online), kystlinjemaske og lokaliteter virker offline.",
+    "Fuld pakke installeret: landrelief, havdybde (felter, konturer, etiketter og hillshade), kystlinjemaske og lokaliteter virker offline.",
   downloadDelete: "Slet download",
   downloadUpdate: "Opdatering klar",
   notForNavigation: "Ikke til navigation — åbent dybdegitter, ikke et søkort",
@@ -262,7 +262,7 @@ const kl: Messages = {
   downloadStubHint:
     "Wiring-stub kisiat — offline-terræn aningaanngilaq. Pakke naammassimasoq Download-eqarfeqarneraniippoq kind=full-ikkut naliliffigineqarsimappat.",
   downloadFullHint:
-    "Pakke naammassimasoq installeret: nunap itisilersuutai, imaap itissusia (fills, contours, labels — hillshade raster online-imik), sinaap mask-a localities offline atorlugu sulisarput.",
+    "Pakke naammassimasoq installeret: nunap itisilersuutai, imaap itissusia (fills, contours, labels aamma hillshade), sinaap mask-a localities offline atorlugu sulisarput.",
   downloadDelete: "Download peeruk",
   downloadUpdate: "Nutarterneqarsinnaavoq",
   notForNavigation: "Angalanermut atugassaanngilaq — immap itissusia chartinngilaq",

@@ -45,7 +45,7 @@ A Danish, historical, or other secondary spelling kept searchable and shown in t
 _Avoid_: Showing every alternate on every result, treating alternates as primary map labels
 
 **Coastline mask**:
-The complete OSM coastline land polygon surface unioned with Mapterhorn DEM land (> ~1 m, z12 coastal band) hides ocean depth fills, hillshade, contours, and contour labels under land. V1 interim shared shoreline: the mask matches the land hillshade by construction (no ocean paints where the DEM renders land, issue #19) and sits above every ocean layer; clipping bathymetry before tile generation is future IBCAO/GEBCO tiling work. Asiaq geometry may replace both when authoritative distributable geometry arrives.
+The complete OSM coastline land polygon surface unioned with Mapterhorn DEM land (> ~1 m, z12 coastal band) hides ocean depth fills, hillshade, contours, and contour labels under land. V1 interim shared shoreline: the mask matches the land hillshade by construction (no ocean paints where the DEM renders land, issue #19) and sits above every ocean layer. Bathymetry is clipped to this same shoreline before tile generation (issue #23): the self-tiled IBCAO/GEBCO depth bands and contours cannot drift from the mask. Asiaq geometry may replace both when authoritative distributable geometry arrives.
 _Avoid_: Partial land fills as the mask, letting any ocean layer paint above the mask, separate coastlines for mask and bathymetry, treating OSM or the DEM as the permanent geometry authority
 
 **Shareable URL state**:

@@ -1,0 +1,44 @@
+{
+  "id": "ocean-depth_2026-08-06",
+  "slug": "ocean-depth",
+  "title": {
+    "kl": "Imarmiut itissusaat (IBCAO/GEBCO)",
+    "da": "Havdybde (IBCAO/GEBCO)",
+    "en": "Ocean depth (IBCAO/GEBCO)"
+  },
+  "description": "Self-tiled ocean depth replacing the Open Waters Seascape interim source: IBCAO v5.2 (2026) 400 m bathymetric grid primary with GEBCO_2026 (15 arc-sec) fallback, merged on a WGS84 15 arc-sec grid over the Greenland bbox. Depth bands and contours are clipped to the shared coastline (OSM \u222a Mapterhorn DEM land \u2014 the same shoreline the display mask uses) before tiling; the raster clips land cells to 0. Not for navigation.",
+  "bbox": [
+    -75.0,
+    59.5,
+    -10.0,
+    84.0
+  ],
+  "minZoom": 0,
+  "maxZoom": 10,
+  "bytes": 282426750,
+  "createdAt": "2026-08-06T00:00:00Z",
+  "dataAsOf": "2026-08-06",
+  "files": [
+    {
+      "path": "ocean-depth-dem.pmtiles",
+      "bytes": 196465855,
+      "sha256": "a6a766cd84947592ba843f7cb0cfd75fb2f2b7b4b0eb8982cf233dc5363fdfc2"
+    },
+    {
+      "path": "ocean-depth-vector.pmtiles",
+      "bytes": 85960895,
+      "sha256": "3a1fc2858c5324404912ad54426cbb6df269d60df9bf5539b4249d828c820dc0"
+    }
+  ],
+  "source": {
+    "title": "IBCAO v5.2 (2026) 400 m bathymetric grid \u222a GEBCO_2026 15 arc-sec grid (fallback)",
+    "publisher": "IBCAO (International Bathymetric Chart of the Arctic Ocean) / Nippon Foundation-GEBCO Seabed 2030; GEBCO (General Bathymetric Chart of the Oceans)",
+    "url": "https://data.ceda.ac.uk/bodc/gebco/ibcao/ibcao_v5.2/no_greenland_ice_sheet_elevation_data/400mx400m_grid_cell_spacing/single_complete_bathymetric_grid/ibcao_v5_2_2026_depth_400m.zip",
+    "licence": "IBCAO v5.2: Open Government Licence v3.0 (OGL-3.0, UK) \u2014 free use with attribution; GEBCO_2026: free use with attribution to the GEBCO Compilation Group",
+    "attribution": "Ocean depth \u00a9 IBCAO v5.2 (2026) \u00b7 GEBCO_2026 fallback (open grid, Seabed 2030) \u2014 not for navigation",
+    "redistribution": "IBCAO v5.2 is published under the Open Government Licence v3.0 (nationalarchives.gov.uk/doc/open-government-licence/version/3/) \u2014 free use with attribution. GEBCO_2026 is free to use with attribution to the GEBCO Compilation Group. The clipped bathymetry is derived from the shared coastline and keeps OSM ODbL share-alike obligations for the coastline-derived portions.",
+    "safety": "not-for-navigation"
+  },
+  "notForNavigation": true,
+  "notes": "Self-tiled IBCAO/GEBCO bathymetry (issue #23): merged WGS84 15 arc-sec grid, IBCAO v5.2 400 m primary north of 64N with GEBCO_2026 fallback; depth bands + contours clipped to the shared coastline (OSM \u222a Mapterhorn DEM land) before tiling \u2014 the clip contract of web/src/map/coastline-clip.ts mirrored in the build, verified at build time (band overlap < 25 m2, no contour point inside land). Raster is terrarium webp 256 px z0-10 (z11+ overzooms), vector MVT z0-11 (z12+ overzooms). Not a chart; not for navigation. Files are hosted on a GitHub Release. Fetch: bash scripts/fetch-ocean-depth-assets.sh"
+}

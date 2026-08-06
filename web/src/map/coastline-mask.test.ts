@@ -8,23 +8,22 @@
  * test guards against — so removing the clip (or drifting the shoreline)
  * fails the test.
  *
- * The clip helpers below are the reference implementation of the production
- * contract (clip depth bands and contours to the shared coastline before
- * tiling). V1 repairs the display with the mask layer; the IBCAO/GEBCO
- * tiling pipeline must apply this same clip.
+ * The clip helpers live in ./coastline-clip.ts (production module): they are
+ * the reference implementation of the production contract (clip depth bands
+ * and contours to the shared coastline before tiling). V1 repairs the
+ * display with the mask layer; the IBCAO/GEBCO tiling pipeline
+ * (web/scripts/build-ocean-depth.py) mirrors this exact contract in Python
+ * and verifies its own output at build time.
  */
 
 import { describe, expect, it } from "vitest";
 import booleanIntersects from "@turf/boolean-intersects";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import area from "@turf/area";
-import difference from "@turf/difference";
-import distance from "@turf/distance";
 import intersect from "@turf/intersect";
-import lineIntersect from "@turf/line-intersect";
-import lineSplit from "@turf/line-split";
+import distance from "@turf/distance";
 import nearestPointOnLine from "@turf/nearest-point-on-line";
-import { featureCollection, lineString, multiPoint } from "@turf/helpers";
+import { lineString, featureCollection } from "@turf/helpers";
 import { readFileSync } from "node:fs";
 import type {
   Feature,
@@ -37,9 +36,14 @@ import type {
   Polygon,
   Position,
 } from "geojson";
+import {
+  BOUNDARY_EPSILON_M,
+  clipBandToLand,
+  clipContourToLand,
+  type BathymetryGeom,
+  type LandGeom,
+} from "./coastline-clip.ts";
 
-type LandGeom = Polygon | MultiPolygon;
-type BathymetryGeom = Polygon | MultiPolygon | LineString | MultiLineString;
 type BathymetryFeature = Feature<BathymetryGeom>;
 
 const FIXTURES = new URL(
@@ -64,37 +68,37 @@ function readFixture<T extends Geometry>(
       { cause: error },
     );
   }
-  return JSON.parse(text) as FeatureCollection<T>;
+  try {
+    return JSON.parse(text) as FeatureCollection<T>;
+  } catch (error) {
+    throw new Error(`Invalid fixture ${kind}-${area}.geojson`, {
+      cause: error,
+    });
+  }
 }
 
 function isPolygonFeature(
   feature: BathymetryFeature,
 ): feature is Feature<Polygon | MultiPolygon> {
-  return isPolygonLike(feature.geometry);
+  return (
+    feature.geometry.type === "Polygon" ||
+    feature.geometry.type === "MultiPolygon"
+  );
 }
 
 function isLineFeature(
   feature: BathymetryFeature,
 ): feature is Feature<LineString | MultiLineString> {
-  return isLineLike(feature.geometry);
+  return (
+    feature.geometry.type === "LineString" ||
+    feature.geometry.type === "MultiLineString"
+  );
 }
 
 function isSingleLineFeature(
   feature: Feature<LineString | MultiLineString>,
 ): feature is Feature<LineString> {
   return feature.geometry.type === "LineString";
-}
-
-function isPolygonLike(
-  geometry: BathymetryGeom,
-): geometry is Polygon | MultiPolygon {
-  return geometry.type === "Polygon" || geometry.type === "MultiPolygon";
-}
-
-function isLineLike(
-  geometry: BathymetryGeom,
-): geometry is LineString | MultiLineString {
-  return geometry.type === "LineString" || geometry.type === "MultiLineString";
 }
 
 function landPolygons(
@@ -105,15 +109,6 @@ function landPolygons(
       feature.geometry.type === "Polygon" ||
       feature.geometry.type === "MultiPolygon",
   );
-}
-
-/** Shared-coastline clip for depth-area bands: band minus land (turf). */
-function clipBandToLand(
-  band: Feature<Polygon | MultiPolygon>,
-  land: ReadonlyArray<Feature<LandGeom>>,
-): Feature<Polygon | MultiPolygon> | null {
-  if (land.length === 0) return band;
-  return difference(featureCollection([band, ...land]));
 }
 
 /**
@@ -130,13 +125,6 @@ function overlapAreaM2(
 
 /** Numeric-noise floor: 5 m x 5 m. Real un-clipped crossings are ≫ this. */
 const OVERLAP_TOLERANCE_M2 = 25;
-
-/**
- * Boundary ambiguity epsilon (metres): vertices/samples within this distance
- * of the coastline are treated as on the boundary. Floating-point noise at
- * shared edges is ~1e-8 m; real un-clipped crossings are metres deep.
- */
-const BOUNDARY_EPSILON_M = 0.5;
 
 function distanceToLandBoundaryMeters(
   position: [number, number],
@@ -173,21 +161,6 @@ function trulyInsideLand(
   });
 }
 
-/** True when a point is outside every land polygon (boundary counts as in). */
-function strictlyOutsideLand(
-  position: [number, number],
-  land: ReadonlyArray<Feature<LandGeom>>,
-): boolean {
-  return land.every((poly) => {
-    try {
-      return !booleanPointInPolygon(position, poly);
-    } catch {
-      // Uncomputable geometry counts as on-land so the test fails loudly.
-      return false;
-    }
-  });
-}
-
 function segmentMidpoints(
   line: Feature<LineString>,
 ): Array<[number, number]> {
@@ -205,57 +178,6 @@ function segmentMidpoints(
     }
   }
   return points;
-}
-
-/**
- * Shared-coastline clip for contour lines: split each line at every crossing
- * of the land boundary and keep only the parts that stay in sea. Splitting at
- * all crossings makes every kept segment uniformly outside land.
- */
-function clipContourToLand(
-  contour: Feature<LineString>,
-  land: ReadonlyArray<Feature<LandGeom>>,
-): Array<Feature<LineString>> {
-  let parts: Array<Feature<LineString>> = [contour];
-  for (const poly of land) {
-    const next: Array<Feature<LineString>> = [];
-    for (const part of parts) {
-      const crossings = lineIntersect(part, poly).features;
-      if (crossings.length === 0) {
-        // Uniformly in or out — keep only sea parts (sample-checked below).
-        next.push(part);
-        continue;
-      }
-      const snapped = crossings.map((point) =>
-        nearestPointOnLine(part, point),
-      );
-      const unique = new Map<string, Feature<Point>>();
-      for (const point of snapped) {
-        const position = point.geometry.coordinates;
-        const key = position.map((n) => n.toFixed(9)).join(",");
-        if (!unique.has(key)) unique.set(key, point);
-      }
-      const splitter = multiPoint([...unique.values()].map((p) => p.geometry.coordinates));
-      const pieces = lineSplit(part, splitter).features;
-      for (const piece of pieces) {
-        if (piece.geometry.type !== "LineString") continue;
-        if (piece.geometry.coordinates.length < 2) continue;
-        // Keep a piece only when no sampled point (segment midpoints) is
-        // truly inside land — a piece whose ends dip into land (2-25 m
-        // shoreline noise) must not survive the clip.
-        const samples = segmentMidpoints(piece);
-        const outside = samples.every((midpoint) =>
-          strictlyOutsideLand(midpoint, land),
-        );
-        if (outside) {
-          next.push(piece);
-        }
-      }
-    }
-    parts = next;
-    if (parts.length === 0) break;
-  }
-  return parts;
 }
 
 const AREAS = ["qaarsut", "naajaat"] as const;

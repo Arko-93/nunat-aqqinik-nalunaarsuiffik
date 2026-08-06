@@ -11,8 +11,9 @@ import {
   COASTLINE_MASK_ATTRIBUTION,
   COASTLINE_MASK_PMTILES_URL,
   LAND_DEM_TILEJSON,
-  OCEAN_DEM_URL,
-  OCEAN_VECTOR_URL,
+  OCEAN_DEPTH_ATTRIBUTION,
+  OCEAN_DEPTH_DEM_PMTILES_URL,
+  OCEAN_DEPTH_VECTOR_PMTILES_URL,
   composeNameOwnedLibertyStyle,
   composeTerrainStyle,
   contourBreakFilter,
@@ -111,6 +112,35 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(meta["nunat:contour-field"]).toBe("depth_abs_m");
     expect(meta["nunat:ocean-fill"]).toBe("discrete-step-drval1-metric");
     expect(meta["nunat:ocean-breaks-m"]).toEqual([...OCEAN_BREAKS_M]);
+    // Product ocean source is self-tiled IBCAO/GEBCO, never Seascape.
+    expect(meta["nunat:ocean-source"]).toBe("ibcao-v5.2");
+    expect(meta["nunat:ocean-fallback"]).toBe("gebco-2026");
+    expect(JSON.stringify(style)).not.toContain("openwaters");
+    expect(JSON.stringify(style)).not.toContain("seascape");
+  });
+
+  it("serves the product ocean from hosted IBCAO/GEBCO PMTiles (no Seascape)", () => {
+    const style = composeTerrainStyle(libertyStub);
+    const sources = style.sources as Record<string, Record<string, unknown>>;
+    const dem = sources["ocean-depth-dem"];
+    expect(dem["type"]).toBe("raster-dem");
+    expect(dem["tiles"]).toEqual([OCEAN_DEPTH_DEM_PMTILES_URL]);
+    expect(dem["tileSize"]).toBe(256);
+    expect(dem["encoding"]).toBe("terrarium");
+    expect(dem["url"]).toBeUndefined();
+    const vector = sources["ocean-depth-vector"];
+    expect(vector["type"]).toBe("vector");
+    expect(vector["tiles"]).toEqual([OCEAN_DEPTH_VECTOR_PMTILES_URL]);
+    expect(vector["url"]).toBeUndefined();
+    // The Seascape interim sources are gone from the product path.
+    expect(JSON.stringify(style.sources)).not.toContain("openwaters.io");
+    expect(JSON.stringify(style.sources)).not.toContain("raster.json");
+    expect(JSON.stringify(style.sources)).not.toContain("vector.json");
+    const attribution = String(vector["attribution"]);
+    expect(attribution).toContain("IBCAO");
+    expect(attribution).toContain("GEBCO");
+    expect(attribution).toContain("not for navigation");
+    expect(attribution).toBe(OCEAN_DEPTH_ATTRIBUTION);
   });
 
   it("keeps ocean hillshade and fills under land", () => {
@@ -184,13 +214,20 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(land["encoding"]).toBe("terrarium");
     expect(land["url"]).toBeUndefined();
 
-    // Ocean depth: the pack carries the vector source (fills/contours);
-    // the raster hillshade source is not in the pack and must be absent.
-    expect(sources["ocean-depth-dem"]).toBeUndefined();
+    // Ocean depth: the pack carries the vector source (fills/contours) and
+    // the raster DEM (ocean hillshade restored offline, issue #23).
+    const oceanDem = sources["ocean-depth-dem"];
+    expect(oceanDem["type"]).toBe("raster-dem");
+    expect(oceanDem["tiles"]).toEqual([
+      "pmtiles:///packages/qaarsut-kullorsuaq/ocean-depth-dem.pmtiles/{z}/{x}/{y}",
+    ]);
+    expect(oceanDem["tileSize"]).toBe(256);
+    expect(oceanDem["encoding"]).toBe("terrarium");
+    expect(oceanDem["url"]).toBeUndefined();
     const ocean = sources["ocean-depth-vector"];
     expect(ocean["type"]).toBe("vector");
     expect(ocean["tiles"]).toEqual([
-      "pmtiles:///packages/qaarsut-kullorsuaq/ocean-depth.pmtiles/{z}/{x}/{y}",
+      "pmtiles:///packages/qaarsut-kullorsuaq/ocean-depth-vector.pmtiles/{z}/{x}/{y}",
     ]);
 
     // Coastline mask: same logical path, pack-scoped.
@@ -202,9 +239,9 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(String(mask["attribution"])).toContain("ODbL");
 
     const ids = (style.layers ?? []).map((layer) => layer.id);
-    // Ocean hillshade layer is dropped offline (no raster source); the
+    // Ocean hillshade is served offline from the pack raster; the
     // mask-above-ocean and ocean-under-land contracts still hold.
-    expect(ids).not.toContain(TERRAIN_LAYER_IDS.oceanHillshade);
+    expect(ids).toContain(TERRAIN_LAYER_IDS.oceanHillshade);
     expect(ids).toContain(TERRAIN_LAYER_IDS.oceanFills);
     expect(ids).toContain(TERRAIN_LAYER_IDS.oceanContours);
     expect(ids).toContain(TERRAIN_LAYER_IDS.oceanContourLabels);
@@ -215,8 +252,9 @@ describe("composeTerrainStyle (hybrid D)", () => {
 
     const meta = style.metadata as Record<string, unknown>;
     expect(meta["nunat:tile-serving"]).toBe("opfs-pack");
-    expect(meta["nunat:ocean-hillshade-offline"]).toBe("dropped");
-    expect(meta["nunat:ocean-source"]).toBe("open-waters-seascape-interim");
+    expect(meta["nunat:ocean-hillshade-offline"]).toBe("served");
+    expect(meta["nunat:ocean-source"]).toBe("ibcao-v5.2");
+    expect(meta["nunat:ocean-fallback"]).toBe("gebco-2026");
     expect(meta["nunat:safety"]).toBe("not-for-navigation");
   });
 
@@ -224,8 +262,12 @@ describe("composeTerrainStyle (hybrid D)", () => {
     const style = composeTerrainStyle(libertyStub);
     const sources = style.sources as Record<string, Record<string, unknown>>;
     expect(sources["land-relief"]["url"]).toBe(LAND_DEM_TILEJSON);
-    expect(sources["ocean-depth-dem"]["url"]).toBe(OCEAN_DEM_URL);
-    expect(sources["ocean-depth-vector"]["url"]).toBe(OCEAN_VECTOR_URL);
+    expect(sources["ocean-depth-dem"]["tiles"]).toEqual([
+      OCEAN_DEPTH_DEM_PMTILES_URL,
+    ]);
+    expect(sources["ocean-depth-vector"]["tiles"]).toEqual([
+      OCEAN_DEPTH_VECTOR_PMTILES_URL,
+    ]);
     expect(sources["coastline-land"]["url"]).toBe(COASTLINE_MASK_PMTILES_URL);
     const meta = style.metadata as Record<string, unknown>;
     expect(meta["nunat:tile-serving"]).toBe("remote");
