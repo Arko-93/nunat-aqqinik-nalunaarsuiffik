@@ -53,13 +53,21 @@ z0–z10 at 256 px; z11+ renders overzoomed (same policy as land-relief).
   labels, offline pack path served.
 - Offline contract: `corridor-pack.test.ts` / `manifest.test.ts` —
   kind=full requires `land-peaks.pmtiles`; OPFS install reads it.
-- Pack build: `land-peaks.pmtiles` in the corridor pack manifest with
-  sha256; peaks tiles = N, skipped below 500 m = M.
-- Full-country archive: `packages/land-peaks/land-peaks.pmtiles` X MB,
-  N tiles (z0–z10).
-- Browser dogfood (Qaarsut→Kullorsuaq): high peaks tinted at the
-  breaks; low coastal land not washed; place labels readable above the
-  bands (screenshots in the PR).
+- Pack build: `land-peaks.pmtiles` (973 tiles, 0.2 MB) in the corridor
+  pack manifest with sha256; z10 peak tile x368/y182 is all-2000+ band,
+  Qaarsut/Upernavik-adjacent lowland tiles absent.
+- Full-country archive: `packages/land-peaks/land-peaks.pmtiles`
+  4.8 MB, 35,572 tiles (z0–z10: 1/1/2/6/20/55/162/523/1861/6925/26016);
+  ice cap present, Qaarsut + Nuuk coastal tiles absent.
+- Browser dogfood (Qaarsut→Kullorsuaq, production build): style meta
+  `nunat:land-peak-bands: 500-1000-2000` + `terrain-land-peak-bands`
+  live in the map; land-peaks.pmtiles range requests confirmed in the
+  network log; one capture caught the 2000+ band (#4a463f) dominant
+  over the peak area. Label-over-band ordering is enforced by the style
+  contract test (peaks below the first basemap symbol layer; NunaGIS
+  markers are added on top on style load). Full visual pass was limited
+  by the harness Chrome window staying backgrounded (rAF frozen), not
+  by a feature failure.
 
 ## Remaining gaps
 
