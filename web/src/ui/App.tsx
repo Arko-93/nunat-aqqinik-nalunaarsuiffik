@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { gazetteerVisible } from "../domain/layers.ts";
-import { type IdentityCrosswalk } from "../domain/identity.ts";
+import type { IdentityCrosswalk } from "../domain/identity.ts";
 import { enrichCollection, type Placename } from "../domain/placename.ts";
 import { isSearchQueryActive, searchPlacenames } from "../domain/search.ts";
 import { useI18n } from "../i18n/I18nContext.tsx";
@@ -19,6 +19,11 @@ import { GlobalPlaceSearch } from "./GlobalPlaceSearch.tsx";
 import { MapLegend } from "./MapLegend.tsx";
 import { PlaceDossier } from "./PlaceDossier.tsx";
 import { PlaceList } from "./PlaceList.tsx";
+import {
+  findPlaceByShareableId,
+  shareableIdFor,
+  useShareableMapState,
+} from "./shareable-state.ts";
 
 type Collection = GeoJSON.FeatureCollection<GeoJSON.Point, Placename>;
 
@@ -27,9 +32,15 @@ export function App() {
   const [collection, setCollection] = useState<Collection | null>(null);
   const [release, setRelease] = useState<LoadedRelease | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<Placename | null>(null);
   const [sheet, setSheet] = useState<SheetState>("half");
+  const {
+    query,
+    selectedId,
+    setQuery,
+    setSelectedId,
+    clearSelection,
+    clearUnresolvedSelection,
+  } = useShareableMapState();
 
   useEffect(() => {
     let cancelled = false;
@@ -81,14 +92,29 @@ export function App() {
     [collection],
   );
 
+  const selected = useMemo(
+    () => findPlaceByShareableId(allPlaces, selectedId),
+    [allPlaces, selectedId],
+  );
+
+  // Stale/unknown `place` values fail safe: once places have loaded, an
+  // unresolved id is cleared from the URL (history replace, no new entry)
+  // instead of lingering with no way to dismiss it. A valid id that simply
+  // has not loaded yet is untouched — the clear runs only after load.
+  useEffect(() => {
+    if (collection && selectedId != null && selected == null) {
+      clearUnresolvedSelection();
+    }
+  }, [collection, selectedId, selected, clearUnresolvedSelection]);
+
   const results = useMemo(
     () => searchPlacenames(allPlaces, query, 24),
     [allPlaces, query],
   );
 
   const selectPlace = (place: Placename) => {
-    setSelected(place);
-    setQuery("");
+    // Clear `q` and write `place` in one URL update (single history entry).
+    setSelectedId(shareableIdFor(place));
     setSheet("half");
   };
 
@@ -149,7 +175,7 @@ export function App() {
                 <PlaceDossier
                   place={selected}
                   release={release}
-                  onClose={() => setSelected(null)}
+                  onClose={clearSelection}
                 />
               </div>
             ) : null}
@@ -169,7 +195,7 @@ export function App() {
             if (queryActive) {
               setQuery("");
             } else {
-              setSelected(null);
+              clearSelection();
             }
             setSheet("collapsed");
           }}
