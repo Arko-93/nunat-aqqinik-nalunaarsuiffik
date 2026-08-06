@@ -12,8 +12,8 @@
     -50.5,
     74.9
   ],
-  "bytes": 90442049,
-  "createdAt": "2026-08-06T04:51:20Z",
+  "bytes": 90450302,
+  "createdAt": "2026-08-06T13:19:45Z",
   "kind": "full",
   "files": [
     {
@@ -33,8 +33,8 @@
     },
     {
       "path": "localities.geojson",
-      "bytes": 43,
-      "sha256": "6d18edfe75b3149104038dcbca4d0096bbcb923f0f9fa4b49f4815344e75bb90"
+      "bytes": 8296,
+      "sha256": "d5a41072ad5329fe146540a0c4465727d31d539fd98bd91d56673390772b63e5"
     }
   ],
   "storage": {

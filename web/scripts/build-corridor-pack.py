@@ -18,7 +18,8 @@ Sources (all already live in the online map):
 - coastline-land/land.pmtiles: the shared coastline mask (OSM coastline
   ∪ Mapterhorn DEM land, ODbL + CC BY 4.0) re-tiled from the full
   Greenland mask clipped to the corridor bbox.
-- localities.geojson: carried over from the stub pack.
+- localities.geojson: inhabited corridor localities (settlements + towns)
+  filtered from web/public/data/localities.geojson to the corridor bbox.
 
 Usage:
   .venv/bin/python web/scripts/build-corridor-pack.py            # full build
@@ -721,6 +722,49 @@ def write_manifest(
         eprint(f"  {row['path']}: {row['bytes'] / 1e6:.1f} MB")
 
 
+def build_localities() -> Path:
+    """Corridor localities: inhabited places inside CORRIDOR_BBOX.
+
+    Source: web/public/data/localities.geojson (the fetch:placenames
+    localities export). A kind=full pack must carry its corridor's
+    localities — an empty file is a build error, not a valid pack.
+    """
+    src = ROOT / "web" / "public" / "data" / "localities.geojson"
+    if not src.exists():
+        raise SystemExit(
+            f"Missing {src} — run: pnpm --dir web fetch:localities"
+        )
+    try:
+        raw = json.loads(src.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        raise SystemExit(f"Cannot read {src}: {exc}") from exc
+
+    w, s, e, n = CORRIDOR_BBOX
+    inside = []
+    for feature in raw.get("features", []):
+        coords = (feature.get("geometry") or {}).get("coordinates")
+        if not coords or len(coords) < 2:
+            continue
+        lon, lat = coords[0], coords[1]
+        if w <= lon <= e and s <= lat <= n:
+            inside.append(feature)
+    if not inside:
+        raise SystemExit(
+            "No corridor localities found — refusing an empty localities file"
+        )
+    out = PACKAGE / "localities.geojson"
+    out.write_text(
+        json.dumps(
+            {"type": "FeatureCollection", "features": inside},
+            separators=(",", ":"),
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    eprint(f"corridor localities: {len(inside)} features -> {out.name}")
+    return out
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -741,13 +785,7 @@ def main() -> None:
     land = build_land_relief(clip, measure_only=False)
     ocean = build_ocean_depth(measure_only=False)
     mask = build_mask(clip)
-
-    # Keep the stub localities file (may be empty feature collection today).
-    localities = PACKAGE / "localities.geojson"
-    if not localities.exists():
-        localities.write_text(
-            '{"type":"FeatureCollection","features":[]}\n', encoding="utf-8"
-        )
+    localities = build_localities()
 
     write_attribution()
     if land is None or ocean is None:

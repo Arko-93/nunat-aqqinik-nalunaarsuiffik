@@ -139,7 +139,13 @@ describe("corridor pack manifest contracts", () => {
         { cause },
       );
     }
-    const parsed = parseManifest(JSON.parse(raw));
+    let parsedManifest: ReturnType<typeof parseManifest>;
+    try {
+      parsedManifest = parseManifest(JSON.parse(raw));
+    } catch (cause) {
+      throw new Error("Shipped manifest is invalid", { cause });
+    }
+    const parsed = parsedManifest;
     expect(parsed.kind).toBe("full");
     expect(parsed.id).toContain("corridor_qaarsut_kullorsuaq");
     expect(assertCorridorBbox(parsed.bbox)).toBe(true);
@@ -158,6 +164,56 @@ describe("corridor pack manifest contracts", () => {
     // Honest notes: the pack must say what is NOT offline, not overclaim.
     expect(parsed.notes?.toLowerCase()).toContain("not for navigation");
     expect(parsed.notes).toContain("256 px");
+  });
+
+  it("ships non-empty corridor localities in the full pack", () => {
+    // A kind=full pack must carry its corridor's localities — an empty
+    // localities.geojson is a stub artifact, not a full pack. The build
+    // script refuses to emit an empty file; this test guards the shipped
+    // file so a regression fails here.
+    let raw: string;
+    try {
+      raw = readFileSync(
+        resolve(
+          process.cwd(),
+          "public/packages/qaarsut-kullorsuaq/localities.geojson",
+        ),
+        "utf-8",
+      );
+    } catch (cause) {
+      throw new Error(
+        "Missing shipped localities — run web/scripts/build-corridor-pack.py",
+        { cause },
+      );
+    }
+    let collection: {
+      type: string;
+      features: Array<{
+        geometry: { type: string; coordinates: [number, number] };
+        properties: { featureKind: string; officialName: string };
+      }>;
+    };
+    try {
+      collection = JSON.parse(raw) as typeof collection;
+    } catch (cause) {
+      throw new Error("Shipped localities are invalid JSON", { cause });
+    }
+    expect(collection.type).toBe("FeatureCollection");
+    expect(collection.features.length).toBeGreaterThan(0);
+
+    const [w, s, e, n] = CORRIDOR_BBOX;
+    const kinds = new Set<string>();
+    for (const feature of collection.features) {
+      const [lon, lat] = feature.geometry.coordinates;
+      expect(lon).toBeGreaterThanOrEqual(w);
+      expect(lon).toBeLessThanOrEqual(e);
+      expect(lat).toBeGreaterThanOrEqual(s);
+      expect(lat).toBeLessThanOrEqual(n);
+      kinds.add(feature.properties.featureKind);
+      expect(feature.properties.officialName.length).toBeGreaterThan(0);
+    }
+    // Inhabited corridor places: settlements (and towns) only.
+    expect([...kinds].every((kind) => kind === "settlement" || kind === "town")).toBe(true);
   });
 
   it("verifies fixture file checksums", async () => {
