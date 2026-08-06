@@ -1,9 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@cloudflare/kumo/styles/standalone";
-import { I18nProvider } from "./i18n/I18nContext.tsx";
 import { registerPmtilesProtocol } from "./map/pmtiles-protocol.ts";
-import { App } from "./ui/App.tsx";
+import { Root } from "./ui/Root.tsx";
 import "./ui/app.css";
 
 // pmtiles:// sources (coastline mask) must be registered before map load.
@@ -16,9 +15,7 @@ if (!root) {
 
 createRoot(root).render(
   <StrictMode>
-    <I18nProvider>
-      <App />
-    </I18nProvider>
+    <Root />
   </StrictMode>,
 );
 
