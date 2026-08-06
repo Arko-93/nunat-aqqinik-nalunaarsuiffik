@@ -2,8 +2,9 @@
 """Build the full Qaarsut→Kullorsuaq corridor offline pack.
 
 Creates web/public/packages/qaarsut-kullorsuaq/{land-relief.pmtiles,
-ocean-depth.pmtiles, coastline-land/land.pmtiles, localities.geojson,
-manifest.json, ATTRIBUTION.md}.
+ocean-depth-dem.pmtiles, ocean-depth-vector.pmtiles,
+coastline-land/land.pmtiles, localities.geojson, manifest.json,
+ATTRIBUTION.md}.
 
 Sources (all already live in the online map):
 - land-relief: Mapterhorn Terrarium webp tiles (Klimadatastyrelsen
@@ -11,15 +12,21 @@ Sources (all already live in the online map):
   clipped to the corridor bbox. Every tile is re-encoded at 256 px
   (offline tileSize 256) to fit the 250 MB family-phone budget; native
   512 px Mapterhorn tiles average 150-180 KiB and would blow the budget.
-- ocean-depth: Open Waters Seascape vector tiles (GEBCO mosaic, © Open
-  Waters) — contours + depare + soundings, the meter-band signal. The
-  online raster hillshade layer is not part of the pack (see manifest
-  notes); depth fills/contours/labels all come from the vector source.
+- ocean-depth-dem: subset of the self-tiled ocean-depth package raster
+  (IBCAO v5.2 + GEBCO_2026 fallback, terrarium webp 256 px, z0-10) —
+  the offline ocean hillshade, restored since the pack can carry it.
+- ocean-depth-vector: subset of the self-tiled ocean-depth package MVT
+  (depare bands + contours clipped to the shared coastline, z0-11; z12
+  renders overzoomed) — the meter-band signal: fills, contours, labels.
 - coastline-land/land.pmtiles: the shared coastline mask (OSM coastline
   ∪ Mapterhorn DEM land, ODbL + CC BY 4.0) re-tiled from the full
   Greenland mask clipped to the corridor bbox.
 - localities.geojson: inhabited corridor localities (settlements + towns)
   filtered from web/public/data/localities.geojson to the corridor bbox.
+
+Prerequisite: the ocean-depth package PMTiles must be present (built by
+web/scripts/build-ocean-depth.py or fetched with
+scripts/fetch-ocean-depth-assets.sh) — the pack subsets them.
 
 Usage:
   .venv/bin/python web/scripts/build-corridor-pack.py            # full build
@@ -48,10 +55,14 @@ ROOT = Path(__file__).resolve().parents[2]
 PACKAGE = ROOT / "web" / "public" / "packages" / "qaarsut-kullorsuaq"
 CACHE = ROOT / ".cache" / "corridor-pack"
 DEM_CACHE = CACHE / "dem"
-SEA_CACHE = CACHE / "seascape"
 
 CORRIDOR_BBOX = (-58.5, 70.4, -50.5, 74.9)  # W,S,E,N
 CORRIDOR_SLUG = "qaarsut-kullorsuaq"
+
+# The ocean-depth package (web/public/packages/ocean-depth) is the single
+# source for both pack ocean archives: the self-tiled IBCAO/GEBCO raster
+# and the clipped vector are subset to the corridor bbox.
+OCEAN_PACKAGE = ROOT / "web" / "public" / "packages" / "ocean-depth"
 
 # Land-relief: full-bbox pyramid z0..LAND_MAX_ZOOM, every tile re-encoded
 # at 256 px (DEM_REENCODE_SIZE) so the archive is uniform and the style
@@ -61,14 +72,15 @@ CORRIDOR_SLUG = "qaarsut-kullorsuaq"
 # policy as the coastline mask (maxzoom 13, z14 overzooms).
 LAND_MAX_ZOOM = 10
 DEM_REENCODE_SIZE = 256
-# Ocean-depth: full-bbox pyramid up to OCEAN_MAX_ZOOM (Seascape MVT,
-# ~45 MB total measured for z0-z12).
-OCEAN_MAX_ZOOM = 12
+# Ocean-depth vector: subset of the self-tiled archive z0..11 (the archive
+# maxzoom; z12 renders overzoomed — the ~450 m grid adds no z12 detail).
+OCEAN_MAX_ZOOM = 11
+# Ocean-depth DEM raster (hillshade): subset z0..10 (archive maxzoom).
+OCEAN_DEM_MAX_ZOOM = 10
 # Coastline mask corridor: same flags as the full mask build.
 MASK_MAX_ZOOM = 13
 
 DEM_TILE_URL = "https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"
-SEASCAPE_TILE_URL = "https://tiles.openwaters.io/seascape/{z}/{x}/{y}.pbf"
 
 USER_AGENT = "nunat-corridor-pack-build/1.0"
 FETCH_THREADS = 16
@@ -78,9 +90,15 @@ SOURCE_LABELS = {
         "Land relief DEM © Klimadatastyrelsen / Mapterhorn (CC BY 4.0) — "
         "Mapterhorn Terrarium tiles, Qaarsut→Kullorsuaq corridor clip"
     ),
-    "ocean-depth": (
-        "Ocean depth © Open Waters (open-grid GEBCO mosaic, interim) — "
-        "not for navigation"
+    "ocean-depth-dem": (
+        "Ocean depth © IBCAO v5.2 (2026) · GEBCO_2026 fallback (open "
+        "grid, Seabed 2030) — self-tiled, clipped to the shared "
+        "coastline; not for navigation"
+    ),
+    "ocean-depth-vector": (
+        "Ocean depth © IBCAO v5.2 (2026) · GEBCO_2026 fallback (open "
+        "grid, Seabed 2030) — self-tiled, clipped to the shared "
+        "coastline; not for navigation"
     ),
     "coastline-land": (
         "© OpenStreetMap contributors (ODbL) · © Klimadatastyrelsen / "
@@ -192,82 +210,16 @@ def download_dem(tiles: list[tuple[int, int, int]]) -> list[Path]:
     return [DEM_CACHE / str(z) / str(x) / f"{y}.webp" for z, x, y in tiles]
 
 
-def download_seascape(z_max: int) -> list[tuple[int, int, int]]:
-    tiles = [
-        (z, x, y)
-        for z in range(0, z_max + 1)
-        for x, y in bbox_tiles(z)
-    ]
-    urls: list[tuple[str, Path]] = []
-    for z, x, y in tiles:
-        dest = SEA_CACHE / str(z) / str(x) / f"{y}.pbf"
-        if not dest.exists():
-            urls.append((SEASCAPE_TILE_URL.format(z=z, x=x, y=y), dest))
-    if urls:
-        eprint(f"fetching {len(urls)} Seascape tiles …")
-        fetch_many(urls)
-    return tiles
+def _varint(n: int) -> bytes:  # noqa: ARG001 - kept for writer compatibility
+    raise SystemExit("pmtiles writer moved to web/scripts/pmtiles_writer.py")
 
 
-# --------------------------------------------------------------------------
-# PMTiles v3 writer (subset): clustered archives, no leaf directories.
-# --------------------------------------------------------------------------
-
-def _varint(n: int) -> bytes:
-    out = bytearray()
-    while True:
-        b = n & 0x7F
-        n >>= 7
-        if n:
-            out.append(b | 0x80)
-        else:
-            out.append(b)
-            return bytes(out)
+def _zxy_to_tileid(z: int, x: int, y: int) -> int:  # noqa: ARG001
+    raise SystemExit("pmtiles writer moved to web/scripts/pmtiles_writer.py")
 
 
-def _zxy_to_tileid(z: int, x: int, y: int) -> int:
-    """Hilbert-style curve used by PMTiles (port of the reference writer)."""
-    acc = ((1 << z) * (1 << z) - 1) // 3
-    n = z - 1
-    while n >= 0:
-        a = 1 << n
-        c = x & a
-        u = y & a
-        acc += (3 * c ^ u) * a
-        if u == 0:
-            if c != 0:
-                x = a - 1 - x
-                y = a - 1 - y
-            x, y = y, x
-        n -= 1
-    return acc
-
-
-def _serialize_directory(merged: list[tuple[int, int, int, int]]) -> bytes:
-    """Serialize one directory: entry count + column-major arrays.
-
-    Entries are (tileId, offset, length, run). Length is the real byte
-    length; run is the real run length (1 = single tile). Leaf-pointer
-    entries carry run=0 (tileId = first tile of the leaf).
-    """
-    out = bytearray()
-    out += _varint(len(merged))
-    for index, (tile_id, _offset, _length, _run) in enumerate(merged):
-        if index == 0:
-            out += _varint(tile_id)
-        else:
-            out += _varint(tile_id - merged[index - 1][0])
-    for _tile_id, _offset, _length, run in merged:
-        out += _varint(run)
-    for _tile_id, _offset, length, _run in merged:
-        out += _varint(length)
-    for index, (tile_id, offset, length, _run) in enumerate(merged):
-        del tile_id
-        if index > 0 and offset == merged[index - 1][1] + merged[index - 1][2]:
-            out += _varint(0)
-        else:
-            out += _varint(offset + 1)
-    return bytes(out)
+def _serialize_directory(merged: list[tuple[int, int, int, int]]) -> bytes:  # noqa: ARG001
+    raise SystemExit("pmtiles writer moved to web/scripts/pmtiles_writer.py")
 
 
 def write_pmtiles(
@@ -278,157 +230,23 @@ def write_pmtiles(
     tile_compression: int,
     metadata: dict,
 ) -> None:
-    """Write a clustered PMTiles v3 archive with content dedup.
+    """Write a clustered PMTiles v3 archive — shared writer (issue #23)."""
+    from pmtiles_writer import write_pmtiles as _write  # type: ignore[import-not-found]
 
-    tile_type: 1=mvt, 2=png, 3=jpeg, 4=webp. tile_compression: 0=none, 2=gzip.
-    The root directory stays small enough to fit the reader's first-16 KB
-    fetch; larger entry sets spill into leaf directories (run=0 pointers).
-    """
-    entries: list[tuple[int, int, int]] = []  # (tileId, offset, length)
-    content_offsets: dict[bytes, tuple[int, int]] = {}
-    tile_data = bytearray()
-    minz = min(z for z, _, _ in tiles)
-    maxz = max(z for z, _, _ in tiles)
+    _write(
+        tiles,
+        out,
+        tile_type=tile_type,
+        tile_compression=tile_compression,
+        metadata=metadata,
+        bbox=CORRIDOR_BBOX,
+    )
 
-    for key in sorted(tiles, key=lambda k: _zxy_to_tileid(*k)):
-        z, x, y = key
-        data = tiles[key]
-        if data in content_offsets:
-            offset, length = content_offsets[data]
-        else:
-            offset = len(tile_data)
-            length = len(data)
-            tile_data.extend(data)
-            content_offsets[data] = (offset, length)
-        entries.append((_zxy_to_tileid(z, x, y), offset, length))
-
-    # Merge adjacent entries with identical content into runs.
-    merged: list[tuple[int, int, int, int]] = []
-    for tile_id, offset, length in entries:
-        if (
-            merged
-            and merged[-1][1] == offset
-            and merged[-1][2] == length
-            and tile_id == merged[-1][0] + merged[-1][3]
-        ):
-            prev = merged[-1]
-            merged[-1] = (prev[0], prev[1], prev[2], prev[3] + 1)
-        else:
-            merged.append((tile_id, offset, length, 1))
-
-    import gzip
-
-    # Spill into leaf directories: the JS reader loads the root from the
-    # first 16 KB of the file, so the compressed root must stay small.
-    ROOT_MAX_BYTES = 12000
-    LEAF_TARGET_BYTES = 10000
-
-    def raw_size(chunk: list[tuple[int, int, int, int]]) -> int:
-        size = 1  # entry count varint
-        prev_id = None
-        prev_off = None
-        prev_len = None
-        for tile_id, offset, length, run in chunk:
-            size += 1 + (4 if prev_id is None else max(1, (tile_id - prev_id).bit_length() // 7 + 1))
-            size += max(1, run.bit_length() // 7 + 1)
-            size += max(1, length.bit_length() // 7 + 1)
-            if prev_off is not None and prev_len is not None and offset == prev_off + prev_len:
-                size += 1
-            else:
-                size += max(1, (offset + 1).bit_length() // 7 + 1)
-            prev_id, prev_off, prev_len = tile_id, offset, length
-        return size
-
-    leaves: list[list[tuple[int, int, int, int]]] = []
-    if len(merged) == 0:
-        leaves = []
-    elif raw_size(merged) <= ROOT_MAX_BYTES:
-        leaves = [merged]
-    else:
-        current: list[tuple[int, int, int, int]] = []
-        for entry in merged:
-            current.append(entry)
-            if raw_size(current) >= LEAF_TARGET_BYTES:
-                leaves.append(current)
-                current = []
-        if current:
-            leaves.append(current)
-
-    leaf_section = bytearray()
-    # Serialize leaves (all but the last chunk if it can live in the root).
-    root_chunk: list[tuple[int, int, int, int]]
-    if len(leaves) == 1:
-        root_chunk = leaves[0]
-    else:
-        root_chunk = []
-        for chunk in leaves:
-            raw = _serialize_directory(chunk)
-            offset = len(leaf_section)
-            leaf_section.extend(gzip.compress(raw))
-            root_chunk.append((chunk[0][0], offset, len(leaf_section) - offset, 0))
-
-    root = gzip.compress(_serialize_directory(root_chunk))
-    meta = gzip.compress(json.dumps(metadata, separators=(",", ":")).encode("utf-8"))
-
-    w, s, e, n = CORRIDOR_BBOX
-    header = bytearray(127)
-    header[0:7] = b"PMTiles"
-    header[7] = 3  # specVersion
-    header[96] = 1  # clustered
-    header[97] = 2  # internalCompression: gzip
-    header[98] = tile_compression
-    header[99] = tile_type
-    header[100] = minz
-    header[101] = maxz
-
-    leaf_offset = 127 + len(root) + len(meta)
-
-    def put_u64(offset: int, value: int) -> None:
-        header[offset : offset + 8] = value.to_bytes(8, "little")
-
-    def put_i32(offset: int, value: float) -> None:
-        if not math.isfinite(value):
-            raise ValueError(f"non-finite bbox coordinate: {value}")
-        scaled = math.floor(value * 1e7)
-        clamped = max(-2147483648, min(2147483647, scaled))
-        header[offset : offset + 4] = clamped.to_bytes(4, "little", signed=True)
-
-    put_u64(8, 127)  # rootDirectoryOffset
-    put_u64(16, len(root))
-    put_u64(24, 127 + len(root))
-    put_u64(32, len(meta))
-    put_u64(40, leaf_offset)
-    put_u64(48, len(leaf_section))
-    put_u64(56, leaf_offset + len(leaf_section))
-    put_u64(64, len(tile_data))
-    put_u64(72, sum(run for _, _, _, run in merged))
-    put_u64(80, len(merged) + (len(leaves) - 1 if len(leaves) > 1 else 0))
-    put_u64(88, len(content_offsets))
-    put_i32(102, w)
-    put_i32(106, s)
-    put_i32(110, e)
-    put_i32(114, n)
-    header[118] = min(14, minz + 3)
-    center_lon = (w + e) / 2.0
-    center_lat = (s + n) / 2.0
-    put_i32(119, center_lon)
-    put_i32(123, center_lat)
-
-    out.parent.mkdir(parents=True, exist_ok=True)
-    with out.open("wb") as handle:
-        handle.write(header)
-        handle.write(root)
-        handle.write(meta)
-        handle.write(leaf_section)
-        handle.write(tile_data)
-
-
-# --------------------------------------------------------------------------
 
 def reencode_dem_256(raw: bytes) -> bytes:
     """Decode a 512px Mapterhorn terrarium webp, re-encode at 256px webp."""
-    from PIL import Image  # type: ignore[import-not-found]
-    import numpy as np  # type: ignore[import-not-found]
+    from PIL import Image  # type: ignore[import-not-found]  # venv-only dep
+    import numpy as np  # type: ignore[import-not-found]  # venv-only dep
 
     img = Image.open(io.BytesIO(raw)).convert("RGB")
     arr = np.asarray(
@@ -538,62 +356,93 @@ def build_land_relief(clip_path: Path, measure_only: bool) -> Path | None:
     return out
 
 
-def build_ocean_depth(measure_only: bool) -> Path | None:
-    tiles_list = download_seascape(OCEAN_MAX_ZOOM)
-    if measure_only:
-        total = sum(
-            (SEA_CACHE / str(z) / str(x) / f"{y}.pbf").stat().st_size
-            for z, x, y in tiles_list
-            if (SEA_CACHE / str(z) / str(x) / f"{y}.pbf").exists()
+def subset_ocean_archive(
+    archive_name: str,
+    out_name: str,
+    z_max: int,
+    measure_only: bool,
+) -> Path | None:
+    """Subset one ocean-depth package archive to the corridor bbox."""
+    from pmtiles_writer import read_pmtiles  # type: ignore[import-not-found]
+
+    src = OCEAN_PACKAGE / archive_name
+    if not src.exists():
+        raise SystemExit(
+            f"Missing {src} — run web/scripts/build-ocean-depth.py or "
+            "scripts/fetch-ocean-depth-assets.sh first"
         )
-        eprint(f"ocean-depth raw bytes: {total / 1e6:.1f} MB")
+    eprint(f"reading {archive_name} …")
+    all_tiles = read_pmtiles(src)
+    w, s, e, n = CORRIDOR_BBOX
+    wanted = {
+        (z, x, y): body
+        for (z, x, y), body in all_tiles.items()
+        if z <= z_max
+        and (x, y) in bbox_tiles(z)
+    }
+    del all_tiles
+    eprint(f"{out_name}: {len(wanted)} corridor tiles")
+    if measure_only:
+        total = sum(len(body) for body in wanted.values())
+        eprint(f"{out_name} raw bytes: {total / 1e6:.1f} MB")
         return None
-
-    tiles: dict[tuple[int, int, int], bytes] = {}
-    for z, x, y in tiles_list:
-        path = SEA_CACHE / str(z) / str(x) / f"{y}.pbf"
-        if path.stat().st_size == 0:
-            continue
-        raw = path.read_bytes()
-        # Seascape serves raw MVT bodies; the canonical PMTiles format
-        # stores MVT gzip-compressed (tileCompression=2 in the header).
-        import gzip
-
-        tiles[(z, x, y)] = gzip.compress(raw, compresslevel=6)
-
-    out = PACKAGE / "ocean-depth.pmtiles"
+    out = PACKAGE / out_name
     write_pmtiles(
-        tiles,
+        wanted,
         out,
-        tile_type=1,  # mvt
-        tile_compression=2,  # gzip (Seascape .pbf bodies are gzipped MVT)
+        tile_type=1 if out_name.endswith("vector.pmtiles") else 4,
+        tile_compression=2 if out_name.endswith("vector.pmtiles") else 0,
         metadata={
-            "name": "Qaarsut–Kullorsuaq ocean depth (Open Waters Seascape)",
-            "description": SOURCE_LABELS["ocean-depth"],
-            "attribution": "© Open Waters (open-grid GEBCO mosaic, interim) — not for navigation",
+            "name": f"Qaarsut–Kullorsuaq {out_name} (IBCAO/GEBCO self-tiled)",
+            "description": SOURCE_LABELS[
+                "ocean-depth-vector" if out_name.endswith("vector.pmtiles") else "ocean-depth-dem"
+            ],
+            "attribution": (
+                "Ocean depth © IBCAO v5.2 (2026) · GEBCO_2026 fallback "
+                "(open grid, Seabed 2030) — not for navigation"
+            ),
             "minzoom": 0,
-            "maxzoom": OCEAN_MAX_ZOOM,
+            "maxzoom": z_max,
             "bounds": list(CORRIDOR_BBOX),
             "center": [sum(CORRIDOR_BBOX[0::2]) / 2, sum(CORRIDOR_BBOX[1::2]) / 2, 6],
-            "format": "pbf",
+            "format": "pbf" if out_name.endswith("vector.pmtiles") else "webp",
             "generator": "nunat build-corridor-pack.py",
-            "vector_layers": [
+            **(
                 {
-                    "id": "contours",
-                    "fields": {
-                        "depth_m": "Number",
-                        "depth_abs_m": "Number",
-                        "sys": "String",
-                        "depth_ft": "Number",
-                        "depth_fm": "Number",
-                    },
-                },
-                {"id": "soundings", "fields": {"depth_m": "Number", "depth_ft": "Number", "depth_fm": "Number"}},
-                {"id": "depare", "fields": {"drval1": "Number", "drval2": "Number", "sys": "String", "rank": "Number"}},
-            ],
+                    "vector_layers": [
+                        {
+                            "id": "contours",
+                            "fields": {
+                                "depth_m": "Number",
+                                "depth_abs_m": "Number",
+                            },
+                        },
+                        {"id": "depare", "fields": {"drval1": "Number", "sys": "String"}},
+                    ],
+                }
+                if out_name.endswith("vector.pmtiles")
+                else {}
+            ),
         },
     )
     return out
+
+
+def build_ocean_depth(measure_only: bool) -> tuple[Path | None, Path | None]:
+    """Corridor ocean archives: subsets of the self-tiled ocean package."""
+    vector = subset_ocean_archive(
+        "ocean-depth-vector.pmtiles",
+        "ocean-depth-vector.pmtiles",
+        OCEAN_MAX_ZOOM,
+        measure_only,
+    )
+    dem = subset_ocean_archive(
+        "ocean-depth-dem.pmtiles",
+        "ocean-depth-dem.pmtiles",
+        OCEAN_DEM_MAX_ZOOM,
+        measure_only,
+    )
+    return vector, dem
 
 
 def build_clip() -> Path:
@@ -655,20 +504,27 @@ map, clipped to the corridor bbox ({CORRIDOR_BBOX[0]}, {CORRIDOR_BBOX[1]},
   z0–z{LAND_MAX_ZOOM}, every tile re-encoded at {DEM_REENCODE_SIZE} px
   (offline tileSize {DEM_REENCODE_SIZE}); z11+ renders overzoomed. The archive
   is the same data the online style serves.
-- Ocean depth (`ocean-depth.pmtiles`): Open Waters Seascape vector tiles,
-  <https://tiles.openwaters.io/seascape/> — open-grid GEBCO mosaic,
-  interim product, © Open Waters (<https://openwaters.io/charts/seascape#license>).
-  Not for navigation; not a chart.
+- Ocean depth vector (`ocean-depth-vector.pmtiles`): self-tiled from the
+  IBCAO v5.2 (2026) 400 m grid with GEBCO_2026 fallback (15 arc-sec) —
+  depth band polygons (`depare`) + contour lines, clipped to the shared
+  coastline (OSM ∪ Mapterhorn DEM land) before tiling, z0–z{OCEAN_MAX_ZOOM}
+  (z12+ renders overzoomed). See packages/ocean-depth/ATTRIBUTION.md.
+- Ocean hillshade raster (`ocean-depth-dem.pmtiles`): the same self-tiled
+  depth grid as terrarium webp 256 px, z0–z{OCEAN_DEM_MAX_ZOOM} (z11+
+  renders overzoomed) — the offline ocean hillshade, restored since the
+  pack can carry it.
 - Coastline mask (`coastline-land/land.pmtiles`): OpenStreetMap land
   polygons (full coastline, ODbL) unioned with Mapterhorn DEM land
   (Klimadatastyrelsen, CC BY 4.0) — the shared V1 interim shoreline used
-  by the display mask. Derived mask published under ODbL share-alike.
+  by the display mask and the bathymetry clip. Derived mask published
+  under ODbL share-alike.
 - Localities (`localities.geojson`): NunaGIS PlacenamesRegister midpoint
   layer (Type 21/23) via the web data release — see data/source/ provenance.
 
 ## Attribution (required, shown in the map)
 
-> © Klimadatastyrelsen / Mapterhorn (CC BY 4.0) · © Open Waters ·
+> © Klimadatastyrelsen / Mapterhorn (CC BY 4.0) ·
+> Ocean depth © IBCAO v5.2 (2026) · GEBCO_2026 fallback (open grid, Seabed 2030) ·
 > © OpenStreetMap contributors (ODbL)
 
 ## Redistribution terms
@@ -677,7 +533,8 @@ map, clipped to the corridor bbox ({CORRIDOR_BBOX[0]}, {CORRIDOR_BBOX[1]},
   OSM-derived mask and to any bathymetry clipped to this coastline;
   the DEM-derived portion keeps CC BY 4.0.
 - CC BY 4.0 applies to the Mapterhorn DEM tiles in land-relief.pmtiles.
-- The Seascape open-grid depth data carries Open Waters' licence terms.
+- The IBCAO/GEBCO depth grids are open data; derived products must
+  acknowledge IBCAO/GEBCO Compilation Group.
 - Not for navigation: display context and cartographic repair only; no
   safety-of-life claims.
 """
@@ -783,17 +640,18 @@ def main() -> None:
     PACKAGE.mkdir(parents=True, exist_ok=True)
     clip = build_clip()
     land = build_land_relief(clip, measure_only=False)
-    ocean = build_ocean_depth(measure_only=False)
+    ocean_vector, ocean_dem = build_ocean_depth(measure_only=False)
     mask = build_mask(clip)
     localities = build_localities()
 
     write_attribution()
-    if land is None or ocean is None:
+    if land is None or ocean_vector is None or ocean_dem is None:
         raise SystemExit("build failed")
     write_manifest(
         {
             "land-relief.pmtiles": land,
-            "ocean-depth.pmtiles": ocean,
+            "ocean-depth-vector.pmtiles": ocean_vector,
+            "ocean-depth-dem.pmtiles": ocean_dem,
             "coastline-land/land.pmtiles": mask,
             "localities.geojson": localities,
         },
@@ -801,13 +659,14 @@ def main() -> None:
             "Full Qaarsut→Kullorsuaq corridor pack. Land relief (Mapterhorn "
             f"DEM, CC BY 4.0) z0–z{LAND_MAX_ZOOM}, every tile re-encoded at "
             f"{DEM_REENCODE_SIZE} px (tileSize {DEM_REENCODE_SIZE} offline; "
-            "z11+ renders overzoomed), ocean depth (Open Waters Seascape "
-            f"open-grid MVT, interim) z0–z{OCEAN_MAX_ZOOM}, coastline mask "
+            "z11+ renders overzoomed), ocean depth (self-tiled IBCAO v5.2 + "
+            f"GEBCO_2026 fallback, clipped to the shared coastline) z0–z{OCEAN_MAX_ZOOM} "
+            "vector (z12 renders overzoomed) + ocean hillshade raster "
+            f"z0–z{OCEAN_DEM_MAX_ZOOM} (z11+ overzooms), coastline mask "
             f"(OSM ∪ DEM, ODbL + CC BY 4.0) z0–z{MASK_MAX_ZOOM}, localities. "
-            "Offline the ocean hillshade raster layer is not served (the "
-            "pack carries the vector depth source: fills, contours, labels). "
-            "Tiles beyond the pack bbox are absent — no live network "
-            "fallback. Not for navigation."
+            "Offline serves the ocean hillshade raster again (the pack "
+            "carries it). Tiles beyond the pack bbox are absent — no live "
+            "network fallback. Not for navigation."
         ),
     )
 

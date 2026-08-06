@@ -15,11 +15,15 @@ export const MAX_PACK_BYTES = 250 * 1024 * 1024;
  * Files required before the UI may claim terrain is ready offline.
  * Paths are pack-relative. `coastline-land/land.pmtiles` mirrors the online
  * same-origin mask source (`packages/coastline-land/land.pmtiles`, stripped
- * of the pack base) so a full pack can serve the identical path.
+ * of the pack base) so a full pack can serve the identical path. The ocean
+ * archives mirror the online ocean-depth package file names
+ * (`ocean-depth-dem.pmtiles`, `ocean-depth-vector.pmtiles`) so offline
+ * serves the same logical tile paths as online.
  */
 export const TERRAIN_OFFLINE_FILES = [
   "land-relief.pmtiles",
-  "ocean-depth.pmtiles",
+  "ocean-depth-dem.pmtiles",
+  "ocean-depth-vector.pmtiles",
   "coastline-land/land.pmtiles",
 ] as const;
 

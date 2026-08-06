@@ -543,8 +543,9 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
      * Resolve the current terrain serving mode and apply the style.
      * Offline (full pack installed + verified): bind the pack archives to
      * the pmtiles protocol and compose the offline style; online: remote
-     * Mapterhorn/Seascape sources. The Liberty-only fallback stays for
-     * both modes when terrain compose fails.
+     * Mapterhorn + same-origin ocean-depth/coastline-land PMTiles. The
+     * Liberty-only fallback stays for both modes when terrain compose
+     * fails.
      */
     const applyStyle = async () => {
       // Sequence guard: the latest invocation wins; stale async applies

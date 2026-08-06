@@ -36,7 +36,9 @@ export function landPeakBandColor(elevM: number): string {
 }
 
 /**
- * Discrete meter-band fill colors keyed on Seascape `drval1` (shallow edge).
+ * Discrete meter-band fill colors keyed on `depare.drval1` (upper band
+ * edge in metres — 5 = 0-5 m, 10 = 5-10 m, …; the self-tiled ocean
+ * pipeline writes the same convention the style expects).
  * MapLibre step: output0 when value < stop1, then each stop’s color until the next.
  */
 export function oceanFillColorExpression(): ExpressionSpecification {

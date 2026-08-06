@@ -93,8 +93,9 @@ describe("corridor pack manifest contracts", () => {
     const files = [
       ...fixtureManifest.files,
       { path: "land-relief.pmtiles", bytes: 1, sha256: "a".repeat(64) },
-      { path: "ocean-depth.pmtiles", bytes: 1, sha256: "b".repeat(64) },
-      { path: "coastline-land/land.pmtiles", bytes: 1, sha256: "c".repeat(64) },
+      { path: "ocean-depth-dem.pmtiles", bytes: 1, sha256: "b".repeat(64) },
+      { path: "ocean-depth-vector.pmtiles", bytes: 1, sha256: "c".repeat(64) },
+      { path: "coastline-land/land.pmtiles", bytes: 1, sha256: "d".repeat(64) },
     ];
     const parsed = parseManifest({
       ...fixtureManifest,
@@ -111,8 +112,9 @@ describe("corridor pack manifest contracts", () => {
     const files = [
       ...fixtureManifest.files,
       { path: "land-relief.pmtiles", bytes: 1, sha256: "a".repeat(64) },
-      { path: "ocean-depth.pmtiles", bytes: 1, sha256: "b".repeat(64) },
-      { path: "coastline-land/land.pmtiles", bytes: 1, sha256: "c".repeat(64) },
+      { path: "ocean-depth-dem.pmtiles", bytes: 1, sha256: "b".repeat(64) },
+      { path: "ocean-depth-vector.pmtiles", bytes: 1, sha256: "c".repeat(64) },
+      { path: "coastline-land/land.pmtiles", bytes: 1, sha256: "d".repeat(64) },
     ];
     const parsed = parseManifest({
       ...fixtureManifest,
@@ -156,7 +158,8 @@ describe("corridor pack manifest contracts", () => {
     expect(paths).toEqual(
       expect.arrayContaining([
         "land-relief.pmtiles",
-        "ocean-depth.pmtiles",
+        "ocean-depth-dem.pmtiles",
+        "ocean-depth-vector.pmtiles",
         "coastline-land/land.pmtiles",
         "localities.geojson",
       ]),

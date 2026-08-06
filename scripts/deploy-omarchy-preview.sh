@@ -20,8 +20,10 @@ if [[ ! -f public/data/reachability-graph.json ]]; then
 	exit 1
 fi
 
-# Fat coastline-mask PMTiles is gitignored — fetch before shipping the build.
+# Fat coastline-mask + ocean-depth PMTiles are gitignored — fetch before
+# shipping the build.
 bash "$root_dir/scripts/fetch-coastline-mask-assets.sh"
+bash "$root_dir/scripts/fetch-ocean-depth-assets.sh"
 
 ssh "$remote_host" "mkdir -p '$remote_dir'"
 
