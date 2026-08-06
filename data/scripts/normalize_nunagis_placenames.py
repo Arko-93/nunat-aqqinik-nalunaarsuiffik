@@ -57,6 +57,21 @@ def normalize_features(features: list[dict]) -> list[dict]:
     return rows
 
 
+def carry_confirmations(
+    rows: list[dict], previous_rows: list[dict]
+) -> list[dict]:
+    confirmed = {
+        row.get("record_id"): row["confirmed_place_id"]
+        for row in previous_rows
+        if row.get("confirmed_place_id")
+    }
+    for row in rows:
+        place_id = confirmed.get(row.get("record_id"))
+        if place_id:
+            row["confirmed_place_id"] = place_id
+    return rows
+
+
 def write_ndjson(path: Path, rows: list[dict]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as file:
@@ -64,6 +79,13 @@ def write_ndjson(path: Path, rows: list[dict]) -> None:
             file.write(
                 json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n"
             )
+
+
+def read_ndjson(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    with path.open(encoding="utf-8") as file:
+        return [json.loads(line) for line in file if line.strip()]
 
 
 def latest_snapshot(root: Path, payload_name: str = "seed-name-query.json") -> Path:
@@ -112,6 +134,8 @@ def main() -> None:
         raise SystemExit(f"{input_path}: expected features array")
 
     rows = normalize_features(features)
+    previous = read_ndjson(args.output)
+    rows = carry_confirmations(rows, previous)
     write_ndjson(args.output, rows)
     print(
         f"Wrote {len(rows)} Type 21/23 authority rows from {input_path} to {args.output}"

@@ -69,6 +69,7 @@ No confirmed `external-identifiers` yet. Crosswalk is generated from `data/recon
 | `make -C data validate` | PASS — 101 records across 10 source files |
 | `make -C data test` | PASS — fixtures + reconciliation + build + release |
 | `make -C data publish-check` | FAIL (expected) — `src_legacy_seed` pending on the other 14 seeds |
+| `make -C data reconcile` | PASS — Nuuk Oqaasileriffik `confirmed`; 14 `candidate_exact_name`; overall 15 `unresolved` (Asiaq waiting) |
 | `python3 web/scripts/build-identity-crosswalk.py` | PASS — 15 entries (1 canonical, 14 candidate) |
 | `scripts/sync-web-release.sh` | PASS — Nuuk canonical in release-mounted crosswalk |
 
@@ -77,6 +78,7 @@ No confirmed `external-identifiers` yet. Crosswalk is generated from `data/recon
 - Re-sourced Nuuk name claims (KL official + DA exonym `Godthåb`) and the `town` classification from `src_legacy_seed` to `src_nunagis_placenames_register`.
 - Nuuk geometry deliberately stays on `src_legacy_seed` (pending) — Asiaq export still `waiting_for_export`.
 - Record count delta: external_identifiers 0 → 1.
+- Oqaasileriffik confirmation carried by `confirmed_place_id` on the Nuuk authority row; `make -C data reconcile` reports Nuuk `confirmed` (seed stays `unresolved` until Asiaq confirms). `normalize-nunagis` preserves confirmations by `record_id` (`carry_confirmations`) so re-fetch does not wipe them.
 
 ### Phase 4 read API scaffold (2026-08-01)
 

@@ -20,8 +20,8 @@ This document is the product and implementation source of truth.
 - Marine POC: `marine-poc/` private trip notebook (Uummannaq–Qaarsut); Omarchy `:3459` via `make marine-omarchy`; does not write into `data/source/`
 - Map data: NunaGIS PlacenamesRegisterSearch midpoint layer (`MapServer/1`), 30,542 midpoints with locality filter (Type 21/23 → 74)
 - Authority requests: Oqaasileriffik replied 2026-07-30 pointing to NunaGIS; Asiaq reply still pending
-- Reconciliation (data ops): 0 matched, 0 conflicting, 0 missing, 15 unresolved overall; Oqaasileriffik seed-side `candidate_exact_name` ×15; Asiaq `waiting_for_export` ×15
-- Phase 3 confirm: 1 canonical `xid_` (#29) — Nuuk `plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80` → `nunagis.global_id` `C9EE223C-C726-4335-80F8-E401E5480001`, NunaGIS decision `nunagis.placenames:ID=13493`; Nuuk name and town classification now sourced from `src_nunagis_placenames_register`; geometry stays legacy/pending until Asiaq
+- Reconciliation (data ops): 0 matched, 0 conflicting, 0 missing, 15 unresolved overall; Oqaasileriffik seed-side `candidate_exact_name` ×14 + Nuuk `confirmed` (via `confirmed_place_id`, #29); Asiaq `waiting_for_export` ×15
+- Phase 3 confirm: 1 confirmed identity (#29) — Nuuk `plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80` → `nunagis.global_id` `C9EE223C-C726-4335-80F8-E401E5480001`, decision `nunagis.placenames:ID=13493`; Oqaasileriffik authority row carries `confirmed_place_id` (queue shows Nuuk `confirmed`, seed stays `unresolved` until Asiaq confirms); Nuuk name and classification sourced from `src_nunagis_placenames_register`; geometry stays legacy/pending until Asiaq
 - Note: “Nunat Aqqinik Nalunaarsuiffik” is the NunaGIS public placenames register name; naming decisions remain Nunat Aqqinik Aalajangiisartut at Oqaasileriffik
 - Last implementation audit: 2026-08-01
 
@@ -493,7 +493,7 @@ Status: in progress; immutable snapshot and named-release foundation complete; a
 - Asiaq data-access request sent 2026-07-26 for download/service endpoint, field dictionary, licence, update cadence, and stable feature identifiers — reply still pending
 - Non-destructive 15-place reconciliation queue and normalized authority-input contract implemented under `data/reconciliation/`
 - Exact-name matching produces candidates only; explicit authority-to-`plc_` confirmation is required before a match is accepted
-- Current queue: Oqaasileriffik seed-side `candidate_exact_name` for all 15 seeds after Type 21/23 filtering; Nuuk identity superseded by a confirmed `xid_` (#29); Asiaq still `waiting_for_export`
+- Current queue: Oqaasileriffik seed-side `candidate_exact_name` for 14 seeds after Type 21/23 filtering; Nuuk identity confirmed (#29 — `xid_` + `confirmed_place_id` on the authority row); Asiaq still `waiting_for_export` ×15
 - Review note: Kangerlussuaq Type 23 candidate carries Danish label `Danmarkshavn` in the register — keep visible until reviewed
 - Record licence, retrieval metadata, upstream IDs, and raw snapshot or manifest
 - Reconcile each of the 15 seeds against authority records
@@ -507,9 +507,10 @@ Exit condition: all 15 seed places pass `publish-check`.
 
 ### Phase 3 — Complete the operational locality spine
 
-Status: in progress — first identity confirmed (Nuuk, #29); full spine still pending.
+Status: in progress — Nuuk naming confirmed (#29); full spine still pending.
 
-- Confirm each existing identity against the NunaGIS authority (no auto-merge; Nuuk confirmed, #29)
+- Confirm naming identity per place against the NunaGIS authority (no auto-merge): a confirmed place gets both a `nunagis.global_id` `xid_` and `confirmed_place_id` on the Oqaasileriffik authority row (Nuuk, #29)
+- Asiaq geometry confirmation is still required before a seed reaches overall `matched` — do not invent an Asiaq confirmation
 - Import all qualifying localities from the authoritative source
 - Match existing identities before minting new IDs
 - Create a machine-readable reconciliation report

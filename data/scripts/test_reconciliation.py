@@ -5,7 +5,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from normalize_nunagis_placenames import normalize_features
+from normalize_nunagis_placenames import carry_confirmations, normalize_features
 from reconcile_places import build_report, read_authority_records
 
 
@@ -75,19 +75,56 @@ def test_nunagis_authority_produces_candidates() -> None:
         raise AssertionError(
             "Asiaq still waiting must leave overall seed status unresolved"
         )
+    confirmed = [
+        row
+        for row in report
+        if row["authority_matches"]["oqaasileriffik"]["status"] == "confirmed"
+    ]
+    candidates = [
+        row
+        for row in report
+        if row["authority_matches"]["oqaasileriffik"]["status"]
+        == "candidate_exact_name"
+    ]
+    if len(confirmed) != 1 or len(candidates) != 14:
+        raise AssertionError(
+            "expected 1 confirmed + 14 candidate Oqaasileriffik rows, got "
+            f"{len(confirmed)} + {len(candidates)}"
+        )
+    if confirmed[0]["place_id"] != "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80":
+        raise AssertionError("expected Nuuk to be the confirmed Oqaasileriffik side")
     for row in report:
-        oqaasileriffik = row["authority_matches"]["oqaasileriffik"]
         asiaq = row["authority_matches"]["asiaq"]
-        if oqaasileriffik["status"] != "candidate_exact_name":
-            raise AssertionError(
-                f"{row['current_official_name']}: expected "
-                f"candidate_exact_name, got {oqaasileriffik['status']}"
-            )
         if asiaq["status"] != "waiting_for_export":
             raise AssertionError(
                 f"{row['current_official_name']}: Asiaq should still wait "
                 f"for export, got {asiaq['status']}"
             )
+
+
+def test_normalize_preserves_confirmations() -> None:
+    previous = [
+        {
+            "namespace": "oqaasileriffik",
+            "record_id": "C9EE223C-C726-4335-80F8-E401E5480001",
+            "official_name": "Nuuk",
+            "feature_type": "town",
+            "confirmed_place_id": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+        }
+    ]
+    fresh = [
+        {
+            "namespace": "oqaasileriffik",
+            "record_id": "C9EE223C-C726-4335-80F8-E401E5480001",
+            "official_name": "Nuuk",
+            "feature_type": "town",
+        }
+    ]
+    carried = carry_confirmations(fresh, previous)
+    if carried[0].get("confirmed_place_id") != previous[0]["confirmed_place_id"]:
+        raise AssertionError(
+            "confirmed_place_id must survive re-normalize by record_id"
+        )
 
 
 def main() -> None:
@@ -96,6 +133,7 @@ def main() -> None:
         raise AssertionError("empty authority input must leave all 15 seeds unresolved")
 
     test_normalize_keeps_only_locality_types()
+    test_normalize_preserves_confirmations()
     test_nunagis_authority_produces_candidates()
 
     target = waiting[0]

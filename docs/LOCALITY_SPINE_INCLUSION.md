@@ -25,17 +25,20 @@ Exact-name candidates in `data/reconciliation/place-seeds.ndjson` remain **candi
 - **Geometry:** Asiaq when export is available; do not treat NunaGIS midpoints as geometry authority for publication-grade coordinates.
 - Existing `plc_` IDs never change when attributes change.
 
-## Current blocker (2026-08-01)
+## Current blocker (2026-08-06)
 
-- 15 seeds at `candidate_exact_name`; 0 confirmed `xid_` rows.
-- Asiaq export still waiting.
-- `src_legacy_seed` pending provenance blocks `publish-check`.
+- 14 seeds at `candidate_exact_name`; Nuuk confirmed (#29 — canonical `xid_` + Oqaasileriffik `confirmed_place_id`).
+- Nuuk's Oqaasileriffik queue status is `confirmed`; the seed stays `unresolved` until Asiaq confirms (do not invent an Asiaq match).
+- Asiaq export still waiting; geometry not claimed.
+- `src_legacy_seed` pending provenance on the other 14 seeds blocks `publish-check`.
 
 ## Confirm workflow (manual)
 
 1. Open `data/reconciliation/place-seeds.ndjson` and the NunaGIS authority row.
 2. Verify GlobalID, type, municipality/locality codes, and name variants.
-3. If confirmed: add `external-identifiers` row (`nunagis.global_id`), set seed match to `matched`, replace legacy source refs assertion-by-assertion.
-4. Rebuild crosswalk + release; run `make -C data publish-check`.
+3. If confirmed: add an `external-identifiers` row (`nunagis.global_id`) and set `confirmed_place_id` on the Oqaasileriffik authority row; refresh the queue with `make -C data reconcile` (never hand-edit `place-seeds.ndjson`; `normalize-nunagis` preserves confirmations by `record_id`).
+4. Replace legacy source refs assertion-by-assertion; rebuild crosswalk + release; run `make -C data publish-check`.
+
+Naming confirmation = the `xid_` **and** the Oqaasileriffik `confirmed_place_id`. The seed reaches overall `matched` only when Asiaq also confirms; do not force it by inventing an Asiaq confirmation.
 
 Do **not** auto-merge on name equality.
