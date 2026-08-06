@@ -55,7 +55,6 @@ ROOT = Path(__file__).resolve().parents[2]
 PACKAGE = ROOT / "web" / "public" / "packages" / "qaarsut-kullorsuaq"
 CACHE = ROOT / ".cache" / "corridor-pack"
 DEM_CACHE = CACHE / "dem"
-SEA_CACHE = CACHE / "seascape"  # legacy Seascape cache dir, no longer used
 
 CORRIDOR_BBOX = (-58.5, 70.4, -50.5, 74.9)  # W,S,E,N
 CORRIDOR_SLUG = "qaarsut-kullorsuaq"
@@ -210,13 +209,6 @@ def download_dem(tiles: list[tuple[int, int, int]]) -> list[Path]:
         fetch_many(urls)
     return [DEM_CACHE / str(z) / str(x) / f"{y}.webp" for z, x, y in tiles]
 
-
-def download_seascape(z_max: int) -> list[tuple[int, int, int]]:  # noqa: ARG001 - legacy removed
-    raise SystemExit(
-        "Seascape source removed (issue #23) — the corridor pack now "
-        "subsets the self-tiled ocean-depth package. Run "
-        "web/scripts/build-ocean-depth.py or fetch-ocean-depth-assets.sh first."
-    )
 
 def _varint(n: int) -> bytes:  # noqa: ARG001 - kept for writer compatibility
     raise SystemExit("pmtiles writer moved to web/scripts/pmtiles_writer.py")

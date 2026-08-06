@@ -31,7 +31,8 @@ notes="$(cat <<EOF
 Full Qaarsut→Kullorsuaq corridor offline pack \`${package_id}\`.
 
 - land-relief.pmtiles: Mapterhorn DEM (Klimadatastyrelsen, CC BY 4.0), z0–z10, 256 px re-encoded
-- ocean-depth.pmtiles: Open Waters Seascape open-grid MVT (interim), z0–z12
+- ocean-depth-vector.pmtiles: self-tiled IBCAO v5.2 + GEBCO_2026 fallback, clipped to the shared coastline, z0–z11 (z12 renders overzoomed)
+- ocean-depth-dem.pmtiles: ocean hillshade raster (IBCAO v5.2 + GEBCO_2026 fallback, terrarium webp 256 px), z0–z10 — served offline again
 - coastline-land/land.pmtiles: shared coastline mask (OSM ∪ DEM, ODbL + CC BY 4.0), z0–z13
 - Manifest: \`web/public/packages/qaarsut-kullorsuaq/manifest.json\` (kind=full)
 - Not for navigation
