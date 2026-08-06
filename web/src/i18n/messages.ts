@@ -53,6 +53,7 @@ export type Messages = {
   downloadReady: string;
   downloadStubInstalled: string;
   downloadStubHint: string;
+  downloadFullHint: string;
   downloadDelete: string;
   downloadUpdate: string;
   notForNavigation: string;
@@ -119,7 +120,9 @@ const en: Messages = {
   downloadReady: "Ready offline",
   downloadStubInstalled: "Stub saved",
   downloadStubHint:
-    "Wiring stub only — land/ocean tiles still need the network. Full PMTiles pack not hosted yet.",
+    "Wiring stub only — no terrain offline. The full pack is in the Download area when it verifies (kind=full).",
+  downloadFullHint:
+    "Full pack installed: land relief, ocean depth (fills, contours, labels — the hillshade raster stays online), coastline mask and localities work offline.",
   downloadDelete: "Delete download",
   downloadUpdate: "Update available",
   notForNavigation: "Not for navigation — open-grid depth, not a chart",
@@ -187,7 +190,9 @@ const da: Messages = {
   downloadReady: "Klar offline",
   downloadStubInstalled: "Stub gemt",
   downloadStubHint:
-    "Kun wiring-stub — land-/havfliser kræver stadig netværk. Fuld PMTiles-pakke er ikke hostet endnu.",
+    "Kun wiring-stub — ingen offline-terræn. Den fulde pakke er i Download-området, når den verificeres (kind=full).",
+  downloadFullHint:
+    "Fuld pakke installeret: landrelief, havdybde (felter, konturer, etiketter — hillshade-raster forbliver online), kystlinjemaske og lokaliteter virker offline.",
   downloadDelete: "Slet download",
   downloadUpdate: "Opdatering klar",
   notForNavigation: "Ikke til navigation — åbent dybdegitter, ikke et søkort",
@@ -255,7 +260,9 @@ const kl: Messages = {
   downloadReady: "Offline-imut piareersimavoq",
   downloadStubInstalled: "Stub toqqorneqarsimavoq",
   downloadStubHint:
-    "Wiring-stub kisiat — nunap immapalu tiles internetikkut suli pisariaqarput. PMTiles pakke naammassimasoq suli hosteqanngilaq.",
+    "Wiring-stub kisiat — offline-terræn aningaanngilaq. Pakke naammassimasoq Download-eqarfeqarneraniippoq kind=full-ikkut naliliffigineqarsimappat.",
+  downloadFullHint:
+    "Pakke naammassimasoq installeret: nunap itisilersuutai, imaap itissusia (fills, contours, labels — hillshade raster online-imik), sinaap mask-a localities offline atorlugu sulisarput.",
   downloadDelete: "Download peeruk",
   downloadUpdate: "Nutarterneqarsinnaavoq",
   notForNavigation: "Angalanermut atugassaanngilaq — immap itissusia chartinngilaq",

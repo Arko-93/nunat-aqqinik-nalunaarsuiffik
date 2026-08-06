@@ -7,6 +7,7 @@ import {
   deleteCorridorPack,
   getPackInstallState,
   installCorridorPack,
+  notifyPackInstallStateChanged,
   type PackInstallState,
 } from "../offline/corridor-pack.ts";
 import { isTerrainOfflineReady } from "../offline/manifest.ts";
@@ -52,6 +53,8 @@ export function DownloadArea({
         manifest,
         terrainOffline: isTerrainOfflineReady(manifest),
       });
+      // The map switches its terrain sources to the pack (or back).
+      notifyPackInstallStateChanged();
     } catch (cause) {
       setState({
         status: "error",
@@ -65,6 +68,8 @@ export function DownloadArea({
     try {
       await deleteCorridorPack();
       setState({ status: "absent" });
+      // Map returns to remote terrain sources.
+      notifyPackInstallStateChanged();
     } catch (cause) {
       setActionError(cause instanceof Error ? cause.message : String(cause));
     }
@@ -95,9 +100,14 @@ export function DownloadArea({
               </Text>
             </p>
           ) : (
-            <Text as="p" variant="secondary" size="xs">
-              {t.iosHomeScreenHint}
-            </Text>
+            <>
+              <Text as="p" variant="secondary" size="xs">
+                {t.downloadFullHint}
+              </Text>
+              <Text as="p" variant="secondary" size="xs">
+                {t.iosHomeScreenHint}
+              </Text>
+            </>
           )}
           <Button type="button" size="sm" variant="ghost" onClick={onDelete}>
             {t.downloadDelete}

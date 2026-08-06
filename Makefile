@@ -2,7 +2,7 @@
 
 SHELL := /bin/bash
 
-.PHONY: preview-assemble map-fetch map-build map-omarchy preview-omarchy api-install api-typecheck api-test api-dev marine-install marine-test marine-fetch-land-assets marine-publish-land-assets marine-build marine-omarchy web-fetch-coastline-mask web-publish-coastline-mask
+.PHONY: preview-assemble map-fetch map-build map-omarchy preview-omarchy api-install api-typecheck api-test api-dev marine-install marine-test marine-fetch-land-assets marine-publish-land-assets marine-build marine-omarchy web-fetch-coastline-mask web-publish-coastline-mask web-fetch-corridor-pack web-publish-corridor-pack
 
 map-fetch:
 	bash scripts/sync-web-release.sh
@@ -64,6 +64,14 @@ web-fetch-coastline-mask:
 
 web-publish-coastline-mask: web-fetch-coastline-mask
 	bash scripts/publish-coastline-mask-assets.sh
+
+# Full Qaarsut→Kullorsuaq corridor offline pack. PMTiles stay local
+# (gitignored). Fetch or build-corridor-pack.py.
+web-fetch-corridor-pack:
+	bash scripts/fetch-corridor-pack-assets.sh
+
+web-publish-corridor-pack: web-fetch-corridor-pack
+	bash scripts/publish-corridor-pack-assets.sh
 
 marine-build: marine-install marine-fetch-land-assets
 	pnpm --dir marine-poc build

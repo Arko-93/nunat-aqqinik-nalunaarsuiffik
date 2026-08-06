@@ -19,3 +19,9 @@ api/dist/
 web/public/packages/coastline-land/land.geojson
 web/public/packages/coastline-land/land.pmtiles
 .cache/
+
+# Fat corridor-pack PMTiles — GitHub Release hosts them
+# (fetch-corridor-pack-assets.sh / build-corridor-pack.py).
+web/public/packages/qaarsut-kullorsuaq/land-relief.pmtiles
+web/public/packages/qaarsut-kullorsuaq/ocean-depth.pmtiles
+web/public/packages/qaarsut-kullorsuaq/coastline-land/land.pmtiles

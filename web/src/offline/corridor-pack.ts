@@ -198,6 +198,19 @@ export async function readPackFile(
   packId: string,
   path: string,
 ): Promise<ArrayBuffer | null> {
+  const file = await readPackFileHandle(packId, path);
+  if (!file) return null;
+  return file.arrayBuffer();
+}
+
+/**
+ * Resolve a pack file as an OPFS File (Blob). MapLibre tile serving reads
+ * byte ranges via Blob.slice — no whole-file load into memory.
+ */
+export async function readPackFileHandle(
+  packId: string,
+  path: string,
+): Promise<Blob | null> {
   try {
     const root = await packsRoot();
     const packDir = await root.getDirectoryHandle(packId);
@@ -207,9 +220,32 @@ export async function readPackFile(
       current = await current.getDirectoryHandle(parts[i]!);
     }
     const handle = await current.getFileHandle(parts[parts.length - 1]!);
-    const file = await handle.getFile();
-    return file.arrayBuffer();
+    return handle.getFile();
   } catch {
     return null;
   }
+}
+
+/**
+ * Pack-state change notification: the map re-applies its style when the
+ * offline readiness flips (install/delete). Kept outside React so the
+ * MapLibre seam stays framework-free.
+ */
+type PackStateListener = () => void;
+
+const packStateListeners = new Set<PackStateListener>();
+
+/** Subscribe to pack install/delete events; returns an unsubscribe fn. */
+export function subscribePackInstallState(
+  listener: PackStateListener,
+): () => void {
+  packStateListeners.add(listener);
+  return () => {
+    packStateListeners.delete(listener);
+  };
+}
+
+/** Call after a pack install or delete so the map re-resolves sources. */
+export function notifyPackInstallStateChanged(): void {
+  for (const listener of packStateListeners) listener();
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import maplibregl, { type Map, type GeoJSONSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { disclosureMinZoom } from "../domain/disclosure.ts";
@@ -22,6 +22,15 @@ import {
   loadNameOwnedLibertyStyle,
   loadTerrainStyle,
 } from "../map/terrain-style.ts";
+import {
+  bindCorridorPackToProtocol,
+  unbindCorridorPackFromProtocol,
+} from "../map/pmtiles-protocol.ts";
+import {
+  getPackInstallState,
+  readPackFileHandle,
+  subscribePackInstallState,
+} from "../offline/corridor-pack.ts";
 import { selectPlaceFromMapClick } from "./map-selection.ts";
 
 const SOURCE_ID = PLACENAMES_SOURCE_ID;
@@ -387,6 +396,8 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
   const fittedRef = useRef(false);
   const prevSelectedRef = useRef<number | null>(null);
   const inactiveIdsRef = useRef<Set<number>>(new Set());
+  const applySeqRef = useRef(0);
+  const [styleEpoch, setStyleEpoch] = useState(0);
   onSelectRef.current = onSelect;
   collectionRef.current = collection;
 
@@ -528,29 +539,73 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       }
     };
 
-    void loadTerrainStyle()
-      .then((style) => {
-        if (cancelled) return;
-        // Handlers before setStyle — style.load can fire during setStyle.
-        applyMapStyle(map, style, onStyleReady);
-      })
-      .catch(() => {
-        // Fallback: Liberty without terrain, still name-owned labels.
-        void loadNameOwnedLibertyStyle()
-          .then((style) => {
-            if (cancelled) return;
-            applyMapStyle(map, style, onStyleReady);
-          })
-          .catch(() => {
-            /* map shell stays empty; product labels need a style */
+    /**
+     * Resolve the current terrain serving mode and apply the style.
+     * Offline (full pack installed + verified): bind the pack archives to
+     * the pmtiles protocol and compose the offline style; online: remote
+     * Mapterhorn/Seascape sources. The Liberty-only fallback stays for
+     * both modes when terrain compose fails.
+     */
+    const applyStyle = async () => {
+      // Sequence guard: the latest invocation wins; stale async applies
+      // (a newer pack install/delete arrived meanwhile) never land.
+      const seq = ++applySeqRef.current;
+      const state = await getPackInstallState();
+      if (cancelled || seq !== applySeqRef.current) return;
+      if (state.status === "installed" && state.terrainOffline) {
+        try {
+          await bindCorridorPackToProtocol((path) =>
+            readPackFileHandle(state.manifest.id, path),
+          );
+          if (cancelled || seq !== applySeqRef.current) return;
+          const style = await loadTerrainStyle(undefined, {
+            offline: true,
           });
-      });
+          if (cancelled || seq !== applySeqRef.current) return;
+          applyMapStyle(map, style, onStyleReady);
+          return;
+        } catch {
+          // Pack bind/compose failed — fall back to the remote sources.
+          unbindCorridorPackFromProtocol();
+        }
+      } else {
+        unbindCorridorPackFromProtocol();
+      }
+      void loadTerrainStyle()
+        .then((style) => {
+          if (cancelled || seq !== applySeqRef.current) return;
+          // Handlers before setStyle — style.load can fire during setStyle.
+          applyMapStyle(map, style, onStyleReady);
+        })
+        .catch(() => {
+          // Fallback: Liberty without terrain, still name-owned labels.
+          void loadNameOwnedLibertyStyle()
+            .then((style) => {
+              if (cancelled || seq !== applySeqRef.current) return;
+              applyMapStyle(map, style, onStyleReady);
+            })
+            .catch(() => {
+              /* map shell stays empty; product labels need a style */
+            });
+        });
+    };
+
+    void applyStyle();
+    // Install/delete of the corridor pack flips the offline mode: re-apply
+    // the style so MapLibre serves terrain + mask from OPFS (or back to
+    // remote). applyMapStyle handles the full reload; the selection/collection
+    // effects below re-arm via whenSourceReady and the styleEpoch bump.
+    const unsubscribePack = subscribePackInstallState(() => {
+      setStyleEpoch((epoch) => epoch + 1);
+      void applyStyle();
+    });
 
     mapRef.current = map;
     // Dogfood / console verify: map.getSource('placenames'), getStyle().layers
     (window as Window & { __nunatMap?: Map }).__nunatMap = map;
     return () => {
       cancelled = true;
+      unsubscribePack();
       const win = window as Window & { __nunatMap?: Map };
       if (win.__nunatMap === map) delete win.__nunatMap;
       map.remove();
@@ -583,7 +638,9 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
         fittedRef.current = true;
       }
     });
-  }, [collection]);
+    // styleEpoch: a pack install/delete re-applies the style, which rebuilds
+    // the sources — re-arm this effect so the collection is re-pushed.
+  }, [collection, styleEpoch]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -640,10 +697,12 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
         center,
         zoom: targetZoom,
         duration: 280,
-        easing: (t) => 1 - Math.pow(1 - t, 3),
+        easing: (t) => 1 - (1 - t) ** 3,
       });
     });
-  }, [collection, selectedId]);
+    // styleEpoch: after a style re-apply the selected marker source is
+    // rebuilt — re-run this effect so the selection state is restored.
+  }, [collection, selectedId, styleEpoch]);
 
   return <div className="map-root" ref={containerRef} />;
 }

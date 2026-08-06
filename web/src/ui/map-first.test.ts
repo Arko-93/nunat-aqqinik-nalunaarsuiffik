@@ -65,6 +65,8 @@ describe("map-first UI contracts", () => {
       expect(t.downloadStubHint.toLowerCase()).toMatch(
         /stub|network|netværk|internet/,
       );
+      // The full-pack hint must stay honest about what stays online.
+      expect(t.downloadFullHint.toLowerCase()).toContain("hillshade");
       expect(t.downloadReady).not.toEqual(t.downloadStubInstalled);
       expect(t.appTagline.length).toBeLessThan(80);
     }
