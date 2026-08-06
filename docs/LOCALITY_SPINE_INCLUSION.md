@@ -27,10 +27,10 @@ Exact-name candidates in `data/reconciliation/place-seeds.ndjson` remain **candi
 
 ## Current blocker (2026-08-06)
 
-- 14 seeds at `candidate_exact_name`; Nuuk confirmed (#29 — canonical `xid_` + Oqaasileriffik `confirmed_place_id`).
-- Nuuk's Oqaasileriffik queue status is `confirmed`; the seed stays `unresolved` until Asiaq confirms (do not invent an Asiaq match).
+- All 15 seeds confirmed on the Oqaasileriffik side (#29 + #31) — canonical `xid_` + Oqaasileriffik `confirmed_place_id` on every authority row.
+- Every seed stays `unresolved` overall until Asiaq confirms (do not invent an Asiaq match).
 - Asiaq export still waiting; geometry not claimed.
-- `src_legacy_seed` pending provenance on the other 14 seeds blocks `publish-check`.
+- `src_legacy_seed` pending provenance on place status, geometry, and administrative records blocks `publish-check`.
 
 ## Confirm workflow (manual)
 
