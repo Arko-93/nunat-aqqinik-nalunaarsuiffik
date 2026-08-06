@@ -33,9 +33,8 @@
     {
       "featureId": "nunagis:C9EE223C-C726-4335-80F8-E401E5480001",
       "placeId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
-      "identityStatus": "candidate",
-      "globalId": "C9EE223C-C726-4335-80F8-E401E5480001",
-      "officialName": "Nuuk"
+      "identityStatus": "canonical",
+      "globalId": "C9EE223C-C726-4335-80F8-E401E5480001"
     },
     {
       "featureId": "nunagis:3151E3D0-67E9-47BA-B000-01EE34DBF2D1",
