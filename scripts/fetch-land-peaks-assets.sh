@@ -1,33 +1,23 @@
 #!/usr/bin/env bash
-# Ensure the full corridor-pack PMTiles exist locally (dev or deploy).
+# Ensure the land-peaks PMTiles exist locally (dev or deploy).
 # Prefer existing files that match the manifest sha256; otherwise
 # download from the GitHub Release for this package id.
 set -euo pipefail
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-pkg_dir="${CORRIDOR_PACKAGE_DIR:-$root_dir/web/public/packages/qaarsut-kullorsuaq}"
+pkg_dir="${LAND_PEAKS_PACKAGE_DIR:-$root_dir/web/public/packages/land-peaks}"
 manifest="$pkg_dir/manifest.json"
-repo="${CORRIDOR_PACK_ASSETS_REPO:-Arko-93/nunat-aqqinik-nalunaarsuiffik}"
-files=(land-relief.pmtiles land-peaks.pmtiles ocean-depth-vector.pmtiles ocean-depth-dem.pmtiles coastline-land/land.pmtiles)
-
-# GitHub release assets cannot contain slashes: the nested mask archive is
-# published under its basename and fetched into its package-relative path.
-asset_name() {
-	local name="$1"
-	case "$name" in
-	coastline-land/land.pmtiles) echo "land.pmtiles" ;;
-	*) echo "$name" ;;
-	esac
-}
+repo="${LAND_PEAKS_ASSETS_REPO:-Arko-93/nunat-aqqinik-nalunaarsuiffik}"
+files=(land-peaks.pmtiles)
 
 if [[ ! -f "$manifest" ]]; then
-	echo "Missing $manifest — run: .venv/bin/python web/scripts/build-corridor-pack.py" >&2
+	echo "Missing $manifest — run: .venv/bin/python web/scripts/build-land-peaks.py" >&2
 	exit 1
 fi
 
 package_id="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['id'])" "$manifest")"
-tag="${CORRIDOR_PACK_ASSETS_TAG:-web-corridor-pack-${package_id}}"
-base_url="${CORRIDOR_PACK_ASSETS_BASE_URL:-https://github.com/${repo}/releases/download/${tag}}"
+tag="${LAND_PEAKS_ASSETS_TAG:-web-land-peaks-${package_id}}"
+base_url="${LAND_PEAKS_ASSETS_BASE_URL:-https://github.com/${repo}/releases/download/${tag}}"
 
 sha256_file() {
 	local path="$1"
@@ -56,7 +46,6 @@ mkdir -p "$pkg_dir"
 
 for name in "${files[@]}"; do
 	dest="$pkg_dir/$name"
-	mkdir -p "$(dirname "$dest")"
 	want="$(expected_sha "$name")"
 	if [[ -f "$dest" ]]; then
 		have="$(sha256_file "$dest")"
@@ -71,24 +60,24 @@ for name in "${files[@]}"; do
 
 	tmp="$dest.tmp.$$"
 	rm -f "$tmp"
-	url="$base_url/$(asset_name "$name")"
+	url="$base_url/$name"
 	if command -v aria2c >/dev/null 2>&1; then
-		# Parallel + resumable: the corridor PMTiles are tens of MB.
+		# Parallel + resumable: the peaks archive is tens of MB.
 		if ! aria2c --file-allocation=none --allow-overwrite=true \
-			--dir="$(dirname "$dest")" --out="$(basename "$tmp")" \
+			--dir="$pkg_dir" --out="$(basename "$tmp")" \
 			-x8 -s8 -k1M "$url" >/dev/null 2>&1; then
 			rm -f "$tmp"
 			echo "Failed to download $url (aria2c)" >&2
-			echo "Build locally with: .venv/bin/python web/scripts/build-corridor-pack.py" >&2
-			echo "Or publish assets with: make web-publish-corridor-pack" >&2
+			echo "Build locally with: .venv/bin/python web/scripts/build-land-peaks.py" >&2
+			echo "Or publish assets with: make web-publish-land-peaks" >&2
 			exit 1
 		fi
 	elif ! curl --fail --location --retry 3 --retry-delay 2 \
 		--output "$tmp" "$url"; then
 		rm -f "$tmp"
 		echo "Failed to download $url" >&2
-		echo "Build locally with: .venv/bin/python web/scripts/build-corridor-pack.py" >&2
-		echo "Or publish assets with: make web-publish-corridor-pack" >&2
+		echo "Build locally with: .venv/bin/python web/scripts/build-land-peaks.py" >&2
+		echo "Or publish assets with: make web-publish-land-peaks" >&2
 		exit 1
 	fi
 	have="$(sha256_file "$tmp")"
@@ -100,5 +89,5 @@ for name in "${files[@]}"; do
 		exit 1
 	fi
 	mv "$tmp" "$dest"
-	echo "fetched $name ($(wc -c <"$dest" | tr -d ' ') bytes)"
+	echo "ok $name (fetched, sha256 match)"
 done

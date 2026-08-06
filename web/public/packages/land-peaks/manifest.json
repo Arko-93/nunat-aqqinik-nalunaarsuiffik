@@ -1,0 +1,27 @@
+{
+  "id": "land-peaks_2026-08-06",
+  "slug": "land-peaks",
+  "title": {
+    "kl": "Nunap qaammartaasut (land peak bands)",
+    "da": "Landhøjdeklasser (land peak bands)",
+    "en": "Land peak color bands"
+  },
+  "bbox": [
+    -75.0,
+    59.5,
+    -10.0,
+    84.0
+  ],
+  "bytes": 4767522,
+  "createdAt": "2026-08-06T00:00:00Z",
+  "kind": "full",
+  "files": [
+    {
+      "path": "land-peaks.pmtiles",
+      "bytes": 4767522,
+      "sha256": "42ba81e955cac1bbbcbefe88137a7ffd6e79ac25d27bd53d441fda8d70aafb59"
+    }
+  ],
+  "notForNavigation": true,
+  "notes": "Peaks-only color relief (transparent below 500 m, bands 500/1000/2000 m), z0-z10 256 px webp from the Mapterhorn DEM (CC BY 4.0); z11+ renders overzoomed."
+}

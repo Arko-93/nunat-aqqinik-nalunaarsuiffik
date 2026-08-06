@@ -2,7 +2,7 @@
 """Build the full Qaarsut→Kullorsuaq corridor offline pack.
 
 Creates web/public/packages/qaarsut-kullorsuaq/{land-relief.pmtiles,
-ocean-depth-dem.pmtiles, ocean-depth-vector.pmtiles,
+land-peaks.pmtiles, ocean-depth-dem.pmtiles, ocean-depth-vector.pmtiles,
 coastline-land/land.pmtiles, localities.geojson, manifest.json,
 ATTRIBUTION.md}.
 
@@ -12,6 +12,9 @@ Sources (all already live in the online map):
   clipped to the corridor bbox. Every tile is re-encoded at 256 px
   (offline tileSize 256) to fit the 250 MB family-phone budget; native
   512 px Mapterhorn tiles average 150-180 KiB and would blow the budget.
+- land-peaks: peaks-only color-relief raster (issue #24) cut from the
+  same corridor DEM tiles — transparent below 500 m, discrete bands at
+  500/1000/2000 m (landPeakBandColor in web/src/map/meter-bands.ts).
 - ocean-depth-dem: subset of the self-tiled ocean-depth package raster
   (IBCAO v5.2 + GEBCO_2026 fallback, terrarium webp 256 px, z0-10) —
   the offline ocean hillshade, restored since the pack can carry it.
@@ -72,6 +75,9 @@ OCEAN_PACKAGE = ROOT / "web" / "public" / "packages" / "ocean-depth"
 # policy as the coastline mask (maxzoom 13, z14 overzooms).
 LAND_MAX_ZOOM = 10
 DEM_REENCODE_SIZE = 256
+# Land peak bands (issue #24): same z0..10 pyramid + 256 px tile policy;
+# the full-country package and the corridor pack share one zoom cap.
+LAND_PEAKS_MAX_ZOOM = 10
 # Ocean-depth vector: subset of the self-tiled archive z0..11 (the archive
 # maxzoom; z12 renders overzoomed — the ~450 m grid adds no z12 detail).
 OCEAN_MAX_ZOOM = 11
@@ -89,6 +95,11 @@ SOURCE_LABELS = {
     "land-relief": (
         "Land relief DEM © Klimadatastyrelsen / Mapterhorn (CC BY 4.0) — "
         "Mapterhorn Terrarium tiles, Qaarsut→Kullorsuaq corridor clip"
+    ),
+    "land-peaks": (
+        "Land peak color bands © Klimadatastyrelsen / Mapterhorn "
+        "(CC BY 4.0) — peaks-only color relief (transparent below 500 m, "
+        "bands 500/1000/2000 m), Qaarsut→Kullorsuaq corridor clip"
     ),
     "ocean-depth-dem": (
         "Ocean depth © IBCAO v5.2 (2026) · GEBCO_2026 fallback (open "
@@ -356,6 +367,76 @@ def build_land_relief(clip_path: Path, measure_only: bool) -> Path | None:
     return out
 
 
+def build_land_peaks(measure_only: bool) -> Path | None:
+    """Peaks-only color-relief raster (issue #24) from the same DEM tiles.
+
+    Reuses the corridor DEM cache (the land-relief download is the same
+    bbox pyramid, so no extra network) and the shared band colorizer from
+    build-land-peaks.py — the full-country package and the corridor pack
+    can never disagree on breaks or colors.
+    """
+    import importlib.util
+
+    module_path = Path(__file__).parent / "build-land-peaks.py"
+    spec = importlib.util.spec_from_file_location(
+        "build_land_peaks", module_path
+    )
+    if spec is None or spec.loader is None:
+        raise SystemExit(f"cannot load {module_path}")
+    build_land_peaks = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(build_land_peaks)
+    peaks_webp = build_land_peaks.peaks_webp
+
+    dem_tiles: list[tuple[int, int, int]] = []
+    for z in range(0, LAND_PEAKS_MAX_ZOOM + 1):
+        dem_tiles.extend((z, x, y) for x, y in bbox_tiles(z))
+    eprint(
+        f"land-peaks tiles: bbox pyramid z0..{LAND_PEAKS_MAX_ZOOM} "
+        f"({len(dem_tiles)} tiles)"
+    )
+    paths = download_dem(dem_tiles)
+    if measure_only:
+        total = sum(p.stat().st_size for p in paths if p.stat().st_size)
+        eprint(f"land-peaks raw bytes: {total / 1e6:.1f} MB")
+        return None
+
+    tiles: dict[tuple[int, int, int], bytes] = {}
+    skipped = 0
+    for (z, x, y), path in zip(dem_tiles, paths):
+        if path.stat().st_size == 0:
+            continue
+        result = peaks_webp(path.read_bytes())
+        if result is None:
+            skipped += 1
+        else:
+            tiles[(z, x, y)] = result
+    eprint(f"land-peaks: {len(tiles)} peak tiles (skipped {skipped} below 500 m)")
+
+    out = PACKAGE / "land-peaks.pmtiles"
+    write_pmtiles(
+        tiles,
+        out,
+        tile_type=4,  # webp
+        tile_compression=0,
+        metadata={
+            "name": "Qaarsut–Kullorsuaq land peak color bands (Mapterhorn)",
+            "description": SOURCE_LABELS["land-peaks"],
+            "attribution": "© Klimadatastyrelsen / Mapterhorn (CC BY 4.0)",
+            "minzoom": 0,
+            "maxzoom": LAND_PEAKS_MAX_ZOOM,
+            "bounds": list(CORRIDOR_BBOX),
+            "center": [
+                sum(CORRIDOR_BBOX[0::2]) / 2,
+                sum(CORRIDOR_BBOX[1::2]) / 2,
+                min(8, LAND_PEAKS_MAX_ZOOM),
+            ],
+            "format": "webp",
+            "generator": "nunat build-corridor-pack.py",
+        },
+    )
+    return out
+
+
 def subset_ocean_archive(
     archive_name: str,
     out_name: str,
@@ -504,6 +585,12 @@ map, clipped to the corridor bbox ({CORRIDOR_BBOX[0]}, {CORRIDOR_BBOX[1]},
   z0–z{LAND_MAX_ZOOM}, every tile re-encoded at {DEM_REENCODE_SIZE} px
   (offline tileSize {DEM_REENCODE_SIZE}); z11+ renders overzoomed. The archive
   is the same data the online style serves.
+- Land peak bands (`land-peaks.pmtiles`): peaks-only color relief cut from
+  the same corridor DEM tiles (issue #24) — transparent below 500 m,
+  discrete bands at 500/1000/2000 m (`landPeakBandColor` in
+  `web/src/map/meter-bands.ts`), z0–z{LAND_PEAKS_MAX_ZOOM}, {DEM_REENCODE_SIZE} px
+  lossless webp; z11+ renders overzoomed. Same Mapterhorn DEM source as
+  `land-relief.pmtiles`, so the bands sit on the relief they were cut from.
 - Ocean depth vector (`ocean-depth-vector.pmtiles`): self-tiled from the
   IBCAO v5.2 (2026) 400 m grid with GEBCO_2026 fallback (15 arc-sec) —
   depth band polygons (`depare`) + contour lines, clipped to the shared
@@ -532,7 +619,8 @@ map, clipped to the corridor bbox ({CORRIDOR_BBOX[0]}, {CORRIDOR_BBOX[1]},
 - ODbL 1.0 (<https://opendatacommons.org/licenses/odbl/>) applies to the
   OSM-derived mask and to any bathymetry clipped to this coastline;
   the DEM-derived portion keeps CC BY 4.0.
-- CC BY 4.0 applies to the Mapterhorn DEM tiles in land-relief.pmtiles.
+- CC BY 4.0 applies to the Mapterhorn DEM tiles in land-relief.pmtiles
+  and to the derived peak color bands in land-peaks.pmtiles.
 - The IBCAO/GEBCO depth grids are open data; derived products must
   acknowledge IBCAO/GEBCO Compilation Group.
 - Not for navigation: display context and cartographic repair only; no
@@ -634,22 +722,25 @@ def main() -> None:
     if args.measure:
         clip = build_clip()
         build_land_relief(clip, measure_only=True)
+        build_land_peaks(measure_only=True)
         build_ocean_depth(measure_only=True)
         return
 
     PACKAGE.mkdir(parents=True, exist_ok=True)
     clip = build_clip()
     land = build_land_relief(clip, measure_only=False)
+    peaks = build_land_peaks(measure_only=False)
     ocean_vector, ocean_dem = build_ocean_depth(measure_only=False)
     mask = build_mask(clip)
     localities = build_localities()
 
     write_attribution()
-    if land is None or ocean_vector is None or ocean_dem is None:
+    if land is None or peaks is None or ocean_vector is None or ocean_dem is None:
         raise SystemExit("build failed")
     write_manifest(
         {
             "land-relief.pmtiles": land,
+            "land-peaks.pmtiles": peaks,
             "ocean-depth-vector.pmtiles": ocean_vector,
             "ocean-depth-dem.pmtiles": ocean_dem,
             "coastline-land/land.pmtiles": mask,
@@ -659,7 +750,9 @@ def main() -> None:
             "Full Qaarsut→Kullorsuaq corridor pack. Land relief (Mapterhorn "
             f"DEM, CC BY 4.0) z0–z{LAND_MAX_ZOOM}, every tile re-encoded at "
             f"{DEM_REENCODE_SIZE} px (tileSize {DEM_REENCODE_SIZE} offline; "
-            "z11+ renders overzoomed), ocean depth (self-tiled IBCAO v5.2 + "
+            "z11+ renders overzoomed), land peak color bands (issue #24, "
+            f"peaks-only, transparent below 500 m, z0–z{LAND_PEAKS_MAX_ZOOM}), "
+            "ocean depth (self-tiled IBCAO v5.2 + "
             f"GEBCO_2026 fallback, clipped to the shared coastline) z0–z{OCEAN_MAX_ZOOM} "
             "vector (z12 renders overzoomed) + ocean hillshade raster "
             f"z0–z{OCEAN_DEM_MAX_ZOOM} (z11+ overzooms), coastline mask "

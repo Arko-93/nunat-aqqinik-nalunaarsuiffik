@@ -17,11 +17,13 @@ export const MAX_PACK_BYTES = 250 * 1024 * 1024;
  * same-origin mask source (`packages/coastline-land/land.pmtiles`, stripped
  * of the pack base) so a full pack can serve the identical path. The ocean
  * archives mirror the online ocean-depth package file names
- * (`ocean-depth-dem.pmtiles`, `ocean-depth-vector.pmtiles`) so offline
- * serves the same logical tile paths as online.
+ * (`ocean-depth-dem.pmtiles`, `ocean-depth-vector.pmtiles`) and the peak
+ * bands mirror the online land-peaks package (`land-peaks.pmtiles`, issue
+ * #24) so offline serves the same logical tile paths as online.
  */
 export const TERRAIN_OFFLINE_FILES = [
   "land-relief.pmtiles",
+  "land-peaks.pmtiles",
   "ocean-depth-dem.pmtiles",
   "ocean-depth-vector.pmtiles",
   "coastline-land/land.pmtiles",
