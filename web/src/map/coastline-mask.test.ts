@@ -49,7 +49,7 @@ const FIXTURES = new URL(
 
 function readFixture<T extends Geometry>(
   area: string,
-  kind: "land" | "bathymetry",
+  kind: "land" | "bathymetry" | "dem-land",
 ): FeatureCollection<T> {
   let text: string;
   try {
@@ -146,15 +146,16 @@ function distanceToLandBoundaryMeters(
     poly.geometry.type === "Polygon"
       ? [poly.geometry.coordinates[0]!]
       : poly.geometry.coordinates.map((part) => part[0]!);
-  let min = Infinity;
+  let minKm = Infinity;
   for (const ring of outerRings) {
     const nearest = nearestPointOnLine(
       lineString(ring),
       position,
     );
-    min = Math.min(min, distance(position, nearest));
+    minKm = Math.min(minKm, distance(position, nearest));
   }
-  return min;
+  // turf distance() returns kilometres; the contract is metres.
+  return minKm * 1000;
 }
 
 /** True when a point is strictly inside land and away from its boundary. */
@@ -239,10 +240,14 @@ function clipContourToLand(
       for (const piece of pieces) {
         if (piece.geometry.type !== "LineString") continue;
         if (piece.geometry.coordinates.length < 2) continue;
-        const midpoint = piece.geometry.coordinates[
-          Math.floor(piece.geometry.coordinates.length / 2)
-        ]!;
-        if (strictlyOutsideLand(midpoint as [number, number], land)) {
+        // Keep a piece only when no sampled point (segment midpoints) is
+        // truly inside land — a piece whose ends dip into land (2-25 m
+        // shoreline noise) must not survive the clip.
+        const samples = segmentMidpoints(piece);
+        const outside = samples.every((midpoint) =>
+          strictlyOutsideLand(midpoint, land),
+        );
+        if (outside) {
           next.push(piece);
         }
       }
@@ -254,6 +259,37 @@ function clipContourToLand(
 }
 
 const AREAS = ["qaarsut", "naajaat"] as const;
+
+/**
+ * Issue #19 regression: DEM land the mask must cover (Naajaat).
+ *
+ * The Mapterhorn land hillshade renders land the OSM coastline misses
+ * (Naajaat: ~0.15 km2 west of the island ring, up to ~120 m elevation).
+ * The mask must cover every DEM-land sample point — the mask build unions
+ * polygonized DEM land into the OSM coastline. The committed sample points
+ * are real Mapterhorn z14 pixels outside the OSM-only shoreline; they fail
+ * against an OSM-only land fixture and pass only when the mask carries the
+ * DEM union (or a coastline that contains these points).
+ */
+describe("coastline mask covers Mapterhorn DEM land (issue #19)", () => {
+  const land = landPolygons(readFixture<LandGeom>("naajaat", "land"));
+  const demLand = readFixture<Point>("naajaat", "dem-land").features as Array<
+    Feature<Point>
+  >;
+
+  it("fixtures are non-empty", () => {
+    expect(land.length).toBeGreaterThan(0);
+    expect(demLand.length).toBeGreaterThan(0);
+  });
+
+  it("every DEM-land sample point is covered by the land mask", () => {
+    const uncovered = demLand.filter((point) => {
+      const position = point.geometry.coordinates as [number, number];
+      return !trulyInsideLand(position, land);
+    });
+    expect(uncovered).toEqual([]);
+  });
+});
 
 describe("coastline mask geometry regression (Qaarsut + Naajaat)", () => {
   for (const area of AREAS) {

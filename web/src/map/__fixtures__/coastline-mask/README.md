@@ -70,7 +70,7 @@ Captured 2026-08-05:
   },
   {
     "area": "naajaat",
-    "land_features": 4,
+    "land_features": 22,
     "bathymetry_features": 170,
     "depare_drval1": [
       0,
@@ -113,7 +113,7 @@ Captured 2026-08-05:
       300,
       366
     ],
-    "land_sha256": "d3352127c9a5819c199554df1c533b043d6db662c45d1edded5a84bfd4ef5ff3",
+    "land_sha256": "f6176e5412b215bf496197af26c30e091355f7c85f1fcd1dd2339e82f1c043c2",
     "bathymetry_sha256": "033971c81c5f841ded879e9578e019211855de824f436ef09b214737e19d3814"
   }
 ]

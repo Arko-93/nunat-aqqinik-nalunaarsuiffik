@@ -1,12 +1,12 @@
 {
-  "id": "coastline-land_2026-08-05",
+  "id": "coastline-land_2026-08-06",
   "slug": "coastline-land",
   "title": {
     "kl": "Sinaa (land-mask)",
     "da": "Kystlinje (land-maske)",
     "en": "Coastline land mask"
   },
-  "description": "Complete OSM coastline land polygon mask for the terrain-first map \u2014 one shared shoreline for the display mask and for clipping bathymetry. Not for navigation.",
+  "description": "Complete OSM coastline land polygon mask unioned with Mapterhorn DEM land (elevation > ~1 m, z12 coastal band) for the terrain-first map \u2014 one shared shoreline for the display mask and for clipping bathymetry. The DEM union closes shoreline gaps where the land hillshade renders land the OSM coastline misses. Not for navigation.",
   "bbox": [
     -75.0,
     59.5,
@@ -15,30 +15,30 @@
   ],
   "minZoom": 0,
   "maxZoom": 13,
-  "bytes": 133689340,
-  "createdAt": "2026-08-05T00:00:00Z",
-  "dataAsOf": "2026-08-05",
+  "bytes": 305674101,
+  "createdAt": "2026-08-06T00:00:00Z",
+  "dataAsOf": "2026-08-06",
   "files": [
     {
       "path": "land.geojson",
-      "bytes": 67973275,
-      "sha256": "c2c0c886b661e720e7192281e42cee1fbf9d07046e7d9f7c403489a5fddda7d8"
+      "bytes": 197343577,
+      "sha256": "2944dba21878f005f5d4f67b78b9447a41ce693ce40855d5effc704ecaf59c9c"
     },
     {
       "path": "land.pmtiles",
-      "bytes": 65716065,
-      "sha256": "99d9b06c38fd12f56c6809ad2311c9c654edf36a9f0d4437f77a1f6e364a8ca3"
+      "bytes": 108330524,
+      "sha256": "b89b61a006e8bbeabb0065eb5978a5e1945b99d32c9d8e8b0b42f7cdbe2a8d66"
     }
   ],
   "source": {
-    "title": "OpenStreetMap land polygons (full coastline)",
-    "publisher": "OpenStreetMap contributors via osmdata.openstreetmap.de",
+    "title": "OpenStreetMap land polygons (full coastline) unioned with Mapterhorn DEM land (Klimadatastyrelsen)",
+    "publisher": "OpenStreetMap contributors via osmdata.openstreetmap.de; Klimadatastyrelsen via Mapterhorn",
     "url": "https://osmdata.openstreetmap.de/download/land-polygons-split-4326.zip",
-    "licence": "ODbL",
-    "attribution": "\u00a9 OpenStreetMap contributors (ODbL)",
-    "redistribution": "ODbL share-alike: derived masks must keep OSM attribution and publish under ODbL (opendatacommons.org/licenses/odbl).",
+    "licence": "ODbL + CC BY 4.0 (DEM)",
+    "attribution": "\u00a9 OpenStreetMap contributors (ODbL) \u00b7 \u00a9 Klimadatastyrelsen / Mapterhorn (CC BY 4.0)",
+    "redistribution": "ODbL share-alike: derived masks must keep OSM attribution and publish under ODbL (opendatacommons.org/licenses/odbl). The DEM-derived portion keeps CC BY 4.0 attribution.",
     "safety": "not-for-navigation"
   },
   "notForNavigation": true,
-  "notes": "land.pmtiles is hosted on a GitHub Release (repo precedent: files >50 MB are not committed). Fetch: bash scripts/fetch-coastline-mask-assets.sh"
+  "notes": "V1 interim shoreline: OSM coastline unioned with Mapterhorn DEM land (elevation > ~1 m) sampled in a z12 coastal band \u2014 the mask matches the land hillshade by construction (issue #19). Asiaq may replace both sources when authoritative distributable geometry arrives; clip-before-tile is future IBCAO/GEBCO work. land.pmtiles is hosted on a GitHub Release (repo precedent: files >50 MB are not committed). Fetch: bash scripts/fetch-coastline-mask-assets.sh"
 }
