@@ -1,16 +1,36 @@
 {
-  "id": "corridor_qaarsut_kullorsuaq_2026-08-05-stub",
+  "id": "corridor_qaarsut_kullorsuaq_2026-08-06",
   "slug": "qaarsut-kullorsuaq",
   "title": {
     "kl": "Qaarsut–Kullorsuaq",
     "da": "Qaarsut–Kullorsuaq",
     "en": "Qaarsut–Kullorsuaq"
   },
-  "bbox": [-58.5, 70.4, -50.5, 74.9],
-  "bytes": 43,
-  "createdAt": "2026-08-05T00:00:00Z",
-  "kind": "stub",
+  "bbox": [
+    -58.5,
+    70.4,
+    -50.5,
+    74.9
+  ],
+  "bytes": 90442049,
+  "createdAt": "2026-08-06T04:51:20Z",
+  "kind": "full",
   "files": [
+    {
+      "path": "land-relief.pmtiles",
+      "bytes": 66338299,
+      "sha256": "034a46f44a5688967d0f0b89ee0fe9f544f806dc55e431ef9b1696afcb82023a"
+    },
+    {
+      "path": "ocean-depth.pmtiles",
+      "bytes": 19752774,
+      "sha256": "bca1e4a1c81d6f9158885a6cb8bae1a1d858ae3b7d32d7102a81c016313d2376"
+    },
+    {
+      "path": "coastline-land/land.pmtiles",
+      "bytes": 4350933,
+      "sha256": "c793fbf1345d079664b17279a6465a869be7c080ba680c53217c6dc9a718e092"
+    },
     {
       "path": "localities.geojson",
       "bytes": 43,
@@ -18,9 +38,16 @@
     }
   ],
   "storage": {
-    "opfs": ["localities.geojson"],
-    "cache": ["manifest.json"]
+    "opfs": [
+      "land-relief.pmtiles",
+      "ocean-depth.pmtiles",
+      "coastline-land/land.pmtiles",
+      "localities.geojson"
+    ],
+    "cache": [
+      "manifest.json"
+    ]
   },
   "notForNavigation": true,
-  "notes": "Stub pack for Download area wiring only. Does not provide offline terrain. Full land-relief.pmtiles + IBCAO ocean-depth.pmtiles still to host (budget 80–180 MB, ≤250 MB)."
+  "notes": "Full Qaarsut→Kullorsuaq corridor pack. Land relief (Mapterhorn DEM, CC BY 4.0) z0–z10, every tile re-encoded at 256 px (tileSize 256 offline; z11+ renders overzoomed), ocean depth (Open Waters Seascape open-grid MVT, interim) z0–z12, coastline mask (OSM ∪ DEM, ODbL + CC BY 4.0) z0–z13, localities. Offline the ocean hillshade raster layer is not served (the pack carries the vector depth source: fills, contours, labels). Tiles beyond the pack bbox are absent — no live network fallback. Not for navigation."
 }

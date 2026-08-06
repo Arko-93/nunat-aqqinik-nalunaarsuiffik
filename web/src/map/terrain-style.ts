@@ -48,6 +48,14 @@ export const TERRAIN_LAYER_IDS = {
 export const COASTLINE_MASK_PMTILES_URL =
   "pmtiles:///packages/coastline-land/land.pmtiles";
 
+/**
+ * Offline serving: the full corridor pack mounted in OPFS serves these
+ * paths (pack-relative files under packages/qaarsut-kullorsuaq). Same
+ * logical tile paths online/offline — only the protocol resolution changes.
+ */
+export const PACK_PMTILES_URL = (path: string): string =>
+  `pmtiles:///packages/qaarsut-kullorsuaq/${path}/{z}/{x}/{y}`;
+
 export const COASTLINE_MASK_ATTRIBUTION =
   "© OpenStreetMap contributors (ODbL) — coastline land polygons";
 
@@ -67,6 +75,10 @@ export type TerrainStyleMeta = {
   "nunat:coastline-licence": "ODbL";
   /** NunaGIS officialName is the sole primary geography label. */
   "nunat:name-ownership": "official-kalaallisut-primary";
+  /** Offline pack serving: land + depth vector from OPFS, mask from OPFS. */
+  "nunat:tile-serving": "remote" | "opfs-pack";
+  /** The ocean hillshade raster is not in the pack (vector depth is). */
+  "nunat:ocean-hillshade-offline": "dropped" | "served";
 };
 
 /** First land-like fill id — ocean layers insert before this. */
@@ -322,9 +334,24 @@ export function hasEnglishFirstGeographyLabels(
  * Compose terrain-first style: Liberty chrome + land DEM hillshade +
  * hybrid D ocean meter bands under land.
  */
+export type ComposeTerrainStyleOptions = {
+  /**
+   * Serve terrain sources from the installed OPFS corridor pack (same
+   * logical tile paths as online — the pmtiles protocol resolves them
+   * locally). Online stays on remote Mapterhorn/Seascape until a full
+   * pack is installed and verified. Offline: land relief (tileSize 256,
+   * the pack's re-encoded archives), vector ocean depth, coastline mask;
+   * the ocean hillshade raster is not part of the pack and the layer is
+   * dropped (vector depth fills/contours/labels are served).
+   */
+  offline?: boolean;
+};
+
 export function composeTerrainStyle(
   liberty: StyleSpecification,
+  options: ComposeTerrainStyleOptions = {},
 ): StyleSpecification {
+  const offline = options.offline === true;
   const validated = parseLibertyStyle(liberty);
   const style: StyleSpecification = {
     version: 8,
@@ -340,35 +367,59 @@ export function composeTerrainStyle(
     ...(validated.pitch != null ? { pitch: validated.pitch } : {}),
   };
 
+  const depthAttribution =
+    "Ocean depth (open grid, interim) — not for navigation";
   style.sources = {
     ...style.sources,
-    "land-relief": {
-      type: "raster-dem",
-      url: LAND_DEM_TILEJSON,
-      tileSize: 512,
-      encoding: "terrarium",
-      attribution:
-        "Land DEM © Klimadatastyrelsen / Mapterhorn (CC BY 4.0)",
-    },
-    "ocean-depth-dem": {
-      type: "raster-dem",
-      url: OCEAN_DEM_URL,
-      tileSize: 512,
-      encoding: "terrarium",
-      attribution:
-        "Ocean depth (open grid, interim) — not for navigation",
-    },
-    "ocean-depth-vector": {
-      type: "vector",
-      url: OCEAN_VECTOR_URL,
-      attribution:
-        "Ocean depth (open grid, interim) — not for navigation",
-    },
-    "coastline-land": {
-      type: "vector",
-      url: COASTLINE_MASK_PMTILES_URL,
-      attribution: COASTLINE_MASK_ATTRIBUTION,
-    },
+    ...(offline
+      ? {
+          "land-relief": {
+            type: "raster-dem",
+            tiles: [PACK_PMTILES_URL("land-relief.pmtiles")],
+            // The pack re-encodes Mapterhorn 512 px tiles at 256 px.
+            tileSize: 256,
+            encoding: "terrarium",
+            attribution:
+              "Land DEM © Klimadatastyrelsen / Mapterhorn (CC BY 4.0)",
+          },
+          "ocean-depth-vector": {
+            type: "vector",
+            tiles: [PACK_PMTILES_URL("ocean-depth.pmtiles")],
+            attribution: depthAttribution,
+          },
+          "coastline-land": {
+            type: "vector",
+            tiles: [PACK_PMTILES_URL("coastline-land/land.pmtiles")],
+            attribution: COASTLINE_MASK_ATTRIBUTION,
+          },
+        }
+      : {
+          "land-relief": {
+            type: "raster-dem",
+            url: LAND_DEM_TILEJSON,
+            tileSize: 512,
+            encoding: "terrarium",
+            attribution:
+              "Land DEM © Klimadatastyrelsen / Mapterhorn (CC BY 4.0)",
+          },
+          "ocean-depth-dem": {
+            type: "raster-dem",
+            url: OCEAN_DEM_URL,
+            tileSize: 512,
+            encoding: "terrarium",
+            attribution: depthAttribution,
+          },
+          "ocean-depth-vector": {
+            type: "vector",
+            url: OCEAN_VECTOR_URL,
+            attribution: depthAttribution,
+          },
+          "coastline-land": {
+            type: "vector",
+            url: COASTLINE_MASK_PMTILES_URL,
+            attribution: COASTLINE_MASK_ATTRIBUTION,
+          },
+        }),
   };
 
   const layers = suppressCompetingGeographyLabels(style.layers ?? []);
@@ -380,17 +431,20 @@ export function composeTerrainStyle(
     : 1;
   const insertAt = beforeIndex >= 0 ? beforeIndex : 1;
 
-  const oceanHillshade: LayerSpecification = {
-    id: TERRAIN_LAYER_IDS.oceanHillshade,
-    type: "hillshade",
-    source: "ocean-depth-dem",
-    paint: {
-      "hillshade-exaggeration": 0.45,
-      "hillshade-shadow-color": "#062033",
-      "hillshade-highlight-color": "#d7e8f4",
-      "hillshade-accent-color": "#1a4a66",
-    },
-  };
+  const oceanLayers: LayerSpecification[] = [];
+  if (!offline) {
+    oceanLayers.push({
+      id: TERRAIN_LAYER_IDS.oceanHillshade,
+      type: "hillshade",
+      source: "ocean-depth-dem",
+      paint: {
+        "hillshade-exaggeration": 0.45,
+        "hillshade-shadow-color": "#062033",
+        "hillshade-highlight-color": "#d7e8f4",
+        "hillshade-accent-color": "#1a4a66",
+      },
+    });
+  }
 
   const oceanFills: LayerSpecification = {
     id: TERRAIN_LAYER_IDS.oceanFills,
@@ -448,13 +502,13 @@ export function composeTerrainStyle(
     },
   };
 
-  // Order: ocean hillshade, fills, contours, contour labels, then the
-  // complete coastline mask, then land relief. The mask hides every ocean
-  // layer on land while land hillshade and NunaGIS markers stay above it.
+  // Order: ocean hillshade (online only), fills, contours, contour labels,
+  // then the complete coastline mask, then land relief. The mask hides every
+  // ocean layer on land while land hillshade and NunaGIS markers stay above.
   layers.splice(
     insertAt,
     0,
-    oceanHillshade,
+    ...oceanLayers,
     oceanFills,
     oceanContours,
     oceanContourLabels,
@@ -489,6 +543,8 @@ export function composeTerrainStyle(
     "nunat:coastline-source": "osm-land-polygons",
     "nunat:coastline-licence": "ODbL",
     "nunat:name-ownership": "official-kalaallisut-primary",
+    "nunat:tile-serving": offline ? "opfs-pack" : "remote",
+    "nunat:ocean-hillshade-offline": offline ? "dropped" : "served",
   };
   style.metadata = {
     ...(typeof style.metadata === "object" && style.metadata
@@ -527,6 +583,7 @@ export function composeNameOwnedLibertyStyle(
 
 export async function loadTerrainStyle(
   fetchImpl: typeof fetch = fetch,
+  options: ComposeTerrainStyleOptions = {},
 ): Promise<StyleSpecification> {
   const response = await fetchImpl(LIBERTY_STYLE_URL);
   if (!response.ok) {
@@ -538,7 +595,7 @@ export async function loadTerrainStyle(
   } catch {
     throw new StyleError("Liberty style response is not JSON");
   }
-  return composeTerrainStyle(parseLibertyStyle(raw));
+  return composeTerrainStyle(parseLibertyStyle(raw), options);
 }
 
 /** Fetch Liberty and strip competing geography labels (no terrain sources). */

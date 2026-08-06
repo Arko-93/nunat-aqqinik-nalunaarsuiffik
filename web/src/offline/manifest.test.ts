@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { CORRIDOR_BBOX, MAX_PACK_BYTES } from "./corridor-policy.ts";
 import {
   assertCorridorBbox,
@@ -101,6 +103,61 @@ describe("corridor pack manifest contracts", () => {
     });
     expect(parsed.kind).toBe("full");
     expect(isTerrainOfflineReady(parsed)).toBe(true);
+  });
+
+  it("never claims terrain-offline for a stub even with terrain files listed", () => {
+    // A stub that lists the terrain paths but stays kind=stub must not
+    // flip the UI to ready — only kind=full + all files qualifies.
+    const files = [
+      ...fixtureManifest.files,
+      { path: "land-relief.pmtiles", bytes: 1, sha256: "a".repeat(64) },
+      { path: "ocean-depth.pmtiles", bytes: 1, sha256: "b".repeat(64) },
+      { path: "coastline-land/land.pmtiles", bytes: 1, sha256: "c".repeat(64) },
+    ];
+    const parsed = parseManifest({
+      ...fixtureManifest,
+      kind: "stub",
+      files,
+    });
+    expect(parsed.kind).toBe("stub");
+    expect(isTerrainOfflineReady(parsed)).toBe(false);
+  });
+
+  it("accepts the shipped full pack manifest from public/packages", () => {
+    let raw: string;
+    try {
+      raw = readFileSync(
+        resolve(
+          process.cwd(),
+          "public/packages/qaarsut-kullorsuaq/manifest.json",
+        ),
+        "utf-8",
+      );
+    } catch (cause) {
+      throw new Error(
+        "Missing shipped manifest — run web/scripts/build-corridor-pack.py",
+        { cause },
+      );
+    }
+    const parsed = parseManifest(JSON.parse(raw));
+    expect(parsed.kind).toBe("full");
+    expect(parsed.id).toContain("corridor_qaarsut_kullorsuaq");
+    expect(assertCorridorBbox(parsed.bbox)).toBe(true);
+    expect(parsed.bytes).toBeLessThanOrEqual(MAX_PACK_BYTES);
+    expect(parsed.notForNavigation).toBe(true);
+    expect(isTerrainOfflineReady(parsed)).toBe(true);
+    const paths = parsed.files.map((file) => file.path);
+    expect(paths).toEqual(
+      expect.arrayContaining([
+        "land-relief.pmtiles",
+        "ocean-depth.pmtiles",
+        "coastline-land/land.pmtiles",
+        "localities.geojson",
+      ]),
+    );
+    // Honest notes: the pack must say what is NOT offline, not overclaim.
+    expect(parsed.notes?.toLowerCase()).toContain("not for navigation");
+    expect(parsed.notes).toContain("256 px");
   });
 
   it("verifies fixture file checksums", async () => {

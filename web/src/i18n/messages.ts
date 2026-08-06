@@ -53,6 +53,7 @@ export type Messages = {
   downloadReady: string;
   downloadStubInstalled: string;
   downloadStubHint: string;
+  downloadFullHint: string;
   downloadDelete: string;
   downloadUpdate: string;
   notForNavigation: string;
@@ -120,6 +121,8 @@ const en: Messages = {
   downloadStubInstalled: "Stub saved",
   downloadStubHint:
     "Wiring stub only — land/ocean tiles still need the network. Full PMTiles pack not hosted yet.",
+  downloadFullHint:
+    "Full pack installed: land relief, ocean depth, coastline mask and localities work offline (no live tile servers).",
   downloadDelete: "Delete download",
   downloadUpdate: "Update available",
   notForNavigation: "Not for navigation — open-grid depth, not a chart",
@@ -188,6 +191,8 @@ const da: Messages = {
   downloadStubInstalled: "Stub gemt",
   downloadStubHint:
     "Kun wiring-stub — land-/havfliser kræver stadig netværk. Fuld PMTiles-pakke er ikke hostet endnu.",
+  downloadFullHint:
+    "Fuld pakke installeret: landrelief, havdybde, kystlinjemaske og lokaliteter virker offline (ingen live tile-servere).",
   downloadDelete: "Slet download",
   downloadUpdate: "Opdatering klar",
   notForNavigation: "Ikke til navigation — åbent dybdegitter, ikke et søkort",
@@ -256,6 +261,8 @@ const kl: Messages = {
   downloadStubInstalled: "Stub toqqorneqarsimavoq",
   downloadStubHint:
     "Wiring-stub kisiat — nunap immapalu tiles internetikkut suli pisariaqarput. PMTiles pakke naammassimasoq suli hosteqanngilaq.",
+  downloadFullHint:
+    "Pakke naammassimasoq installeret: nunap itisilersuutai, imaap itissusia, sinaap mask-a localities offline atorlugu sulisarput (live tile-serverinngilaq).",
   downloadDelete: "Download peeruk",
   downloadUpdate: "Nutarterneqarsinnaavoq",
   notForNavigation: "Angalanermut atugassaanngilaq — immap itissusia chartinngilaq",
