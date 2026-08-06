@@ -69,6 +69,17 @@ when both Oqaasileriffik and Asiaq records explicitly confirm it and no compared
 field differs. Differences are reported as `conflicting`; missing and ambiguous
 records remain visible.
 
+`confirmed_place_id` is the durable naming-confirmation pointer, written onto
+the authority row after a manual review (see Phase 3 Nuuk, #29). Regenerate the
+queue with `make -C data reconcile` only — do not hand-edit `place-seeds.ndjson`,
+it is a generated queue. `normalize-nunagis` overwrites the authority file from
+the latest snapshot, but it **preserves** existing `confirmed_place_id` values by
+`record_id` (`carry_confirmations`), so confirmations survive re-fetches.
+
+A place whose Oqaasileriffik side is confirmed stays `unresolved` overall until
+its Asiaq side also confirms. Do not invent an Asiaq confirmation to force
+`matched`; that state waits for the real geometry export.
+
 After review, update canonical assertions manually with source references,
 upstream external identifiers, effective dates, and preserved history. Then run
 all validation gates.

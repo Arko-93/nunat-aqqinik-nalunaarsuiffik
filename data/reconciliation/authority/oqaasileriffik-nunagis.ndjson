@@ -6,7 +6,7 @@
 {"namespace":"oqaasileriffik","record_id":"2F9867A2-BBA4-4EAF-AA86-07528C852555","official_name":"Maniitsoq","feature_type":"town","decision_ref":"nunagis.placenames:ID=13494"}
 {"namespace":"oqaasileriffik","record_id":"1E277A93-A540-487C-9798-0A31F37B08D7","official_name":"Nanortalik","feature_type":"town","decision_ref":"nunagis.placenames:ID=13491"}
 {"namespace":"oqaasileriffik","record_id":"2143A8A6-2F9E-40F9-8487-7E358E3FAAC8","official_name":"Narsaq","feature_type":"town","decision_ref":"nunagis.placenames:ID=13489"}
-{"namespace":"oqaasileriffik","record_id":"C9EE223C-C726-4335-80F8-E401E5480001","official_name":"Nuuk","feature_type":"town","decision_ref":"nunagis.placenames:ID=13493"}
+{"namespace":"oqaasileriffik","record_id":"C9EE223C-C726-4335-80F8-E401E5480001","official_name":"Nuuk","feature_type":"town","decision_ref":"nunagis.placenames:ID=13493","confirmed_place_id":"plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80"}
 {"namespace":"oqaasileriffik","record_id":"C4BFEC59-DF0D-4F7C-9437-B744C0859150","official_name":"Paamiut","feature_type":"town","decision_ref":"nunagis.placenames:ID=13492"}
 {"namespace":"oqaasileriffik","record_id":"42ADC6C5-744D-4FB5-90D5-12F043799D69","official_name":"Qaanaaq","feature_type":"town","decision_ref":"nunagis.placenames:ID=31363"}
 {"namespace":"oqaasileriffik","record_id":"8D51E029-9CFE-45DD-9EFC-5DF154A9E8D8","official_name":"Qaqortoq","feature_type":"town","decision_ref":"nunagis.placenames:ID=859"}
