@@ -299,20 +299,24 @@ describe("app URL-state seam", () => {
     expect(dossier()).not.toBeNull();
   });
 
-  it("stale place fails safe: no false selection, map usable, param clearable", async () => {
+  it("stale place fails safe: auto-cleared after load, no false selection, map usable", async () => {
     renderApp(`/?place=${STALE_PLACE_ID}`);
+    const lengthBefore = window.history.length;
     await waitLoaded();
 
+    // No false selection while loading, then the unresolved param is
+    // removed with history replace (no new Back/Forward entry).
     expect(dossier()).toBeNull();
     expect(mapCanvas().getAttribute("data-selected-id")).toBe("");
+    await waitFor(() => expect(placeParam()).toBeNull());
+    expect(window.history.length).toBe(lengthBefore);
 
     // Map keeps working: search still finds places.
     typeQuery("uper");
     await waitFor(() => expect(qParam()).toBe("uper"));
-    expect(placeParam()).toBe(STALE_PLACE_ID);
     fireEvent.click(railWithin().getByRole("button", { name: /Upernavik/ }));
 
-    // Selecting a valid place replaces the stale id (globalId path: no crosswalk).
+    // Selecting a valid place writes it (globalId path: no crosswalk).
     await waitFor(() => expect(placeParam()).toBe(UPERNAVIK_GLOBAL_ID));
     expect(qParam()).toBeNull();
     expect(mapCanvas().getAttribute("data-selected-id")).toBe("2");

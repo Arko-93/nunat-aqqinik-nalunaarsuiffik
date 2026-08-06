@@ -43,6 +43,11 @@ export type ShareableMapState = {
   setQuery: (query: string) => void;
   setSelectedId: (id: string) => void;
   clearSelection: () => void;
+  /**
+   * Remove an unresolved `place` after load, without a new history entry
+   * (replace). Used only for stale/unknown ids — never a fake selection.
+   */
+  clearUnresolvedSelection: () => void;
 };
 
 /** React adapter binding: URL → state in, setters → URL out. */
@@ -61,6 +66,10 @@ export function useShareableMapState(): ShareableMapState {
     // history entry (nuqs merges the flush; push wins over replace).
     setSelectedId: (id) => void setParams({ q: null, place: id }),
     clearSelection: () => void setParams({ place: null }),
+    // Stale ids get replaced (no history entry), unlike user closes
+    // which push so Back/Forward can retrace them.
+    clearUnresolvedSelection: () =>
+      void setParams({ place: null }, { history: "replace" }),
   };
 }
 
@@ -75,8 +84,8 @@ export const shareableIdFor = (place: Placename): string =>
 /**
  * Resolve a `place` URL value against loaded places. Exact `plc_` id first,
  * then case-insensitive NunaGIS `globalId` (UUID case varies across copies
- * of a URL). Unknown/stale values return null — no false selection, and
- * the parameter stays harmless until the user selects or closes something.
+ * of a URL). Unknown/stale values return null — no false selection; App
+ * clears the parameter once places have loaded.
  */
 export const findPlaceByShareableId = (
   places: ReadonlyArray<Placename>,

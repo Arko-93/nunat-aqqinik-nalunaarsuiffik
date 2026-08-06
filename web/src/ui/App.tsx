@@ -39,6 +39,7 @@ export function App() {
     setQuery,
     setSelectedId,
     clearSelection,
+    clearUnresolvedSelection,
   } = useShareableMapState();
 
   useEffect(() => {
@@ -95,6 +96,16 @@ export function App() {
     () => findPlaceByShareableId(allPlaces, selectedId),
     [allPlaces, selectedId],
   );
+
+  // Stale/unknown `place` values fail safe: once places have loaded, an
+  // unresolved id is cleared from the URL (history replace, no new entry)
+  // instead of lingering with no way to dismiss it. A valid id that simply
+  // has not loaded yet is untouched — the clear runs only after load.
+  useEffect(() => {
+    if (collection && selectedId != null && selected == null) {
+      clearUnresolvedSelection();
+    }
+  }, [collection, selectedId, selected, clearUnresolvedSelection]);
 
   const results = useMemo(
     () => searchPlacenames(allPlaces, query, 24),

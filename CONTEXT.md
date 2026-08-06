@@ -47,3 +47,7 @@ _Avoid_: Showing every alternate on every result, treating alternates as primary
 **Coastline mask**:
 The complete OSM coastline land polygon surface unioned with Mapterhorn DEM land (> ~1 m, z12 coastal band) hides ocean depth fills, hillshade, contours, and contour labels under land. V1 interim shared shoreline: the mask matches the land hillshade by construction (no ocean paints where the DEM renders land, issue #19) and sits above every ocean layer; clipping bathymetry before tile generation is future IBCAO/GEBCO tiling work. Asiaq geometry may replace both when authoritative distributable geometry arrives.
 _Avoid_: Partial land fills as the mask, letting any ocean layer paint above the mask, separate coastlines for mask and bathymetry, treating OSM or the DEM as the permanent geometry authority
+
+**Shareable URL state**:
+Durable, shareable map state only: `q` (current search query) and `place` (canonical `plc_<uuid>` when crosswalk-resolved, else the NunaGIS `globalId`). The URL restores query and selection after load; unresolved `place` ids are cleared automatically once places load, never shown as a false selection. Personal and transient state stays out of the URL.
+_Avoid_: Serializing sheet height, hover, download progress, offline status, animation, locale, or map viewport; deriving `place` from a name or slug
