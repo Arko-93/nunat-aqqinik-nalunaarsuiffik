@@ -60,7 +60,19 @@ for name in "${files[@]}"; do
 
 	tmp="$dest.tmp.$$"
 	url="$base_url/$name"
-	if ! curl --fail --location --retry 3 --retry-delay 2 \
+	if command -v aria2c >/dev/null 2>&1; then
+		# Parallel + resumable: the mask PMTiles is 60-150 MB and a single
+		# curl connection is ~10x slower (issue #19 package growth).
+		if ! aria2c --file-allocation=none --allow-overwrite=true \
+			--dir="$pkg_dir" --out="$(basename "$tmp")" \
+			-x8 -s8 -k1M "$url" >/dev/null 2>&1; then
+			rm -f "$tmp"
+			echo "Failed to download $url (aria2c)" >&2
+			echo "Build locally with: .venv/bin/python web/scripts/build-coastline-mask.py" >&2
+			echo "Or publish assets with: make web-publish-coastline-mask" >&2
+			exit 1
+		fi
+	elif ! curl --fail --location --retry 3 --retry-delay 2 \
 		--output "$tmp" "$url"; then
 		rm -f "$tmp"
 		echo "Failed to download $url" >&2
