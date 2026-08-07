@@ -1,9 +1,18 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { createApp } from "./app.js";
+import { buildFtsMatchQuery } from "./repository/sqlite-repository.js";
 
 const NUUK_ID = "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80";
 const QAQORTOQ_ID = "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722";
 const UNKNOWN_ID = "plc_00000000-0000-4000-8000-000000000000";
+
+describe("buildFtsMatchQuery", () => {
+  it("builds quoted prefix tokens", () => {
+    expect(buildFtsMatchQuery("  Nuuk ")).toBe('"Nuuk"*');
+    expect(buildFtsMatchQuery('foo "bar')).toBe('"foo"* AND """bar"*');
+    expect(buildFtsMatchQuery("   ")).toBeNull();
+  });
+});
 
 describe("Decision Geography read API", () => {
   const { app, ctx } = createApp();
@@ -117,6 +126,16 @@ describe("Decision Geography read API", () => {
 
   it("searches places by name fragment", async () => {
     const response = await app.request("/v1/places?q=Nuuk");
+    expect(response.status).toBe(200);
+
+    const body = (await response.json()) as {
+      places: Array<{ place_id: string }>;
+    };
+    expect(body.places.some((p) => p.place_id === NUUK_ID)).toBe(true);
+  });
+
+  it("searches places by name prefix via FTS", async () => {
+    const response = await app.request("/v1/places?q=Nuu");
     expect(response.status).toBe(200);
 
     const body = (await response.json()) as {

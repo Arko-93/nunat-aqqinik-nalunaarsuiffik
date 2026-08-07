@@ -41,7 +41,7 @@ The server listens on `http://127.0.0.1:8787` by default.
 | GET | `/v1/releases/latest` | Active release pointer + freshness |
 | GET | `/v1/releases/{release_id}/manifest` | Full manifest (ETag supported) |
 | GET | `/v1/source-health` | Snapshot and publication blockers |
-| GET | `/v1/places?q=` | Name search (SQL LIKE; FTS5 follow-up) |
+| GET | `/v1/places?q=` | Name search (FTS5 prefix; LIKE fallback) |
 | GET | `/v1/places/{place_id}` | Place detail + names + geometry |
 | GET | `/v1/places/{place_id}/identifiers` | External identifiers |
 | GET | `/v1/places/{place_id}/connections?at=YYYY-MM-DD` | Structural connections |
@@ -58,4 +58,4 @@ pnpm --dir api typecheck
 
 ## Search note
 
-Place search uses SQL `LIKE` across current name assertions. SQLite FTS5 indexing is planned as a follow-up once the locality spine grows beyond the seed set.
+Place search prefers SQLite FTS5 (`place_names_fts`) over current names and place external identifiers, with prefix tokens (`"Nuuk"*`). Mid-string queries and older DBs without the FTS table fall back to SQL `LIKE`.
