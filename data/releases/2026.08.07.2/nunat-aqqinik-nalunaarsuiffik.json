@@ -1,0 +1,4127 @@
+[
+  {
+    "id": "plc_0064f328-8235-4341-87bc-8d197ce33f97",
+    "slug": "isertoq",
+    "canonical_name": {
+      "assertion_id": "nam_c8eb5b5b-4fac-4cd4-aa20-eadfded4da02",
+      "value": "Isertoq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "277B0E7C-EE89-4E8E-A661-D6C2F2E0040D"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_67778612-bc15-4bdb-8b55-994c0c38e93d",
+        "value": "Kraulshavn",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "277B0E7C-EE89-4E8E-A661-D6C2F2E0040D"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "277B0E7C-EE89-4E8E-A661-D6C2F2E0040D"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_abfdcc44-9852-46d6-87cb-9ab51cb89f05",
+        "level": "municipality",
+        "name": "Sermersooq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "277B0E7C-EE89-4E8E-A661-D6C2F2E0040D"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "277B0E7C-EE89-4E8E-A661-D6C2F2E0040D"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_013c05d3-fd62-4bc9-8540-8dcbb91ff209",
+    "slug": "iginniarfik",
+    "canonical_name": {
+      "assertion_id": "nam_277fd796-150e-420a-87cb-d226936f927b",
+      "value": "Iginniarfik",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "2C26E15C-B654-4CC4-B7E8-E2D66EBAA8D4"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "2C26E15C-B654-4CC4-B7E8-E2D66EBAA8D4"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_aeac689b-9c9e-4cde-b7f2-b9fc57ea9629",
+        "level": "municipality",
+        "name": "Qeqertalik",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "2C26E15C-B654-4CC4-B7E8-E2D66EBAA8D4"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "2C26E15C-B654-4CC4-B7E8-E2D66EBAA8D4"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_01b13fbf-cafd-4b67-be87-c825d9bfc487",
+    "slug": "kapisillit",
+    "canonical_name": {
+      "assertion_id": "nam_2ef63141-e666-430e-b722-3dcf36d9ae74",
+      "value": "Kapisillit",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "8D832B38-0569-46CB-B2CC-8034059EBD35"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "8D832B38-0569-46CB-B2CC-8034059EBD35"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_28b56a03-58f1-4360-b882-25085791e3d5",
+        "level": "municipality",
+        "name": "Sermersooq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "8D832B38-0569-46CB-B2CC-8034059EBD35"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "8D832B38-0569-46CB-B2CC-8034059EBD35"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_05593b8a-ba4f-4c4f-9c9c-00b2d139c95c",
+    "slug": "attu",
+    "canonical_name": {
+      "assertion_id": "nam_96c75efa-74c9-4048-a439-f4f7a1443f99",
+      "value": "Attu",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "E10A1B17-797A-4224-B360-42815C77FF6F"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "E10A1B17-797A-4224-B360-42815C77FF6F"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_83fa086d-6210-46fe-ba65-754f5658244d",
+        "level": "municipality",
+        "name": "Qeqertalik",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "E10A1B17-797A-4224-B360-42815C77FF6F"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "E10A1B17-797A-4224-B360-42815C77FF6F"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_087444c2-d2c4-44bb-8250-8a376419fb9b",
+    "slug": "qeqertat",
+    "canonical_name": {
+      "assertion_id": "nam_161e7092-cb03-43a4-8f1a-f6979443772f",
+      "value": "Qeqertat",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "C5E0DEB8-A4A2-45E7-B566-678BDE926499"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_e43c8e99-0776-436f-a02b-b68639c378d2",
+        "value": "Kraulshavn",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "C5E0DEB8-A4A2-45E7-B566-678BDE926499"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "C5E0DEB8-A4A2-45E7-B566-678BDE926499"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_ca06a21f-2986-4a9b-8b82-e1f491c5810f",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "C5E0DEB8-A4A2-45E7-B566-678BDE926499"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "C5E0DEB8-A4A2-45E7-B566-678BDE926499"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_08f6f1db-8148-45a4-8728-5492083bdfb8",
+    "slug": "itilleq",
+    "canonical_name": {
+      "assertion_id": "nam_7566dfc1-5f05-4fc7-987a-39e9936ab95e",
+      "value": "Itilleq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "E6A1A270-3217-4AAE-82FC-DD9F4030FFFF"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "E6A1A270-3217-4AAE-82FC-DD9F4030FFFF"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_3231c183-2959-4f4e-a4bd-84a89c2f835d",
+        "level": "municipality",
+        "name": "Qeqqata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "E6A1A270-3217-4AAE-82FC-DD9F4030FFFF"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "E6A1A270-3217-4AAE-82FC-DD9F4030FFFF"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_0c776092-d46f-4076-a0e4-37a3f32bcc30",
+    "slug": "ittoqqortoormiit",
+    "canonical_name": {
+      "assertion_id": "nam_bc051033-ba58-4828-9658-25ec86ecb3e9",
+      "value": "Ittoqqortoormiit",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "4F5A234E-3A5A-449C-A57B-7C5A9CFE29A9"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_cf789959-6868-4aed-a6ef-8a78834de40d",
+        "value": "Scoresbysund",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4F5A234E-3A5A-449C-A57B-7C5A9CFE29A9"
+          }
+        ]
+      }
+    ],
+    "coordinates": {
+      "assertion_id": "geo_1f53c4e6-50ce-4539-b2fd-09374439c081",
+      "latitude": 70.485,
+      "longitude": -21.962,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4F5A234E-3A5A-449C-A57B-7C5A9CFE29A9"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_0c25ca08-c7a4-4b30-97d4-9e933293f95b",
+        "level": "municipality",
+        "name": "Sermersooq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4F5A234E-3A5A-449C-A57B-7C5A9CFE29A9"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_17dd9625-faf7-40eb-bb72-1a63d9339499",
+    "slug": "kangerluk",
+    "canonical_name": {
+      "assertion_id": "nam_9eefc491-01e0-4217-9235-86d360f55f01",
+      "value": "Kangerluk",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "45BE4563-71A1-48BC-A4F8-A13F12B88128"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_de17ea8e-7f54-4bfd-8219-9ee414115ae2",
+        "value": "Diskofjord",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "45BE4563-71A1-48BC-A4F8-A13F12B88128"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "45BE4563-71A1-48BC-A4F8-A13F12B88128"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_cc0df77c-82d5-42d1-a6c7-7b30fd13fdbe",
+        "level": "municipality",
+        "name": "Qeqertalik",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "45BE4563-71A1-48BC-A4F8-A13F12B88128"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "45BE4563-71A1-48BC-A4F8-A13F12B88128"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_17dee39b-57fb-448d-b2c8-61b8ca83dbc4",
+    "slug": "niaqornaarsuk",
+    "canonical_name": {
+      "assertion_id": "nam_9cb0b5c4-db76-45e0-b430-7b5945bd843d",
+      "value": "Niaqornaarsuk",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "1216554C-489D-446E-9F38-9542B5711D4E"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "1216554C-489D-446E-9F38-9542B5711D4E"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_6f63fc22-2dac-4423-96d7-6b967edcbb93",
+        "level": "municipality",
+        "name": "Qeqertalik",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "1216554C-489D-446E-9F38-9542B5711D4E"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "1216554C-489D-446E-9F38-9542B5711D4E"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_18a77d01-7f1f-4f7d-8ce0-faca14202560",
+    "slug": "atammik",
+    "canonical_name": {
+      "assertion_id": "nam_b52faa3a-52b8-4f94-90c2-30c6d1d7692e",
+      "value": "Atammik",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "658A9D2B-7865-4DD3-9812-EE7FFEDDDA97"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "658A9D2B-7865-4DD3-9812-EE7FFEDDDA97"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_af07b970-0534-4dc7-b65e-02c6f044e767",
+        "level": "municipality",
+        "name": "Qeqqata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "658A9D2B-7865-4DD3-9812-EE7FFEDDDA97"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "658A9D2B-7865-4DD3-9812-EE7FFEDDDA97"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_1c06718f-c482-4102-bd9d-9e01a1441459",
+    "slug": "kangerlussuaq",
+    "canonical_name": {
+      "assertion_id": "nam_ce136cfa-930e-4007-ba0a-83f7eba74b45",
+      "value": "Kangerlussuaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "D5A803B9-E69D-4C35-B2C4-B1094D88146A"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_831d88b7-e564-4237-88d8-ebc0f8a94786",
+        "value": "Søndre Strømfjord",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ]
+      }
+    ],
+    "coordinates": {
+      "assertion_id": "geo_a4e9d824-ea7b-49a4-8192-ba382d802329",
+      "latitude": 67.008,
+      "longitude": -50.689,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "D5A803B9-E69D-4C35-B2C4-B1094D88146A"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_5cf989d9-780c-4b3f-a9d1-b2d32bff793d",
+        "level": "municipality",
+        "name": "Qeqqata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "D5A803B9-E69D-4C35-B2C4-B1094D88146A"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_28de668b-105f-417c-8ab2-9b01ebebdd38",
+    "slug": "qasigiannguit",
+    "canonical_name": {
+      "assertion_id": "nam_6d418375-549e-4711-a5dc-0d3bd8940500",
+      "value": "Qasigiannguit",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "88D699D0-59EA-4F28-BDF6-5107EA2F324C"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_88c68285-053d-4453-9954-1f3abc26c365",
+        "value": "Christianshåb",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "88D699D0-59EA-4F28-BDF6-5107EA2F324C"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "88D699D0-59EA-4F28-BDF6-5107EA2F324C"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_751b2292-9a17-4465-b95b-8f8427771b11",
+        "level": "municipality",
+        "name": "Qeqertalik",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "88D699D0-59EA-4F28-BDF6-5107EA2F324C"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "88D699D0-59EA-4F28-BDF6-5107EA2F324C"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_29708833-3e06-4bd0-bfe8-a00365173fb6",
+    "slug": "qassimiut",
+    "canonical_name": {
+      "assertion_id": "nam_016ad882-ce94-49c2-b9cf-eb0e7a4ab888",
+      "value": "Qassimiut",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "3EFE910C-927B-40B7-93CA-0A7F8F8CAB02"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "3EFE910C-927B-40B7-93CA-0A7F8F8CAB02"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_e467b485-a493-454a-abde-d25a99a04bd0",
+        "level": "municipality",
+        "name": "Kujalleq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "3EFE910C-927B-40B7-93CA-0A7F8F8CAB02"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "3EFE910C-927B-40B7-93CA-0A7F8F8CAB02"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_2b7b556d-5c1b-4247-9fb7-4e5a9aed25f2",
+    "slug": "akunnaaq",
+    "canonical_name": {
+      "assertion_id": "nam_ebc0e114-8c6e-47d0-954f-25a39a2d1398",
+      "value": "Akunnaaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "5E224C3C-A1E2-4BFE-AF59-750BF9211E98"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "5E224C3C-A1E2-4BFE-AF59-750BF9211E98"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_d52855a6-4dc6-4371-af05-1f94e4e2c6db",
+        "level": "municipality",
+        "name": "Qeqertalik",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "5E224C3C-A1E2-4BFE-AF59-750BF9211E98"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "5E224C3C-A1E2-4BFE-AF59-750BF9211E98"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_2e957e7e-3814-4e34-9e07-262eceb32584",
+    "slug": "paamiut",
+    "canonical_name": {
+      "assertion_id": "nam_2be7eb30-949b-4791-930b-3e8d708585de",
+      "value": "Paamiut",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "4D1988E8-AFCA-4C75-B38D-BF7636379F6B"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_6c9f8b95-4a9e-41da-b6a5-e8cdcdcde361",
+        "value": "Frederikshåb",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4D1988E8-AFCA-4C75-B38D-BF7636379F6B"
+          }
+        ]
+      }
+    ],
+    "coordinates": {
+      "assertion_id": "geo_adabf209-cc53-40b3-899a-63aaa1470ffd",
+      "latitude": 61.994,
+      "longitude": -49.667,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4D1988E8-AFCA-4C75-B38D-BF7636379F6B"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_f04ef999-da11-47b3-8047-9a045ee49e3a",
+        "level": "municipality",
+        "name": "Sermersooq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4D1988E8-AFCA-4C75-B38D-BF7636379F6B"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_3625c49d-0c9e-4ce6-bd85-2c5e7ad40cb6",
+    "slug": "illorsuit",
+    "canonical_name": {
+      "assertion_id": "nam_14f5670b-3f5c-44bd-b1c6-496d80801d8d",
+      "value": "Illorsuit",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "76A83733-3B4B-404D-82FF-BCE2C9BFC71C"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "76A83733-3B4B-404D-82FF-BCE2C9BFC71C"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_775fb078-c52c-4148-8f46-909c75aee086",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "76A83733-3B4B-404D-82FF-BCE2C9BFC71C"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "76A83733-3B4B-404D-82FF-BCE2C9BFC71C"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_38612f8a-871a-46bb-a120-0f562ae4ea07",
+    "slug": "ammassivik",
+    "canonical_name": {
+      "assertion_id": "nam_1ddb98f6-d8fe-4ec0-b147-c668cf63c45b",
+      "value": "Ammassivik",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "0B26ED8C-FF9E-40F7-A346-929A93230844"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_b9fe8b04-d044-4184-a001-0a583b2b0e92",
+        "value": "Sletten",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "0B26ED8C-FF9E-40F7-A346-929A93230844"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "0B26ED8C-FF9E-40F7-A346-929A93230844"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_641f432f-d162-4a92-abfc-61a674717342",
+        "level": "municipality",
+        "name": "Kujalleq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "0B26ED8C-FF9E-40F7-A346-929A93230844"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "0B26ED8C-FF9E-40F7-A346-929A93230844"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_4122e504-40d9-49a4-9e91-dbd13280ac75",
+    "slug": "uummannaq",
+    "canonical_name": {
+      "assertion_id": "nam_3e60f027-f6a9-439e-b26b-16260e7bf97a",
+      "value": "Uummannaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "F63022A0-9E34-4F27-8461-96D7F40B1B80"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": {
+      "assertion_id": "geo_1a4238f2-cf31-4c7b-bfd4-70c8fa96e65d",
+      "latitude": 70.679,
+      "longitude": -52.131,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "F63022A0-9E34-4F27-8461-96D7F40B1B80"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_64359b21-3254-436a-ba60-1ea37091d89d",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "F63022A0-9E34-4F27-8461-96D7F40B1B80"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_46435473-f1e7-415d-a224-3126f7a77717",
+    "slug": "alluitsup-paa",
+    "canonical_name": {
+      "assertion_id": "nam_dd282328-e214-4b38-881b-23824d9cbb51",
+      "value": "Alluitsup Paa",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "FE9D0435-B0B6-4E8F-929F-CFEA5F11F666"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_aafc0092-2b3d-4a85-81f0-494c25d83367",
+        "value": "Sydprøven",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "FE9D0435-B0B6-4E8F-929F-CFEA5F11F666"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "FE9D0435-B0B6-4E8F-929F-CFEA5F11F666"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_8a94999a-d801-4575-93de-f678963c7c24",
+        "level": "municipality",
+        "name": "Kujalleq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "FE9D0435-B0B6-4E8F-929F-CFEA5F11F666"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "FE9D0435-B0B6-4E8F-929F-CFEA5F11F666"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_48735e14-eb87-4675-b8dd-84695724eea5",
+    "slug": "nuugaatsiaq",
+    "canonical_name": {
+      "assertion_id": "nam_9d0cd721-e268-4c21-9813-3d37ba96bd7e",
+      "value": "Nuugaatsiaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "C81E3F69-7D36-4FFF-8A9D-E198D1023BBD"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "C81E3F69-7D36-4FFF-8A9D-E198D1023BBD"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_c5077577-7e51-44f7-883f-7852b32a422d",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "C81E3F69-7D36-4FFF-8A9D-E198D1023BBD"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "C81E3F69-7D36-4FFF-8A9D-E198D1023BBD"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_4e941efc-8a92-48fb-9828-e55fbdc586b1",
+    "slug": "qeqertaq",
+    "canonical_name": {
+      "assertion_id": "nam_58667a28-9607-4c6c-96ad-e81c4c5afede",
+      "value": "Qeqertaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "8D1DE1D4-49EF-486A-88FE-FBF5605E18FF"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "8D1DE1D4-49EF-486A-88FE-FBF5605E18FF"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_f74c8e7d-0ecf-465b-9cb7-e8172aba4a1e",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "8D1DE1D4-49EF-486A-88FE-FBF5605E18FF"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "8D1DE1D4-49EF-486A-88FE-FBF5605E18FF"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_54fda149-69c0-4653-aa80-341310f90e19",
+    "slug": "sarfannguit",
+    "canonical_name": {
+      "assertion_id": "nam_210bd302-e220-4e99-b503-c2adecfc0620",
+      "value": "Sarfannguit",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "AFB17FD3-42BA-4EA8-BA2A-C0961C05F721"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "AFB17FD3-42BA-4EA8-BA2A-C0961C05F721"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_890e77aa-3a80-472e-ae27-60a181875d5f",
+        "level": "municipality",
+        "name": "Qeqqata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "AFB17FD3-42BA-4EA8-BA2A-C0961C05F721"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "AFB17FD3-42BA-4EA8-BA2A-C0961C05F721"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_59aa40b0-f9d2-4d46-9ad3-6e213c6924e7",
+    "slug": "niaqornat",
+    "canonical_name": {
+      "assertion_id": "nam_6b27330b-e7ec-4efd-9d14-f56930bb2ee4",
+      "value": "Niaqornat",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "085251B9-CA73-44D8-AE74-6AB65EF6C8E1"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "085251B9-CA73-44D8-AE74-6AB65EF6C8E1"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_1813194f-1b96-4303-81ed-5c1e19a03b50",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "085251B9-CA73-44D8-AE74-6AB65EF6C8E1"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "085251B9-CA73-44D8-AE74-6AB65EF6C8E1"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_5d78eab5-5a6a-4a57-8792-5b73c80223cd",
+    "slug": "qeqertarsuaq",
+    "canonical_name": {
+      "assertion_id": "nam_9dff8979-7df4-4b5f-ac2d-63d5cef05fd0",
+      "value": "Qeqertarsuaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "8C7BAF0B-A820-4293-8017-57F508BD20AC"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_620b3aed-ee67-408e-accb-1ec9155ece9d",
+        "value": "Godhavn",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "8C7BAF0B-A820-4293-8017-57F508BD20AC"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "8C7BAF0B-A820-4293-8017-57F508BD20AC"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_1c5404cf-de8e-487f-8380-49a89b952e27",
+        "level": "municipality",
+        "name": "Qeqertalik",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "8C7BAF0B-A820-4293-8017-57F508BD20AC"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "8C7BAF0B-A820-4293-8017-57F508BD20AC"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_6089a6eb-abe8-4c14-8efb-c062291e96c7",
+    "slug": "qassiarsuk",
+    "canonical_name": {
+      "assertion_id": "nam_75c34c44-60d2-47bd-96cd-45a64d1320ed",
+      "value": "Qassiarsuk",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "7C29EAAD-E84D-43A8-A6E9-15CA920F4770"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "7C29EAAD-E84D-43A8-A6E9-15CA920F4770"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_16d9c82a-be34-4beb-912e-da1fe39b18a3",
+        "level": "municipality",
+        "name": "Kujalleq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "7C29EAAD-E84D-43A8-A6E9-15CA920F4770"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "7C29EAAD-E84D-43A8-A6E9-15CA920F4770"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_6564ec04-df67-4046-ac3a-22b4629929f1",
+    "slug": "ukkusissat",
+    "canonical_name": {
+      "assertion_id": "nam_e3f36169-1193-4218-b1fb-64058fc014f2",
+      "value": "Ukkusissat",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "BEC75259-05DC-4D14-82A9-5615933C51F9"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "BEC75259-05DC-4D14-82A9-5615933C51F9"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_c46583e1-a0b2-4846-b0ad-62bdcdc63bdd",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "BEC75259-05DC-4D14-82A9-5615933C51F9"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "BEC75259-05DC-4D14-82A9-5615933C51F9"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_664de9f6-28d1-4d9d-bc70-a27a6249fdd7",
+    "slug": "nutaarmiut",
+    "canonical_name": {
+      "assertion_id": "nam_3ccc013f-da26-4e6b-ae4e-f2a338cd523b",
+      "value": "Nutaarmiut",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "F5439366-9F52-4B81-9E34-4315C6EC7568"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "F5439366-9F52-4B81-9E34-4315C6EC7568"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_382af958-84ee-4074-bfa6-183a34b842a0",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "F5439366-9F52-4B81-9E34-4315C6EC7568"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "F5439366-9F52-4B81-9E34-4315C6EC7568"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+    "slug": "nuuk",
+    "canonical_name": {
+      "assertion_id": "nam_ac574f67-6caf-4bd9-b2a8-0a65e45d248e",
+      "value": "Nuuk",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "1AB00601-6698-492D-9C16-5E3C655259FA"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_4a771a84-9138-4817-bf22-89918b3559a3",
+        "value": "Godthåb",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "1AB00601-6698-492D-9C16-5E3C655259FA"
+          }
+        ]
+      }
+    ],
+    "coordinates": {
+      "assertion_id": "geo_5ae94be9-596e-4a63-988e-a75d168ed1b5",
+      "latitude": 64.175,
+      "longitude": -51.733,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "1AB00601-6698-492D-9C16-5E3C655259FA"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_d2bf68d6-471f-4737-89fc-049d7d604924",
+        "level": "municipality",
+        "name": "Sermersooq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "1AB00601-6698-492D-9C16-5E3C655259FA"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_6bbbde6c-8ce0-4627-a72b-d1187126d4c6",
+    "slug": "aasiaat",
+    "canonical_name": {
+      "assertion_id": "nam_9eddb587-a7b8-4357-9eb9-672f7ee3f953",
+      "value": "Aasiaat",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "EBAF1AE8-CDD7-4A34-B8CE-B2D569074448"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_d5c9eb27-f91a-4707-b97b-fc2b6b6b3326",
+        "value": "Egedesminde",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "EBAF1AE8-CDD7-4A34-B8CE-B2D569074448"
+          }
+        ]
+      }
+    ],
+    "coordinates": {
+      "assertion_id": "geo_748d0cb5-dab2-4717-9865-4849224b2f5c",
+      "latitude": 68.71,
+      "longitude": -52.876,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "EBAF1AE8-CDD7-4A34-B8CE-B2D569074448"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_b4347204-566f-4de0-b0fc-e93710af47df",
+        "level": "municipality",
+        "name": "Qeqertalik",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "EBAF1AE8-CDD7-4A34-B8CE-B2D569074448"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_6c415021-4399-41db-99d3-c8c930301860",
+    "slug": "ikamiut",
+    "canonical_name": {
+      "assertion_id": "nam_ef4dd463-c3db-4dfa-894f-2f7dae11ba16",
+      "value": "Ikamiut",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "F6F5B7DB-3E8C-41E0-99A7-233A972BBDE3"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "F6F5B7DB-3E8C-41E0-99A7-233A972BBDE3"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_090c6654-430a-443e-bd84-769891b36e4c",
+        "level": "municipality",
+        "name": "Qeqertalik",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "F6F5B7DB-3E8C-41E0-99A7-233A972BBDE3"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "F6F5B7DB-3E8C-41E0-99A7-233A972BBDE3"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_6e0ec513-b168-4343-bc14-aefb772c921c",
+    "slug": "narsarmijit",
+    "canonical_name": {
+      "assertion_id": "nam_0520806f-276f-4836-b4b1-b9bc7517708f",
+      "value": "Narsarmijit",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "4A6A34FD-4A57-4911-9ED1-F7424DE3E0FC"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_672888ce-43fa-47b3-9c23-40735cbf266f",
+        "value": "Frederiksdal",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4A6A34FD-4A57-4911-9ED1-F7424DE3E0FC"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4A6A34FD-4A57-4911-9ED1-F7424DE3E0FC"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_8062480f-329c-456d-98ef-6bbc7d2fafbd",
+        "level": "municipality",
+        "name": "Kujalleq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4A6A34FD-4A57-4911-9ED1-F7424DE3E0FC"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4A6A34FD-4A57-4911-9ED1-F7424DE3E0FC"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_6fad0ed9-bbe0-4fb6-9cff-49ca8a277bea",
+    "slug": "ikerasak",
+    "canonical_name": {
+      "assertion_id": "nam_2bcbe198-6127-4d67-af84-eadc96c1750d",
+      "value": "Ikerasak",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "E3B69E8D-B4F0-4866-8A37-C6156B111261"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "E3B69E8D-B4F0-4866-8A37-C6156B111261"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_4d75d227-96da-48ab-b149-8068a0b15521",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "E3B69E8D-B4F0-4866-8A37-C6156B111261"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "E3B69E8D-B4F0-4866-8A37-C6156B111261"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_711c3873-56c2-4a0b-be12-85183b14c6a6",
+    "slug": "saarloq",
+    "canonical_name": {
+      "assertion_id": "nam_945e845c-5101-4dfe-b726-34d003ffca62",
+      "value": "Saarloq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "01DCDA46-4B8E-4E92-BCD8-9EC914AEA567"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "01DCDA46-4B8E-4E92-BCD8-9EC914AEA567"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_1c09fa30-691b-4b87-b34a-3b2201f46728",
+        "level": "municipality",
+        "name": "Kujalleq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "01DCDA46-4B8E-4E92-BCD8-9EC914AEA567"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "01DCDA46-4B8E-4E92-BCD8-9EC914AEA567"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_7466cc3b-8cae-47fd-8c33-b69cd16ad617",
+    "slug": "nuussuaq",
+    "canonical_name": {
+      "assertion_id": "nam_0781c3cf-03b2-4cea-ac1e-1e2b2b1a6edd",
+      "value": "Nuussuaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "84304AB9-3DEA-4D89-BB1E-5E015E0A7F3F"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_55523450-b5cd-43ce-a1e4-76ed1310c0e2",
+        "value": "Kraulshavn",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "84304AB9-3DEA-4D89-BB1E-5E015E0A7F3F"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "84304AB9-3DEA-4D89-BB1E-5E015E0A7F3F"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_fdea86a7-f2e9-44f4-ae3f-629486a561c1",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "84304AB9-3DEA-4D89-BB1E-5E015E0A7F3F"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "84304AB9-3DEA-4D89-BB1E-5E015E0A7F3F"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_7fd60259-8b40-4dc0-947f-cdcdb16b9e42",
+    "slug": "ilulissat",
+    "canonical_name": {
+      "assertion_id": "nam_f4eb2d28-462b-40f0-bb0d-27f5ab70de04",
+      "value": "Ilulissat",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "ED783009-9AC4-4F13-ADF0-7EA19A8F9450"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_3fbe7bc0-44c9-41f0-b6bb-9e0a0c5ce396",
+        "value": "Jakobshavn",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "ED783009-9AC4-4F13-ADF0-7EA19A8F9450"
+          }
+        ]
+      }
+    ],
+    "coordinates": {
+      "assertion_id": "geo_440715da-da90-4397-b117-6159bf92a3c2",
+      "latitude": 69.22,
+      "longitude": -51.099,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "ED783009-9AC4-4F13-ADF0-7EA19A8F9450"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_2d3257cf-ca2d-46aa-8034-0ffaf82b46bd",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "ED783009-9AC4-4F13-ADF0-7EA19A8F9450"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_806f1d08-d40e-4aa7-af9d-5653df080974",
+    "slug": "kuummiit",
+    "canonical_name": {
+      "assertion_id": "nam_514f6721-80d5-4f95-a4b6-21b9b6035ddd",
+      "value": "Kuummiit",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "0D04A56C-1756-42C2-9C69-A61975F41949"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_cdd3d7cf-f708-4196-9b80-e7efff780746",
+        "value": "Kulusuk",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "0D04A56C-1756-42C2-9C69-A61975F41949"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "0D04A56C-1756-42C2-9C69-A61975F41949"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_487ce645-9f55-43b8-8afd-343d055739ab",
+        "level": "municipality",
+        "name": "Sermersooq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "0D04A56C-1756-42C2-9C69-A61975F41949"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "0D04A56C-1756-42C2-9C69-A61975F41949"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864",
+    "slug": "nanortalik",
+    "canonical_name": {
+      "assertion_id": "nam_b3c494bc-4037-4001-94da-83afe12b5778",
+      "value": "Nanortalik",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "4E20C33A-E51D-4D06-A60C-CE100C8C4E76"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": {
+      "assertion_id": "geo_26036cb2-196c-4b97-8d8a-5e95b411c77e",
+      "latitude": 60.141,
+      "longitude": -45.24,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4E20C33A-E51D-4D06-A60C-CE100C8C4E76"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_056e9ec3-87be-40e2-ae29-7c1f28df63f8",
+        "level": "municipality",
+        "name": "Kujalleq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4E20C33A-E51D-4D06-A60C-CE100C8C4E76"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_8f4f9320-d685-4604-8614-2eee8b3c1de4",
+    "slug": "ilimanaq",
+    "canonical_name": {
+      "assertion_id": "nam_3dea3b22-6229-4855-9803-dfcb1f4fb1e2",
+      "value": "Ilimanaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "AA28ED4C-500B-47AE-9464-BAD450F5CBB2"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_7a981b1f-52bd-4020-80f6-fb96a7a09603",
+        "value": "Claushavn",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "AA28ED4C-500B-47AE-9464-BAD450F5CBB2"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "AA28ED4C-500B-47AE-9464-BAD450F5CBB2"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_67342dff-a96e-4bc8-bf0d-ff8a20aaf256",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "AA28ED4C-500B-47AE-9464-BAD450F5CBB2"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "AA28ED4C-500B-47AE-9464-BAD450F5CBB2"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_8fae5d22-5f8f-42d8-95e4-36dcdc10cefd",
+    "slug": "saattut",
+    "canonical_name": {
+      "assertion_id": "nam_4a401c52-3b18-40bf-83dd-6108b4ea4e79",
+      "value": "Saattut",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "47580889-22B4-4732-9E3A-BD4368899CE6"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "47580889-22B4-4732-9E3A-BD4368899CE6"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_c495137c-56e5-46e3-ae62-be8fb1887841",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "47580889-22B4-4732-9E3A-BD4368899CE6"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "47580889-22B4-4732-9E3A-BD4368899CE6"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_9945ecd4-0c15-41d2-842b-316449347b18",
+    "slug": "naajaat",
+    "canonical_name": {
+      "assertion_id": "nam_a891a151-748b-4d4e-9554-cd19a998bc8c",
+      "value": "Naajaat",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "3CE32A40-84CE-4F65-A52B-7BCF889F6257"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "3CE32A40-84CE-4F65-A52B-7BCF889F6257"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_36062d11-043b-4db0-ade7-b9d5741c67bc",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "3CE32A40-84CE-4F65-A52B-7BCF889F6257"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "3CE32A40-84CE-4F65-A52B-7BCF889F6257"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_9e739985-6d0a-4347-b9a5-035f4a0b0553",
+    "slug": "upernavik",
+    "canonical_name": {
+      "assertion_id": "nam_78c97263-a204-4913-9bb8-58385254b3f2",
+      "value": "Upernavik",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "AD72C641-A718-4404-AFC3-10DE943C6017"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "AD72C641-A718-4404-AFC3-10DE943C6017"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_97997e59-a3f7-430f-9710-e7dc2307175c",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "AD72C641-A718-4404-AFC3-10DE943C6017"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "AD72C641-A718-4404-AFC3-10DE943C6017"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_a0c38659-994b-4e7e-8ba6-9a8e1f86653f",
+    "slug": "narsaq",
+    "canonical_name": {
+      "assertion_id": "nam_2438c90c-1016-407a-b9f6-b4506e470d59",
+      "value": "Narsaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "3945A03D-D309-4C00-9968-75C33498D502"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_2f7a2d5f-d495-4123-8612-45993f5450dc",
+        "value": "Narssaq",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ]
+      }
+    ],
+    "coordinates": {
+      "assertion_id": "geo_2b958ac6-ffb2-4d6c-a03b-fdeba79fbdb6",
+      "latitude": 60.913,
+      "longitude": -46.05,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "3945A03D-D309-4C00-9968-75C33498D502"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_1cea3bef-635d-4ee6-afd8-1399893315ea",
+        "level": "municipality",
+        "name": "Kujalleq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "3945A03D-D309-4C00-9968-75C33498D502"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_a453780a-feff-4e01-997a-eb8080487e72",
+    "slug": "kitsissuarsuit",
+    "canonical_name": {
+      "assertion_id": "nam_cbb0278c-4f22-4928-ab6e-118673359420",
+      "value": "Kitsissuarsuit",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "3DF2829D-BB5A-4489-B4C6-7D9013109835"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_0a52b55c-ba94-494d-8cb7-fe5cacde9941",
+        "value": "Hunde Ejlande",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "3DF2829D-BB5A-4489-B4C6-7D9013109835"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "3DF2829D-BB5A-4489-B4C6-7D9013109835"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_1d4d401d-404b-4d8c-aaf9-8bb33db61e3c",
+        "level": "municipality",
+        "name": "Qeqertalik",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "3DF2829D-BB5A-4489-B4C6-7D9013109835"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "3DF2829D-BB5A-4489-B4C6-7D9013109835"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_a6d4a20e-0d91-4061-8bf1-eda61dac4e03",
+    "slug": "narsarsuaq",
+    "canonical_name": {
+      "assertion_id": "nam_a814e1fb-28bb-4255-8d82-2f3f56ba5835",
+      "value": "Narsarsuaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "054F94A4-4793-4828-9330-25C14F075609"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "054F94A4-4793-4828-9330-25C14F075609"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_56bcb6d2-3735-4cec-9a66-22a31f611cb5",
+        "level": "municipality",
+        "name": "Kujalleq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "054F94A4-4793-4828-9330-25C14F075609"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "054F94A4-4793-4828-9330-25C14F075609"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_af3cc525-00e1-4d7a-9f05-6b153d7e2757",
+    "slug": "kangersuatsiaq",
+    "canonical_name": {
+      "assertion_id": "nam_b68bc6ac-9a9c-4443-a18f-4dcde8abc96d",
+      "value": "Kangersuatsiaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "67FAADBA-0104-4A80-B5D9-7DFF4DBA91B0"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_4f67faed-816a-4c85-b327-ce9356396727",
+        "value": "Prøven",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "67FAADBA-0104-4A80-B5D9-7DFF4DBA91B0"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "67FAADBA-0104-4A80-B5D9-7DFF4DBA91B0"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_214b82f4-aa4a-4ba3-a7f1-21942825ff27",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "67FAADBA-0104-4A80-B5D9-7DFF4DBA91B0"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "67FAADBA-0104-4A80-B5D9-7DFF4DBA91B0"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_af50c8b2-a16b-441b-b486-99e8f2705a17",
+    "slug": "arsuk",
+    "canonical_name": {
+      "assertion_id": "nam_d413e249-ed80-4759-b573-7162c48a4060",
+      "value": "Arsuk",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "84175201-51E6-467B-B393-141E63F3F4F8"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "84175201-51E6-467B-B393-141E63F3F4F8"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_7c193cc0-107a-4075-aa9c-ef40524cc633",
+        "level": "municipality",
+        "name": "Sermersooq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "84175201-51E6-467B-B393-141E63F3F4F8"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "84175201-51E6-467B-B393-141E63F3F4F8"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_b32b45ef-330e-443b-bc1b-073dad5d6090",
+    "slug": "tiilerilaaq",
+    "canonical_name": {
+      "assertion_id": "nam_c7510840-f297-4afc-8bea-d428f580c512",
+      "value": "Tiilerilaaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "BD822CC7-CFD7-440C-B2F6-036ECF97A763"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_ed11667d-e7a9-4024-b77b-29874e8133df",
+        "value": "Kraulshavn",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "BD822CC7-CFD7-440C-B2F6-036ECF97A763"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "BD822CC7-CFD7-440C-B2F6-036ECF97A763"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_17220ebb-add8-463a-acfd-abf0cb0fb1cb",
+        "level": "municipality",
+        "name": "Sermersooq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "BD822CC7-CFD7-440C-B2F6-036ECF97A763"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "BD822CC7-CFD7-440C-B2F6-036ECF97A763"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_b5089ce8-becf-4195-b632-71175c2d0ada",
+    "slug": "maniitsoq",
+    "canonical_name": {
+      "assertion_id": "nam_30958dd4-117f-4441-94ec-29705e7fbd26",
+      "value": "Maniitsoq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "8D48535A-1BA0-47F1-8111-AF75A13342B0"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_405dca83-b6da-44fb-882c-1f3b6af1f7be",
+        "value": "Sukkertoppen",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "8D48535A-1BA0-47F1-8111-AF75A13342B0"
+          }
+        ]
+      }
+    ],
+    "coordinates": {
+      "assertion_id": "geo_9bb80278-b8ec-48d1-944e-535f32f50106",
+      "latitude": 65.413,
+      "longitude": -52.894,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "8D48535A-1BA0-47F1-8111-AF75A13342B0"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_ca109ac0-6b1d-4455-861f-5f0db38d5edc",
+        "level": "municipality",
+        "name": "Qeqqata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "8D48535A-1BA0-47F1-8111-AF75A13342B0"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_b67e9866-fae8-419d-9664-c88ff974cb3f",
+    "slug": "eqalugaarsuit",
+    "canonical_name": {
+      "assertion_id": "nam_ba492340-3c77-4c5e-91a4-3193f31bb282",
+      "value": "Eqalugaarsuit",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "FFC6AC53-E044-4945-A489-93771FFAF930"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "FFC6AC53-E044-4945-A489-93771FFAF930"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_cf29cd8e-3ae4-431f-88a5-816cbcdb8f70",
+        "level": "municipality",
+        "name": "Kujalleq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "FFC6AC53-E044-4945-A489-93771FFAF930"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "FFC6AC53-E044-4945-A489-93771FFAF930"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_b9c58474-dcd0-4a58-865b-a3bb746c3790",
+    "slug": "oqaatsut",
+    "canonical_name": {
+      "assertion_id": "nam_4906a599-f105-4296-a6d4-b81c39afa34a",
+      "value": "Oqaatsut",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "EA0118DA-9C35-4926-8221-4B056B168DB2"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_864f9ef2-99b1-4d9c-bf5f-232981c2a80b",
+        "value": "Rodebay",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "EA0118DA-9C35-4926-8221-4B056B168DB2"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "EA0118DA-9C35-4926-8221-4B056B168DB2"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_bb0d3241-1b31-46df-94a9-0db72e216fe3",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "EA0118DA-9C35-4926-8221-4B056B168DB2"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "EA0118DA-9C35-4926-8221-4B056B168DB2"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_bc0c50c0-552d-4f4b-8c9f-c65fcc33bf3b",
+    "slug": "sisimiut",
+    "canonical_name": {
+      "assertion_id": "nam_ccc62d3f-15cf-4978-b1ce-3fea39f5588a",
+      "value": "Sisimiut",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "A099393B-0601-426A-862C-CDAA9492B702"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_848e672b-ab98-4851-be6f-233f329eeb51",
+        "value": "Holsteinsborg",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "A099393B-0601-426A-862C-CDAA9492B702"
+          }
+        ]
+      }
+    ],
+    "coordinates": {
+      "assertion_id": "geo_b1b67489-da1e-4855-86fc-b8ff12b2ead9",
+      "latitude": 66.939,
+      "longitude": -53.673,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "A099393B-0601-426A-862C-CDAA9492B702"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_c2a8026a-37d3-47ad-86df-8ded9633561f",
+        "level": "municipality",
+        "name": "Qeqqata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "A099393B-0601-426A-862C-CDAA9492B702"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_c233619a-b557-4e44-bd64-d821c709cf50",
+    "slug": "kullorsuaq",
+    "canonical_name": {
+      "assertion_id": "nam_053cadf4-9bd0-4c53-84e8-55738fc69017",
+      "value": "Kullorsuaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "61633916-EB1B-4EB5-9AA7-7401F5AC4474"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "61633916-EB1B-4EB5-9AA7-7401F5AC4474"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_c764561f-f0d7-4b71-a774-ef11258aeb0a",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "61633916-EB1B-4EB5-9AA7-7401F5AC4474"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "61633916-EB1B-4EB5-9AA7-7401F5AC4474"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_c8ef8115-1776-48d3-9746-52896a7b0f1d",
+    "slug": "qeqertarsuatsiaat",
+    "canonical_name": {
+      "assertion_id": "nam_e4fe19dc-bcf5-4b3a-bdf1-38c7223eb971",
+      "value": "Qeqertarsuatsiaat",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "E1FAF29B-2882-43C0-BCBA-30C64C576140"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_f7f06635-fbd0-4c30-8b08-dfc64fefa4a9",
+        "value": "Fiskenæsset",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "E1FAF29B-2882-43C0-BCBA-30C64C576140"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "E1FAF29B-2882-43C0-BCBA-30C64C576140"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_32742afc-4815-467b-88df-bd3847a9f04c",
+        "level": "municipality",
+        "name": "Sermersooq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "E1FAF29B-2882-43C0-BCBA-30C64C576140"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "E1FAF29B-2882-43C0-BCBA-30C64C576140"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_c906034b-f5b6-4be9-9126-4d5fcb692ca2",
+    "slug": "innaarsuit",
+    "canonical_name": {
+      "assertion_id": "nam_c2fd839d-752b-47b4-8afe-865203663cf0",
+      "value": "Innaarsuit",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "A6A4A09F-C719-4B83-B9A2-D05020B5C46F"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "A6A4A09F-C719-4B83-B9A2-D05020B5C46F"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_6c477e24-60bc-4bb0-bc6b-a2d5c6c62a0a",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "A6A4A09F-C719-4B83-B9A2-D05020B5C46F"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "A6A4A09F-C719-4B83-B9A2-D05020B5C46F"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_cb29d697-b478-48e1-90cb-120ff021afae",
+    "slug": "saqqaq",
+    "canonical_name": {
+      "assertion_id": "nam_5e9001b1-8196-4dde-a08a-dae835d366ab",
+      "value": "Saqqaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "1D89AF31-F0DD-4507-B710-5B29A71FCD9E"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "1D89AF31-F0DD-4507-B710-5B29A71FCD9E"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_e2f46012-dced-4b37-a3cc-bc8a2dfcc445",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "1D89AF31-F0DD-4507-B710-5B29A71FCD9E"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "1D89AF31-F0DD-4507-B710-5B29A71FCD9E"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_d2bc965b-a5d5-4acb-b9a5-665d3a237cd5",
+    "slug": "napasoq",
+    "canonical_name": {
+      "assertion_id": "nam_cc3a5211-f8f4-471d-a63d-6768e979a512",
+      "value": "Napasoq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "0DD4EA5B-90CE-4F14-A8BD-DFA75C7A9ECB"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "0DD4EA5B-90CE-4F14-A8BD-DFA75C7A9ECB"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_91e09c5a-0d1b-4daa-a6a2-5898fdaa93a7",
+        "level": "municipality",
+        "name": "Qeqqata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "0DD4EA5B-90CE-4F14-A8BD-DFA75C7A9ECB"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "0DD4EA5B-90CE-4F14-A8BD-DFA75C7A9ECB"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_d60fc5a9-ee06-4aed-96c9-b6231af88aa6",
+    "slug": "tasiilaq",
+    "canonical_name": {
+      "assertion_id": "nam_a8a982f8-66d1-45f0-ad12-c558046621d1",
+      "value": "Tasiilaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "4061D539-8921-4EFF-A778-36E227622680"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_fff18cb1-3e07-4155-9fec-8089678ebf84",
+        "value": "Ammassalik",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4061D539-8921-4EFF-A778-36E227622680"
+          }
+        ]
+      }
+    ],
+    "coordinates": {
+      "assertion_id": "geo_c85d6ec2-aed3-4851-8db9-8500b4ac1d97",
+      "latitude": 65.614,
+      "longitude": -37.637,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4061D539-8921-4EFF-A778-36E227622680"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_38b1b476-fbb6-48a1-85e8-55d6a9ce5c24",
+        "level": "municipality",
+        "name": "Sermersooq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4061D539-8921-4EFF-A778-36E227622680"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_d82ad42c-d2b6-4236-ae32-16ace9a0ffbd",
+    "slug": "kulusuk",
+    "canonical_name": {
+      "assertion_id": "nam_96a6a070-9afa-4a2d-a13f-544cd2bb2e8a",
+      "value": "Kulusuk",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "B7189B05-F52D-4040-8966-CB1F61DE8F78"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_8891aec0-efec-4b03-aab2-74b1bc53fd9e",
+        "value": "Kap Dan",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ]
+      }
+    ],
+    "coordinates": {
+      "assertion_id": "geo_2d554243-8b84-4fd9-8ecd-42a4f358ab8a",
+      "latitude": 65.575,
+      "longitude": -37.184,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "B7189B05-F52D-4040-8966-CB1F61DE8F78"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_58397dbd-eefb-439b-aadd-3bf24f4d2440",
+        "level": "municipality",
+        "name": "Sermersooq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "B7189B05-F52D-4040-8966-CB1F61DE8F78"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_db55e181-6a10-48d9-b89d-eda5961302d5",
+    "slug": "sermiligaaq",
+    "canonical_name": {
+      "assertion_id": "nam_944c9abc-aad5-48fd-92b5-0cb71ae50ffc",
+      "value": "Sermiligaaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "4D447919-0141-4020-830C-4B532F189016"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_e5dcaa50-5b4c-469a-a1c9-7f22515a5f0a",
+        "value": "Kulusuk",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4D447919-0141-4020-830C-4B532F189016"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4D447919-0141-4020-830C-4B532F189016"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_a1d05739-ed54-4148-97fa-0c4ffe4082f3",
+        "level": "municipality",
+        "name": "Sermersooq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4D447919-0141-4020-830C-4B532F189016"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4D447919-0141-4020-830C-4B532F189016"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_e345f0ce-f03b-465e-b82c-3e5f594b0fa4",
+    "slug": "upernavik-kujalleq",
+    "canonical_name": {
+      "assertion_id": "nam_70f581f3-2090-4683-aa3c-5e30f0942ff4",
+      "value": "Upernavik Kujalleq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "1BE05657-A222-4E51-84E0-33A7AAF4687C"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_cbb351c7-6036-42c4-b09c-27e079265a30",
+        "value": "Søndre Upernavik",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "1BE05657-A222-4E51-84E0-33A7AAF4687C"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "1BE05657-A222-4E51-84E0-33A7AAF4687C"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_e2c1b721-86ad-4e3f-b9a5-043ca0e85708",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "1BE05657-A222-4E51-84E0-33A7AAF4687C"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "1BE05657-A222-4E51-84E0-33A7AAF4687C"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_e537615e-2d54-44b6-b974-8f2fb58d2e5c",
+    "slug": "ikerasaarsuk",
+    "canonical_name": {
+      "assertion_id": "nam_8fd627fe-64b9-4c1b-93c9-5dbcf71a87bd",
+      "value": "Ikerasaarsuk",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "76AF14E6-C767-4E11-AD4B-272D60AF6C16"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "76AF14E6-C767-4E11-AD4B-272D60AF6C16"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_3cc52322-3a82-47ee-b962-2c9cf40b7624",
+        "level": "municipality",
+        "name": "Qeqertalik",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "76AF14E6-C767-4E11-AD4B-272D60AF6C16"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "76AF14E6-C767-4E11-AD4B-272D60AF6C16"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_e707fa48-b27a-4eac-baf2-e100c32288b7",
+    "slug": "qaanaaq",
+    "canonical_name": {
+      "assertion_id": "nam_89952b90-3a35-4fe5-b69b-4d35236226eb",
+      "value": "Qaanaaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "D386F48D-A901-4C84-867B-5C4211E28B34"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_ad9bb523-14eb-4bd0-b61e-3664ce37c1a4",
+        "value": "Thule",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "D386F48D-A901-4C84-867B-5C4211E28B34"
+          }
+        ]
+      }
+    ],
+    "coordinates": {
+      "assertion_id": "geo_fd6665e0-5fe7-4b2e-b7f0-7a67e221d1d5",
+      "latitude": 77.467,
+      "longitude": -69.232,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "D386F48D-A901-4C84-867B-5C4211E28B34"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_85f51832-2a58-43bc-b607-7b8e76e20f52",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "D386F48D-A901-4C84-867B-5C4211E28B34"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_e7ccc261-aeb9-42a7-a416-aca4d761f46b",
+    "slug": "savissivik",
+    "canonical_name": {
+      "assertion_id": "nam_e2611bef-5c8a-42a4-bd2d-174d87e4c014",
+      "value": "Savissivik",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "DEC61870-8150-4CD7-AFB6-B37D56F1C544"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_424c954e-a683-4c5e-9a9a-6630fa6bb5bf",
+        "value": "Kraulshavn",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "DEC61870-8150-4CD7-AFB6-B37D56F1C544"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "DEC61870-8150-4CD7-AFB6-B37D56F1C544"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_e67164ab-941b-481b-b44b-fc5f017b6332",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "DEC61870-8150-4CD7-AFB6-B37D56F1C544"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "DEC61870-8150-4CD7-AFB6-B37D56F1C544"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_e90deab9-bbae-4b3a-b5dd-57587a92f135",
+    "slug": "igaliku",
+    "canonical_name": {
+      "assertion_id": "nam_1ec51b3c-f7b3-48b9-9a4d-27f86f9e04ad",
+      "value": "Igaliku",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "1A5654D9-E460-45FB-BF47-0F9128ACFBE6"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "1A5654D9-E460-45FB-BF47-0F9128ACFBE6"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_bd073965-2b27-4c52-83fb-8a449aff22db",
+        "level": "municipality",
+        "name": "Kujalleq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "1A5654D9-E460-45FB-BF47-0F9128ACFBE6"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "1A5654D9-E460-45FB-BF47-0F9128ACFBE6"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722",
+    "slug": "qaqortoq",
+    "canonical_name": {
+      "assertion_id": "nam_80fcc9a9-8281-49b4-baee-87577127a581",
+      "value": "Qaqortoq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "9B8A88EC-0FD8-4AD2-B04E-A2B133BEA527"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_6ba45119-1ae8-41e8-9955-bd53ca467ee4",
+        "value": "Julianehåb",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "9B8A88EC-0FD8-4AD2-B04E-A2B133BEA527"
+          }
+        ]
+      }
+    ],
+    "coordinates": {
+      "assertion_id": "geo_110d0191-c22f-4554-86ea-8d349872ae9a",
+      "latitude": 60.718,
+      "longitude": -46.036,
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_legacy_seed",
+          "record_id": null
+        }
+      ]
+    },
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "9B8A88EC-0FD8-4AD2-B04E-A2B133BEA527"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_8074e06b-64e3-4610-8081-06fc061ff7c6",
+        "level": "municipality",
+        "name": "Kujalleq",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "observed_at": "2024-01-01"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "9B8A88EC-0FD8-4AD2-B04E-A2B133BEA527"
+      }
+    ],
+    "updated_at": "2026-08-01"
+  },
+  {
+    "id": "plc_ecd504d2-638a-4d47-a472-f14497c23349",
+    "slug": "siorapaluk",
+    "canonical_name": {
+      "assertion_id": "nam_88f5ae82-30d7-45de-ba49-3dee4502aaf4",
+      "value": "Siorapaluk",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "36C84D75-A8D4-4586-A1F2-6A02B1895A96"
+        }
+      ]
+    },
+    "alternate_names": [
+      {
+        "assertion_id": "nam_218c9e6e-eb80-4b6a-97b1-64086c81b4ee",
+        "value": "Kraulshavn",
+        "language": "da",
+        "kind": "exonym",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "36C84D75-A8D4-4586-A1F2-6A02B1895A96"
+          }
+        ]
+      }
+    ],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "36C84D75-A8D4-4586-A1F2-6A02B1895A96"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_e19ca8d4-3680-45a2-83b1-b03ca388ce87",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "36C84D75-A8D4-4586-A1F2-6A02B1895A96"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "36C84D75-A8D4-4586-A1F2-6A02B1895A96"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_eeccbd92-0381-4df8-be89-e7c42d0d3282",
+    "slug": "kangaatsiaq",
+    "canonical_name": {
+      "assertion_id": "nam_ef0445bf-74d1-46df-9458-a6d1701d533b",
+      "value": "Kangaatsiaq",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "D31C85B5-63E0-4AB9-8BDE-3EAF0F296171"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "town",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "D31C85B5-63E0-4AB9-8BDE-3EAF0F296171"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_71e6ac94-0bb2-49fe-9c2b-ebf6ecf50a0b",
+        "level": "municipality",
+        "name": "Qeqertalik",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "D31C85B5-63E0-4AB9-8BDE-3EAF0F296171"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "D31C85B5-63E0-4AB9-8BDE-3EAF0F296171"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_f5231e92-ff49-4361-9807-53b0fcebdbe3",
+    "slug": "kangaamiut",
+    "canonical_name": {
+      "assertion_id": "nam_e31b2e15-45b9-41f5-875a-531314650832",
+      "value": "Kangaamiut",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "8EAAADF9-31CB-49EE-BD20-F8D5A0185469"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "8EAAADF9-31CB-49EE-BD20-F8D5A0185469"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_9f84584a-c1c1-44cd-af40-6c1ac78a496b",
+        "level": "municipality",
+        "name": "Qeqqata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "8EAAADF9-31CB-49EE-BD20-F8D5A0185469"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "8EAAADF9-31CB-49EE-BD20-F8D5A0185469"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  },
+  {
+    "id": "plc_fdee90b5-74b4-4869-8adf-ef1435bb4623",
+    "slug": "qaarsut",
+    "canonical_name": {
+      "assertion_id": "nam_d9725e86-ee92-4425-9982-97b2c7a218fd",
+      "value": "Qaarsut",
+      "language": "kl",
+      "valid_from": null,
+      "valid_to": null,
+      "source_refs": [
+        {
+          "source_id": "src_nunagis_placenames_register",
+          "record_id": "4B4D38EB-5253-49C7-A4B4-BAA01F224074"
+        }
+      ]
+    },
+    "alternate_names": [],
+    "coordinates": null,
+    "feature_type": "settlement",
+    "status": "active",
+    "classification_source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4B4D38EB-5253-49C7-A4B4-BAA01F224074"
+      }
+    ],
+    "administrative_memberships": [
+      {
+        "assertion_id": "mem_27aad581-156b-4558-87a8-b302718439ce",
+        "level": "municipality",
+        "name": "Avannaata",
+        "valid_from": null,
+        "valid_to": null,
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4B4D38EB-5253-49C7-A4B4-BAA01F224074"
+          }
+        ],
+        "observed_at": "2026-08-07"
+      }
+    ],
+    "source_refs": [
+      {
+        "source_id": "src_nunagis_placenames_register",
+        "record_id": "4B4D38EB-5253-49C7-A4B4-BAA01F224074"
+      }
+    ],
+    "updated_at": "2026-08-07"
+  }
+]
