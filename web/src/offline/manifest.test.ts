@@ -49,7 +49,7 @@ describe("corridor pack manifest contracts", () => {
     expect(isTerrainOfflineReady(parsed)).toBe(false);
   });
 
-  it("rejects packs over the 250 MB cap", () => {
+  it("rejects packs over the family-phone byte cap", () => {
     expect(() =>
       parseManifest({
         ...fixtureManifest,
@@ -168,7 +168,7 @@ describe("corridor pack manifest contracts", () => {
     );
     // Honest notes: the pack must say what is NOT offline, not overclaim.
     expect(parsed.notes?.toLowerCase()).toContain("not for navigation");
-    expect(parsed.notes).toContain("256 px");
+    expect(parsed.notes).toMatch(/native 512 px|512 px/);
   });
 
   it("ships non-empty corridor localities in the full pack", () => {

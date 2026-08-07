@@ -22,11 +22,11 @@ the live app (dev server `:3460`, Chrome via browser-harness).
 | Offline serving | Kill the dev server (`pkill -f "vite.*3460"`), pan to Qaarsut z10: `querySourceFeatures('coastline-land')` → 9 mask features, `ocean-depth-vector` depare → 175, contours → 389; `queryRenderedFeatures({layers:['terrain-coastline-mask']})` → 1 | Pass |
 | Renders terrain offline | Screenshot at Qaarsut z10 with server dead: 723 pixel samples of the mask land fill (~#e8e0cf), land hillshade tones present | Pass |
 | Stub never claims terrain | Unit tests: kind=stub with terrain files listed → `isTerrainOfflineReady` false | Pass |
-| Manifest honest | Unit tests parse the shipped manifest: kind=full, notes say "not for navigation", 256 px re-encode documented | Pass |
+| Manifest honest | Unit tests parse the shipped manifest: kind=full, notes say "not for navigation", native 512 px land-relief documented | Pass |
 
 ## Known limits (documented in the manifest notes)
 
-- Land relief is z0–z10 (256 px re-encode); z11+ overzooms.
+- Land relief is z0–z10 (native 512 px); z11+ overzooms. Pack cap is 300 MB.
 - Ocean depth vector is z0–z11 (self-tiled IBCAO v5.2 + GEBCO_2026,
   clipped to the shared coastline); z12 renders overzoomed. The ocean
   hillshade raster (`ocean-depth-dem.pmtiles`, z0–z10) is in the pack

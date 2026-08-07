@@ -30,7 +30,7 @@ title="Web Qaarsut–Kullorsuaq corridor pack (${package_id})"
 notes="$(cat <<EOF
 Full Qaarsut→Kullorsuaq corridor offline pack \`${package_id}\`.
 
-- land-relief.pmtiles: Mapterhorn DEM (Klimadatastyrelsen, CC BY 4.0), z0–z10, 256 px re-encoded
+- land-relief.pmtiles: Mapterhorn DEM (Klimadatastyrelsen, CC BY 4.0), z0–z10, native 512 px
 - land-peaks.pmtiles: peaks-only land color bands (issue #24), transparent below 500 m, discrete 500/1000/2000 m bands, z0–z10 256 px lossless webp
 - ocean-depth-vector.pmtiles: self-tiled IBCAO v5.2 + GEBCO_2026 fallback, clipped to the shared coastline, z0–z11 (z12 renders overzoomed)
 - ocean-depth-dem.pmtiles: ocean hillshade raster (IBCAO v5.2 + GEBCO_2026 fallback, terrarium webp 256 px), z0–z10 — served offline again

@@ -144,6 +144,7 @@ export function App() {
         <MapCanvas
           collection={visibleCollection}
           selectedId={selected?.recordId ?? null}
+          focusPlace={selected}
           onSelect={selectPlace}
         />
       }
