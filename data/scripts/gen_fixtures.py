@@ -174,10 +174,12 @@ crossw("year-round-with-months", {
     ]
 })
 
-# duplicate-slug: two places with same canonical name
+# duplicate-slug: two places may share an official KL name (Greenland homonyms).
+# Validation must PASS; denormalized build suffixes the second slug (-2).
 crossw("duplicate-slug", {"place-names.ndjson": [
     name("nam_"+u4(), PLC1, value="SamePlace"),
     name("nam_"+u4(), PLC2, value="SamePlace"),
+    name("nam_"+u4(), PLC3, value="OtherPlace"),
 ]})
 
 # retired-entity-active: retired place with current (valid_to=null) assertions

@@ -34,6 +34,12 @@ Exact-name matches from that file become `candidate_exact_name` on the
 Oqaasileriffik side. They are not verified matches. Coordinates are omitted on
 purpose: NunaGIS polygons are not Asiaq point geometry.
 
+Homonyms (same `PlacenameOfficial`, different places) must not use
+`import_nunagis_localities.py --names`. Use `--record-ids` with MapServer/0
+GlobalIDs after checking `MunicipalityCode`, `LokalityCode`, and midpoint
+latitude (south Kujalleq ~60°N vs north Avannaata ~73°N). Midpoint-layer
+GlobalIDs differ from the register layer — never copy them into `xid_`.
+
 ## Other authority exports
 
 After receiving exports, normalize their records into one or more NDJSON files
