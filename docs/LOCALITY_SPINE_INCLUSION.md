@@ -33,7 +33,7 @@ Exact-name candidates in `data/reconciliation/place-seeds.ndjson` remain **candi
 - Every place stays `unresolved` overall until Asiaq confirms (do not invent an Asiaq match).
 - Imported localities have municipality membership from NunaGIS `MunicipalityCode`; no `geo_` (Asiaq owns geometry).
 - Homonyms share official KL names but are distinct places (Kujalleq vs Avannaata); import via `--record-ids` after municipality + midpoint-lat review. Midpoint GlobalIDs must not replace register GlobalIDs in `xid_`.
-- Still out: `Grise Fiord :100:` (not imported — likely bad/non-GL label).
+- Excluded from authority: `Grise Fiord :100:` (NunaGIS ID=13434) — Canadian Ellesmere Island hamlet (~76.4°N, 79.5°W) mis-typed as Type 23 / Avannaata; corrupt `:100:` suffix. Listed in `EXCLUDED_DECISION_IDS` in `normalize_nunagis_placenames.py`.
 - `src_legacy_seed` pending provenance on seed place status, geometry, and administrative records blocks `publish-check`.
 
 ## Confirm / import workflow

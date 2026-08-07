@@ -4,10 +4,10 @@
 
 This document is the product and implementation source of truth.
 
-- Current stage: Product plan Phases 0–2, Phase 4 API scaffold, and Phase 5 quiet UI landed; Phase 3 locality spine nearly complete — 73 places (#29/#31/#36/#38/#40)
+- Current stage: Product plan Phases 0–2, Phase 4 API scaffold, and Phase 5 quiet UI landed; Phase 3 naming spine complete for qualifying Type 21/23 — 73 places; Asiaq geometry pending
 - Current data: 73 place identities, 73 classification assertions, 106 names, 15 geometries (58 imported localities have no Asiaq `geo_` yet), 73 memberships, 73 external identifiers (`nunagis.global_id`), 2 connections, and 2 service assertions
 - Publication status: still not authoritative; `publish-check` reports expected pending-provenance blockers while `src_legacy_seed` remains on seed place status, geometry, and administrative records
-- Immediate work: Phase 3 residual — decide fate of `Grise Fiord :100:`; Asiaq geometry still waiting
+- Immediate work: Asiaq geometry export (Phase 3 naming spine complete for qualifying Type 21/23)
 - First operational extension: structural reachability (joins by `placeId`; multi-service export preserved)
 - Selected release: `data/releases/CURRENT` → `2026.08.07.3` (web mounts via `scripts/sync-web-release.sh`)
 - Read API: `api/` on `:8787` (`make api-dev`)
@@ -20,7 +20,7 @@ This document is the product and implementation source of truth.
 - Map data: NunaGIS PlacenamesRegisterSearch midpoint layer (`MapServer/1`), 30,542 midpoints with locality filter (Type 21/23 → 74)
 - Authority requests: Oqaasileriffik replied 2026-07-30 pointing to NunaGIS; Asiaq reply still pending
 - Reconciliation (data ops): 0 matched, 0 conflicting, 0 missing, 73 unresolved overall; Oqaasileriffik `confirmed` ×73 via `confirmed_place_id`; Asiaq `waiting_for_export` ×73
-- Phase 3: 73 / 74 Type 21/23 confirmed; Aappilattoq and Tasiusaq each minted twice (#40) — Kujalleq (~60°N) vs Avannaata/Upernavik (~73°N), keyed by GlobalID + MunicipalityCode + LokalityCode (never by name alone); left unconfirmed: `Grise Fiord :100:`. Danish conflicts kept visible on seeds: Kangerlussuaq — register Danish `Danmarkshavn` vs seed `Søndre Strømfjord`; Narsaq — register has no Danish claim vs seed `Narssaq`; Kulusuk — register Danish `Kulusuk` vs seed `Kap Dan`
+- Phase 3 naming spine: 73 / 73 qualifying Type 21/23 confirmed (all Oqaasileriffik `confirmed_place_id`); `Grise Fiord :100:` (NunaGIS ID=13434) excluded — Canadian Ellesmere Island hamlet mis-typed as Type 23, not in authority. Homonyms Aappilattoq×2 / Tasiusaq×2 kept distinct (#40). Danish conflicts kept visible on seeds: Kangerlussuaq — register Danish `Danmarkshavn` vs seed `Søndre Strømfjord`; Narsaq — register has no Danish claim vs seed `Narssaq`; Kulusuk — register Danish `Kulusuk` vs seed `Kap Dan`
 - Identity crosswalk: release-mounted `identity-crosswalk.json` — 73 canonical mappings (0 candidate)
 - Note: “Nunat Aqqinik Nalunaarsuiffik” is the NunaGIS public placenames register name; naming decisions remain Nunat Aqqinik Aalajangiisartut at Oqaasileriffik
 - Last implementation audit: 2026-08-07
@@ -507,16 +507,16 @@ Exit condition: all 15 seed places pass `publish-check`.
 
 ### Phase 3 — Complete the operational locality spine
 
-Status: in progress — 73 / 74 Type 21/23 confirmed (#40 homonyms done); only `Grise Fiord :100:` left; Asiaq geometry still pending.
+Status: naming coverage complete for qualifying Type 21/23 (73 places); Asiaq geometry still pending before overall `matched`.
 
 - Confirm naming identity per place against the NunaGIS authority (no auto-merge): a confirmed place gets both a `nunagis.global_id` `xid_` and `confirmed_place_id` on the Oqaasileriffik authority row
 - Asiaq geometry confirmation is still required before a place reaches overall `matched` — do not invent an Asiaq confirmation
-- Decide fate of `Grise Fiord :100:` (exclude vs investigate)
-- Match existing identities before minting new IDs; homonyms use `--record-ids` after municipality/lat review
+- `Grise Fiord :100:` excluded from normalize (`EXCLUDED_DECISION_IDS`, ID=13434)
+- Homonyms use `--record-ids` after municipality/lat review
 - Create a machine-readable reconciliation report
 - Review duplicates, homonyms, historical names, and missing coordinates
 
-Exit condition: the locality spine has full authoritative coverage and zero unresolved identity collisions.
+Exit condition: the locality spine has full authoritative coverage and zero unresolved identity collisions (naming done; geometry wait remains).
 
 ### Phase 4 — Build one reachability tracer bullet
 
