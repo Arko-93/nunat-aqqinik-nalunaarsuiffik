@@ -13,6 +13,14 @@ LOCALITY_TYPES = {
     21: "town",  # By
     23: "settlement",  # Bygd
 }
+# Type 21/23 rows that must not enter the operational locality spine.
+# Keyed by stable NunaGIS numeric ID (decision_ref), not GlobalID.
+EXCLUDED_DECISION_IDS = {
+    # "Grise Fiord :100:" — Canadian hamlet on Ellesmere Island (~76.4°N,
+    # 79.5°W), mis-typed as Type 23 / Avannaata. Corrupt ":100:" suffix.
+    # Review 2026-08-07; do not mint plc_.
+    13434,
+}
 
 
 def read_json(path: Path) -> dict:
@@ -41,6 +49,8 @@ def normalize_features(features: list[dict]) -> list[dict]:
         numeric_id = attributes.get("ID")
         if not isinstance(numeric_id, int) or isinstance(numeric_id, bool):
             raise ValueError(f"missing numeric ID for GlobalID {record_id}")
+        if numeric_id in EXCLUDED_DECISION_IDS:
+            continue
         official_name = attributes.get("PlacenameOfficial")
         if not isinstance(official_name, str) or not official_name.strip():
             raise ValueError(f"missing PlacenameOfficial for GlobalID {record_id}")

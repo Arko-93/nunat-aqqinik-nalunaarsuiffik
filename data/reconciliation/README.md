@@ -40,6 +40,9 @@ GlobalIDs after checking `MunicipalityCode`, `LokalityCode`, and midpoint
 latitude (south Kujalleq ~60°N vs north Avannaata ~73°N). Midpoint-layer
 GlobalIDs differ from the register layer — never copy them into `xid_`.
 
+`normalize-nunagis` drops `EXCLUDED_DECISION_IDS` (currently NunaGIS ID=13434,
+`Grise Fiord :100:` — out-of-country / corrupt Type 23 row).
+
 ## Other authority exports
 
 After receiving exports, normalize their records into one or more NDJSON files

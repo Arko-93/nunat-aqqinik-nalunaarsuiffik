@@ -48,6 +48,14 @@ def test_normalize_keeps_only_locality_types() -> None:
                 "Type": 23,
             }
         },
+        {
+            "attributes": {
+                "GlobalID": "{3761D484-EEC4-43BE-B694-F35AF509201B}",
+                "ID": 13434,
+                "PlacenameOfficial": "Grise Fiord :100:",
+                "Type": 23,
+            }
+        },
     ]
     rows = normalize_features(features)
     if len(rows) != 2:
@@ -61,6 +69,8 @@ def test_normalize_keeps_only_locality_types() -> None:
         raise AssertionError("GlobalID braces must be stripped")
     if "longitude" in by_name["Nuuk"] or "latitude" in by_name["Nuuk"]:
         raise AssertionError("Oqaasileriffik authority rows must omit geometry")
+    if any(row.get("decision_ref") == "nunagis.placenames:ID=13434" for row in rows):
+        raise AssertionError("Grise Fiord (ID=13434) must stay excluded from authority")
 
 
 def active_place_count() -> int:
