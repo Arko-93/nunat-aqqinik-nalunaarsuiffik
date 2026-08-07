@@ -217,6 +217,22 @@ export function assertCorridorBbox(
   );
 }
 
+/** Human size for pack UI (MB; unit is locale-neutral). */
+export function formatPackSizeMb(bytes: number): string {
+  const mb = bytes / (1024 * 1024);
+  const rounded = mb >= 10 ? Math.round(mb) : Math.round(mb * 10) / 10;
+  return `${rounded} MB`;
+}
+
+/** True when remote pack id or createdAt is newer than the installed pack. */
+export function packUpdateAvailable(
+  installed: Pick<CorridorPackManifest, "id" | "createdAt">,
+  remote: Pick<CorridorPackManifest, "id" | "createdAt">,
+): boolean {
+  if (remote.id !== installed.id) return true;
+  return remote.createdAt > installed.createdAt;
+}
+
 export async function sha256Hex(buffer: ArrayBuffer): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", buffer);
   return [...new Uint8Array(digest)]
