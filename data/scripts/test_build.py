@@ -111,6 +111,48 @@ def verify_isolation_report() -> None:
         raise AssertionError("isolation-report counts do not add up")
 
 
+def verify_single_dependency_report() -> None:
+    report_path = DIST_DIR / "single-dependency-report.json"
+    with report_path.open(encoding="utf-8") as file:
+        report = json.load(file)
+
+    if report.get("capability") != "passenger":
+        raise AssertionError("single-dependency capability must be passenger")
+
+    qaqortoq = "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722"
+    nanortalik = "plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864"
+    single_connection_ids = {
+        row["place_id"] for row in report.get("single_connection", [])
+    }
+    if nanortalik not in single_connection_ids:
+        raise AssertionError("Nanortalik must be single-connection dependent")
+    if qaqortoq in single_connection_ids:
+        raise AssertionError("Qaqortoq must not be single-connection dependent")
+
+    single_mode_ids = {row["place_id"] for row in report.get("single_mode", [])}
+    if qaqortoq not in single_mode_ids:
+        raise AssertionError("Qaqortoq must be single-mode dependent")
+
+
+def verify_seasonal_loss_report() -> None:
+    report_path = DIST_DIR / "seasonal-loss-report.json"
+    with report_path.open(encoding="utf-8") as file:
+        report = json.load(file)
+
+    if report.get("capability") != "passenger":
+        raise AssertionError("seasonal-loss capability must be passenger")
+
+    qaqortoq = "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722"
+    losses = {row["place_id"]: row for row in report.get("losses", [])}
+    if qaqortoq not in losses:
+        raise AssertionError("Qaqortoq must appear in seasonal-loss (valid_from gap)")
+    if losses[qaqortoq].get("isolated_months") != [1, 2, 3, 4]:
+        raise AssertionError("Qaqortoq isolated months must be Jan–Apr for 2026")
+    counts = report.get("counts") or {}
+    if counts.get("places_with_seasonal_loss") != len(report.get("losses", [])):
+        raise AssertionError("seasonal-loss counts do not match losses length")
+
+
 def verify_database() -> None:
     db_path = DIST_DIR / "decision-geography.db"
     with sqlite3.connect(db_path) as db:
@@ -196,6 +238,8 @@ def main() -> None:
     verify_manifest()
     verify_database()
     verify_isolation_report()
+    verify_single_dependency_report()
+    verify_seasonal_loss_report()
     verify_concurrent_service_projection()
     first = output_hashes()
 
@@ -203,6 +247,8 @@ def main() -> None:
     verify_manifest()
     verify_database()
     verify_isolation_report()
+    verify_single_dependency_report()
+    verify_seasonal_loss_report()
     second = output_hashes()
 
     if first != second:

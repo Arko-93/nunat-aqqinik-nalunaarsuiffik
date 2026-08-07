@@ -116,7 +116,7 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 | 3 Locality spine | naming done / geometry pending | 73 confirmed; Grise Fiord excluded; Asiaq export waiting |
 | 4 Read API | scaffold complete | `api/` Hono + SQLite; 8 v1 endpoints; FTS5 search + LIKE fallback |
 | 5 Greenland-first UI | foundations complete | AppShell, PlaceList, PlaceDossier, MobilePlaceSheet, i18n kl/da/en |
-| 6 Date-aware reachability | partial | Multi-service export; API date-aware `services[]`; passenger isolation report; capability filters / seasonal-loss remain |
+| 6 Date-aware reachability | partial | Multi-service export; date-aware `services[]` + seasonality months; connection filters; isolation / single-dependency / seasonal-loss reports; structural `/v1/reachability` path |
 | 7 Operational sources | pending | |
 
 ### Phase 5 notes (2026-08-01)
@@ -138,4 +138,5 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 7. **Phase 2 (2026-08-07):** gazetteer midpoints packaged into release `2026.08.07.4` (`placenames.geojson`); App loads `${base}/placenames.geojson`; no live fetch in `map-fetch` / `map-omarchy`.
 8. **Phase 4 (2026-08-07):** FTS5 `place_names_fts` in `ndjson2db.py`; API search MATCH + LIKE fallback. Remaining: OpenAPI client generation.
 9. **Phase 5 (2026-08-07 polish):** Offline pack size + update check; OfflineStatus shows pack state; search results use plain lists; mobile sheet `aria-modal` + Escape/focus restore. Remaining: Native KL review; AccessPlanner (deferred — map-first); full screen-reader pass.
-10. **Phase 6 (2026-08-07):** API connections group `services[]` with date filter in JOIN; `GET /v1/reports/isolation`; dist `isolation-report.json`. Remaining: capability query filters, seasonal-loss / single-dependency reports, `/v1/reachability` path.
+10. **Phase 6 (2026-08-07):** API connections group `services[]` with date filter in JOIN; `GET /v1/reports/isolation`; dist `isolation-report.json`.
+11. **Phase 6 (2026-08-07 filters/reports):** connections accept `mode` / `capability` / `operator`; seasonality months applied on `at`; `GET /v1/reports/single-dependency` + `seasonal-loss`; structural `GET /v1/reachability?from=&to=&at=`; dist `single-dependency-report.json` + `seasonal-loss-report.json`. Remaining: max_transfers fan-out, freight/emergency gap reports, OpenAPI sync for new routes.
