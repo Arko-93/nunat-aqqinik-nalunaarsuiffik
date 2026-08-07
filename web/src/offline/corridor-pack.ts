@@ -159,6 +159,14 @@ export async function installCorridorPack(
     if (!response.ok) {
       throw new PackError(`Failed to download ${file.path} (${response.status})`);
     }
+    const contentType = response.headers.get("content-type") ?? "";
+    // Vite SPA fallback returns index.html (200 + text/html) when a pack
+    // asset is missing locally — surface that before the byte-size check.
+    if (contentType.includes("text/html")) {
+      throw new PackError(
+        `Missing pack asset ${file.path} (got HTML). Run: make web-fetch-corridor-pack`,
+      );
+    }
     const buffer = await response.arrayBuffer();
     onProgress?.({
       path: file.path,

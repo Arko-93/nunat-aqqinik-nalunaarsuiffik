@@ -12,34 +12,34 @@
     -50.5,
     74.9
   ],
-  "bytes": 87659702,
-  "createdAt": "2026-08-07T00:38:09Z",
+  "bytes": 272620646,
+  "createdAt": "2026-08-07T17:26:13Z",
   "kind": "full",
   "files": [
     {
       "path": "land-relief.pmtiles",
-      "bytes": 66338299,
-      "sha256": "53090a55fbeaa19156dedfabc03c50a1e0f3f227b9d0c44440756e6e0cf9ffc1"
+      "bytes": 251299254,
+      "sha256": "a8500b03106778f29b5faa6fa7a53d604d6bbf39daa8ebd2129a68e7ba0af12f"
     },
     {
       "path": "land-peaks.pmtiles",
       "bytes": 420475,
-      "sha256": "8f8313360de84131973b0eae2892a9212054d953a243d26529773735ac4e026c"
+      "sha256": "2c86e9b79e10303ceb6987804068470e3c4ac8074b512803c8c2048d70140458"
     },
     {
       "path": "ocean-depth-vector.pmtiles",
       "bytes": 10409625,
-      "sha256": "b65d1f8ad71fe8793b1f4bec8edc31bd7a60bd8bf44166af9c99f43f4a052963"
+      "sha256": "815247a421457d84f6b6ff15ed5ea590f05274f83699e57d979997eabece5b67"
     },
     {
       "path": "ocean-depth-dem.pmtiles",
       "bytes": 6132074,
-      "sha256": "8582c897afae303e863700a46f007609252c1bbee7d9a574ee36b5e604f7227b"
+      "sha256": "799baf1c7f183c649faaa67bcfaccc68ab8070e4d5601b66be55ea2fcf5b1c07"
     },
     {
       "path": "coastline-land/land.pmtiles",
-      "bytes": 4350933,
-      "sha256": "6122aebb683236ebe8b714a30deebb68c4e2d6b09a700476f9410f312bacb6bc"
+      "bytes": 4350922,
+      "sha256": "168842cf97992c5a23a943fe2bca3f421cb590d24de9a972e46e0780fdd504dc"
     },
     {
       "path": "localities.geojson",
@@ -61,5 +61,5 @@
     ]
   },
   "notForNavigation": true,
-  "notes": "Full Qaarsut→Kullorsuaq corridor pack. Land relief (Mapterhorn DEM, CC BY 4.0) z0–z10, every tile re-encoded at 256 px (tileSize 256 offline; z11+ renders overzoomed), land peak color bands (issue #24, peaks-only, transparent below 500 m, z0–z10), ocean depth (self-tiled IBCAO v5.2 + GEBCO_2026 fallback, clipped to the shared coastline) z0–z11 vector (z12 renders overzoomed) + ocean hillshade raster z0–z10 (z11+ overzooms), coastline mask (OSM ∪ DEM, ODbL + CC BY 4.0) z0–z13, localities. Offline serves the ocean hillshade raster again (the pack carries it). Tiles beyond the pack bbox are absent — no live network fallback. Not for navigation."
+  "notes": "Full Qaarsut→Kullorsuaq corridor pack. Land relief (Mapterhorn DEM, CC BY 4.0) z0–z10, native 512 px (tileSize 512 offline; z11+ renders overzoomed), land peak color bands (issue #24, peaks-only, transparent below 500 m, z0–z10), ocean depth (self-tiled IBCAO v5.2 + GEBCO_2026 fallback, clipped to the shared coastline) z0–z11 vector (z12 renders overzoomed) + ocean hillshade raster z0–z10 (z11+ overzooms), coastline mask (OSM ∪ DEM, ODbL + CC BY 4.0) z0–z13, localities. Offline serves the ocean hillshade raster again (the pack carries it). Tiles beyond the pack bbox are absent — no live network fallback. Not for navigation."
 }

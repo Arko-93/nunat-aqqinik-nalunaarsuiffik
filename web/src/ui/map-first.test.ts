@@ -3,6 +3,7 @@ import { MESSAGES } from "../i18n/messages.ts";
 import { gazetteerVisible } from "../domain/layers.ts";
 import { withMapRank, type Placename } from "../domain/placename.ts";
 import { isSearchQueryActive } from "../domain/search.ts";
+import { focusZoomFor } from "./map-focus.ts";
 
 const place = (
   partial: Partial<Placename> &
@@ -114,5 +115,17 @@ describe("map-first UI contracts", () => {
     expect(isSearchQueryActive("  a  ")).toBe(false);
     expect(isSearchQueryActive("qa")).toBe(true);
     expect(isSearchQueryActive("  qa  ")).toBe(true);
+  });
+
+  it("zooms search picks into village / place scale", () => {
+    const bygd = place({ typeCode: 23, featureKind: "settlement", isLocality: true });
+    const fjord = place({
+      typeCode: 57,
+      featureKind: "other",
+      isLocality: false,
+    });
+    expect(focusZoomFor(bygd, 3.4)).toBeGreaterThanOrEqual(10.2);
+    expect(focusZoomFor(fjord, 3.4)).toBeGreaterThanOrEqual(8);
+    expect(focusZoomFor(bygd, 12)).toBe(12);
   });
 });

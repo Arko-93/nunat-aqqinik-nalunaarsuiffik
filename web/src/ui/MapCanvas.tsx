@@ -40,6 +40,7 @@ import {
   readPackFileHandle,
   subscribePackInstallState,
 } from "../offline/corridor-pack.ts";
+import { focusZoomFor } from "./map-focus.ts";
 import { selectPlaceFromMapClick } from "./map-selection.ts";
 
 const SOURCE_ID = PLACENAMES_SOURCE_ID;
@@ -68,6 +69,8 @@ const BANDS: ReadonlyArray<ZoomBand> = [
 type Props = {
   collection: GeoJSON.FeatureCollection<GeoJSON.Point, Placename> | null;
   selectedId: number | null;
+  /** Selected place for camera focus — not looked up from the map collection. */
+  focusPlace?: Placename | null;
   onSelect: (place: Placename) => void;
 };
 
@@ -117,7 +120,12 @@ function addAdministrativeLayers(map: Map) {
 }
 
 function sourceReady(map: Map): boolean {
-  return Boolean(map.isStyleLoaded() && map.getSource(SOURCE_ID));
+  // Require both gazetteer sources. Do not gate on isStyleLoaded() — after
+  // terrain/pack setStyle it can flicker false while sources already exist,
+  // which made whenSourceReady detach and skip easeTo forever.
+  return Boolean(
+    map.getSource(SOURCE_ID) && map.getSource(SELECTED_SOURCE_ID),
+  );
 }
 
 /** Current camera bounds as a [west, south, east, north] bbox. */
@@ -419,11 +427,17 @@ function selectedCollection(
   };
 }
 
-export function MapCanvas({ collection, selectedId, onSelect }: Props) {
+export function MapCanvas({
+  collection,
+  selectedId,
+  focusPlace = null,
+  onSelect,
+}: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
   const onSelectRef = useRef(onSelect);
   const collectionRef = useRef(collection);
+  const focusPlaceRef = useRef(focusPlace);
   const fittedRef = useRef(false);
   const prevSelectedRef = useRef<number | null>(null);
   const inactiveIdsRef = useRef<Set<number>>(new Set());
@@ -433,6 +447,7 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
   const [gap, setGap] = useState<TileGapState>(emptyTileGapState);
   onSelectRef.current = onSelect;
   collectionRef.current = collection;
+  focusPlaceRef.current = focusPlace;
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -710,7 +725,6 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
 
     return whenSourceReady(map, () => {
       if (!sourceReady(map)) return;
-      if (!map.getSource(SELECTED_SOURCE_ID)) return;
 
       const clearId = (id: number) => {
         map.setFeatureState(
@@ -744,27 +758,18 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       const selectedSource = map.getSource(SELECTED_SOURCE_ID) as GeoJSONSource;
       selectedSource.setData(selectedCollection(collection, selectedId));
 
-      if (selectedId == null) return;
-      const selected = collection.features.find(
-        (feature) => feature.properties.recordId === selectedId,
-      );
-      if (!selected) return;
-      const center = selected.geometry.coordinates as [number, number];
-      const targetZoom = Math.max(
-        map.getZoom(),
-        selected.properties.minZoom + 1.2,
-        selected.properties.isLocality ? 6.2 : 7.4,
-      );
+      const focus = focusPlaceRef.current;
+      if (!focus) return;
       map.easeTo({
-        center,
-        zoom: targetZoom,
+        center: [focus.longitude, focus.latitude],
+        zoom: focusZoomFor(focus, map.getZoom()),
         duration: 280,
         easing: (t) => 1 - (1 - t) ** 3,
       });
     });
     // styleEpoch: after a style re-apply the selected marker source is
     // rebuilt — re-run this effect so the selection state is restored.
-  }, [collection, selectedId, styleEpoch]);
+  }, [collection, selectedId, focusPlace, styleEpoch]);
 
   return (
     <div className="map-root" ref={containerRef}>

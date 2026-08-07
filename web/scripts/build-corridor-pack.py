@@ -8,10 +8,10 @@ ATTRIBUTION.md}.
 
 Sources (all already live in the online map):
 - land-relief: Mapterhorn Terrarium webp tiles (Klimadatastyrelsen
-  Greenland DEM, CC BY 4.0) — the exact tiles the online style serves,
-  clipped to the corridor bbox. Every tile is re-encoded at 256 px
-  (offline tileSize 256) to fit the 250 MB family-phone budget; native
-  512 px Mapterhorn tiles average 150-180 KiB and would blow the budget.
+  Greenland DEM, CC BY 4.0) — the exact native 512 px tiles the online
+  style serves, clipped to the corridor bbox (offline tileSize 512).
+  Cap at z10 so the pack stays under the 300 MB family-phone budget;
+  z11+ renders overzoomed.
 - land-peaks: peaks-only color-relief raster (issue #24) cut from the
   same corridor DEM tiles — transparent below 500 m, discrete bands at
   500/1000/2000 m (landPeakBandColor in web/src/map/meter-bands.ts).
@@ -42,7 +42,6 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import io
 import json
 import math
 import shutil
@@ -67,14 +66,14 @@ CORRIDOR_SLUG = "qaarsut-kullorsuaq"
 # and the clipped vector are subset to the corridor bbox.
 OCEAN_PACKAGE = ROOT / "web" / "public" / "packages" / "ocean-depth"
 
-# Land-relief: full-bbox pyramid z0..LAND_MAX_ZOOM, every tile re-encoded
-# at 256 px (DEM_REENCODE_SIZE) so the archive is uniform and the style
-# serves tileSize 256. Native Mapterhorn 512 px tiles are ~150-180 KiB on
-# average and would blow the 250 MB pack budget at z10+ (measured: z10
-# native alone ~161 MB). z10 is the cap — z11+ renders overzoomed, same
-# policy as the coastline mask (maxzoom 13, z14 overzooms).
+# Land-relief: full-bbox pyramid z0..LAND_MAX_ZOOM at native Mapterhorn
+# 512 px (DEM_TILE_SIZE) so offline matches online sharpness. z10 is the
+# cap — native z11+ would blow the 300 MB pack budget (measured: z0–z10
+# native land-relief alone ~240 MB). z11+ renders overzoomed.
 LAND_MAX_ZOOM = 10
-DEM_REENCODE_SIZE = 256
+DEM_TILE_SIZE = 512
+# Peak bands still bake at 256 px (color-relief, not DEM hillshade).
+DEM_PEAKS_TILE_SIZE = 256
 # Land peak bands (issue #24): same z0..10 pyramid + 256 px tile policy;
 # the full-country package and the corridor pack share one zoom cap.
 LAND_PEAKS_MAX_ZOOM = 10
@@ -254,33 +253,6 @@ def write_pmtiles(
     )
 
 
-def reencode_dem_256(raw: bytes) -> bytes:
-    """Decode a 512px Mapterhorn terrarium webp, re-encode at 256px webp."""
-    from PIL import Image  # type: ignore[import-not-found]  # venv-only dep
-    import numpy as np  # type: ignore[import-not-found]  # venv-only dep
-
-    img = Image.open(io.BytesIO(raw)).convert("RGB")
-    arr = np.asarray(
-        img.resize((256, 256), Image.Resampling.BILINEAR), dtype=np.float64
-    )
-    elev = arr[:, :, 0] * 256.0 + arr[:, :, 1] + arr[:, :, 2] / 256.0 - 32768.0
-    # Standard terrarium: R*256 + G + B/256 with the +32768 bias. Mapterhorn
-    # serves R=128 constant (elev = G + B/256), which this encoding reproduces.
-    shifted = np.clip(elev, 0.0, 32512.0) + 32768.0
-    terr = np.zeros((256, 256, 3), dtype=np.uint8)
-    terr[:, :, 0] = (shifted // 256.0).astype(np.uint8)
-    terr[:, :, 1] = (shifted % 256.0).astype(np.uint8)
-    terr[:, :, 2] = ((shifted * 256.0) % 256.0).astype(np.uint8)
-    out = io.BytesIO()
-    # Lossless: lossy webp quantizes the R channel (±14) which is a
-    # ±3600 m elevation error in terrarium encoding. Lossless webp keeps
-    # the DEM exact at ~3 KB/tile (256 px).
-    Image.fromarray(terr, "RGB").save(
-        out, format="WEBP", lossless=True, method=6
-    )
-    return out.getvalue()
-
-
 def sha256_file(path: Path) -> tuple[int, str]:
     digest = hashlib.sha256()
     size = 0
@@ -337,10 +309,10 @@ def build_land_relief(clip_path: Path, measure_only: bool) -> Path | None:
     for (z, x, y), path in zip(dem_tiles, paths):
         if path.stat().st_size == 0:
             continue
-        raw = path.read_bytes()
-        # Uniform 256 px tiles (tileSize 256 in the offline style): native
-        # 512 px Mapterhorn tiles would blow the pack budget (measured).
-        tiles[(z, x, y)] = reencode_dem_256(raw)
+        # Native Mapterhorn 512 px webp — same tiles as the online style
+        # (tileSize DEM_TILE_SIZE). No downsample; z10 cap keeps the pack
+        # under the 300 MB budget.
+        tiles[(z, x, y)] = path.read_bytes()
 
     out = PACKAGE / "land-relief.pmtiles"
     write_pmtiles(
@@ -582,15 +554,15 @@ map, clipped to the corridor bbox ({CORRIDOR_BBOX[0]}, {CORRIDOR_BBOX[1]},
 - Land relief (`land-relief.pmtiles`): Mapterhorn Terrarium tiles,
   <https://tiles.mapterhorn.com/> — Klimadatastyrelsen Greenland DEM,
   CC BY 4.0 (<https://mapterhorn.com/attribution>).
-  z0–z{LAND_MAX_ZOOM}, every tile re-encoded at {DEM_REENCODE_SIZE} px
-  (offline tileSize {DEM_REENCODE_SIZE}); z11+ renders overzoomed. The archive
-  is the same data the online style serves.
+  z0–z{LAND_MAX_ZOOM}, native {DEM_TILE_SIZE} px (offline tileSize
+  {DEM_TILE_SIZE}); z11+ renders overzoomed. Same tiles as the online style.
 - Land peak bands (`land-peaks.pmtiles`): peaks-only color relief cut from
   the same corridor DEM tiles (issue #24) — transparent below 500 m,
   discrete bands at 500/1000/2000 m (`landPeakBandColor` in
-  `web/src/map/meter-bands.ts`), z0–z{LAND_PEAKS_MAX_ZOOM}, {DEM_REENCODE_SIZE} px
-  lossless webp; z11+ renders overzoomed. Same Mapterhorn DEM source as
-  `land-relief.pmtiles`, so the bands sit on the relief they were cut from.
+  `web/src/map/meter-bands.ts`), z0–z{LAND_PEAKS_MAX_ZOOM},
+  {DEM_PEAKS_TILE_SIZE} px lossless webp; z11+ renders overzoomed. Same
+  Mapterhorn DEM source as `land-relief.pmtiles`, so the bands sit on the
+  relief they were cut from.
 - Ocean depth vector (`ocean-depth-vector.pmtiles`): self-tiled from the
   IBCAO v5.2 (2026) 400 m grid with GEBCO_2026 fallback (15 arc-sec) —
   depth band polygons (`depare`) + contour lines, clipped to the shared
@@ -661,7 +633,7 @@ def write_manifest(
         json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    eprint(f"pack total: {total / 1e6:.1f} MB (cap 250 MB)")
+    eprint(f"pack total: {total / 1e6:.1f} MB (cap 300 MB)")
     eprint(f"manifest: {PACKAGE / 'manifest.json'}")
     for row in rows:
         eprint(f"  {row['path']}: {row['bytes'] / 1e6:.1f} MB")
@@ -748,18 +720,18 @@ def main() -> None:
         },
         (
             "Full Qaarsut→Kullorsuaq corridor pack. Land relief (Mapterhorn "
-            f"DEM, CC BY 4.0) z0–z{LAND_MAX_ZOOM}, every tile re-encoded at "
-            f"{DEM_REENCODE_SIZE} px (tileSize {DEM_REENCODE_SIZE} offline; "
-            "z11+ renders overzoomed), land peak color bands (issue #24, "
-            f"peaks-only, transparent below 500 m, z0–z{LAND_PEAKS_MAX_ZOOM}), "
-            "ocean depth (self-tiled IBCAO v5.2 + "
-            f"GEBCO_2026 fallback, clipped to the shared coastline) z0–z{OCEAN_MAX_ZOOM} "
-            "vector (z12 renders overzoomed) + ocean hillshade raster "
-            f"z0–z{OCEAN_DEM_MAX_ZOOM} (z11+ overzooms), coastline mask "
-            f"(OSM ∪ DEM, ODbL + CC BY 4.0) z0–z{MASK_MAX_ZOOM}, localities. "
-            "Offline serves the ocean hillshade raster again (the pack "
-            "carries it). Tiles beyond the pack bbox are absent — no live "
-            "network fallback. Not for navigation."
+            f"DEM, CC BY 4.0) z0–z{LAND_MAX_ZOOM}, native {DEM_TILE_SIZE} px "
+            f"(tileSize {DEM_TILE_SIZE} offline; z11+ renders overzoomed), "
+            "land peak color bands (issue #24, peaks-only, transparent below "
+            f"500 m, z0–z{LAND_PEAKS_MAX_ZOOM}), ocean depth (self-tiled "
+            f"IBCAO v5.2 + GEBCO_2026 fallback, clipped to the shared "
+            f"coastline) z0–z{OCEAN_MAX_ZOOM} vector (z12 renders overzoomed) "
+            f"+ ocean hillshade raster z0–z{OCEAN_DEM_MAX_ZOOM} (z11+ "
+            f"overzooms), coastline mask (OSM ∪ DEM, ODbL + CC BY 4.0) "
+            f"z0–z{MASK_MAX_ZOOM}, localities. Offline serves the ocean "
+            "hillshade raster again (the pack carries it). Tiles beyond the "
+            "pack bbox are absent — no live network fallback. Not for "
+            "navigation."
         ),
     )
 

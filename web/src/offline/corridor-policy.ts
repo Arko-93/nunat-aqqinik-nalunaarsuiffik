@@ -8,8 +8,12 @@ export const CORRIDOR_BBOX: readonly [number, number, number, number] = [
   -58.5, 70.4, -50.5, 74.9,
 ];
 
-/** Hard size cap for a family-phone corridor pack. */
-export const MAX_PACK_BYTES = 250 * 1024 * 1024;
+/**
+ * Hard size cap for a family-phone corridor pack.
+ * Native Mapterhorn 512 px land-relief through z10 is ~240 MB alone;
+ * 300 MB leaves headroom for ocean + mask + peaks.
+ */
+export const MAX_PACK_BYTES = 300 * 1024 * 1024;
 
 /**
  * Files required before the UI may claim terrain is ready offline.

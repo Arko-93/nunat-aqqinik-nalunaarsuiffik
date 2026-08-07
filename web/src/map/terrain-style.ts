@@ -8,6 +8,9 @@ import {
   LAND_BREAKS_M,
   METER_BAND_POLICY,
   OCEAN_BREAKS_M,
+  OCEAN_CONTOUR_DETAIL_BREAKS_M,
+  OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
+  OCEAN_CONTOUR_OVERVIEW_BREAKS_M,
   oceanFillColorExpression,
 } from "./meter-bands.ts";
 
@@ -35,6 +38,13 @@ export const LAND_PEAKS_PMTILES_URL =
 
 export const LAND_PEAKS_MAX_ZOOM = 10;
 
+/**
+ * Corridor pack land-relief archive cap (build-corridor-pack.py).
+ * Native Mapterhorn 512 px tiles through z10; z11+ overzooms.
+ */
+export const LAND_RELIEF_PACK_MAX_ZOOM = 10;
+export const LAND_RELIEF_PACK_TILE_SIZE = 512;
+
 export const LAND_DEM_ATTRIBUTION =
   "Land DEM © Klimadatastyrelsen / Mapterhorn (CC BY 4.0)";
 
@@ -50,6 +60,10 @@ export const OCEAN_DEPTH_DEM_PMTILES_URL =
 export const OCEAN_DEPTH_VECTOR_PMTILES_URL =
   "pmtiles:///packages/ocean-depth/ocean-depth-vector.pmtiles";
 
+/** Archive caps from build-ocean-depth.py — style must declare these so MapLibre overzooms instead of requesting empty high-z tiles. */
+export const OCEAN_DEPTH_DEM_MAX_ZOOM = 10;
+export const OCEAN_DEPTH_VECTOR_MAX_ZOOM = 11;
+
 /**
  * Ocean depth attribution (IBCAO/GEBCO, open grid). Kept explicit:
  * self-tiled depth is display context, never navigation.
@@ -61,7 +75,10 @@ export const OCEAN_DEPTH_ATTRIBUTION =
 export const TERRAIN_LAYER_IDS = {
   oceanHillshade: "terrain-ocean-hillshade",
   oceanFills: "terrain-ocean-fills",
+  /** Major contours below detail zoom (100/200/500/1000 m). */
   oceanContours: "terrain-ocean-contours",
+  /** Full Hybrid D contours at/above detail zoom (5→1000 m, soft shallow). */
+  oceanContoursDetail: "terrain-ocean-contours-detail",
   oceanContourLabels: "terrain-ocean-contour-labels",
   coastlineMask: "terrain-coastline-mask",
   landHillshade: "terrain-land-hillshade",
@@ -94,6 +111,8 @@ export type TerrainStyleMeta = {
   "nunat:basemap": "terrain-first";
   "nunat:safety": "not-for-navigation";
   "nunat:meter-bands": typeof METER_BAND_POLICY.key;
+  /** Contour lines are zoom-thinned majors; fills keep full Hybrid D classes. */
+  "nunat:ocean-contour-thinning": typeof METER_BAND_POLICY.oceanContourThinning;
   "nunat:ocean-source": "ibcao-v5.2";
   /** GEBCO_2026 fills where IBCAO has no data (south of 64N, gaps). */
   "nunat:ocean-fallback": "gebco-2026";
@@ -179,6 +198,7 @@ function oceanLayerIds(): string[] {
     TERRAIN_LAYER_IDS.oceanHillshade,
     TERRAIN_LAYER_IDS.oceanFills,
     TERRAIN_LAYER_IDS.oceanContours,
+    TERRAIN_LAYER_IDS.oceanContoursDetail,
     TERRAIN_LAYER_IDS.oceanContourLabels,
   ];
 }
@@ -221,6 +241,7 @@ export function assertOceanUnderLand(
     TERRAIN_LAYER_IDS.oceanHillshade,
     TERRAIN_LAYER_IDS.oceanFills,
     TERRAIN_LAYER_IDS.oceanContours,
+    TERRAIN_LAYER_IDS.oceanContoursDetail,
   ];
   const landIdx = layerIds.findIndex(isBasemapLandFillId);
   if (landIdx < 0) {
@@ -412,8 +433,9 @@ export function composeTerrainStyle(
           "land-relief": {
             type: "raster-dem",
             tiles: [PACK_PMTILES_URL("land-relief.pmtiles")],
-            // The pack re-encodes Mapterhorn 512 px tiles at 256 px.
-            tileSize: 256,
+            // Native Mapterhorn 512 px (same as online); archive caps at z10.
+            tileSize: LAND_RELIEF_PACK_TILE_SIZE,
+            maxzoom: LAND_RELIEF_PACK_MAX_ZOOM,
             encoding: "terrarium",
             attribution: LAND_DEM_ATTRIBUTION,
           },
@@ -428,12 +450,14 @@ export function composeTerrainStyle(
             type: "raster-dem",
             tiles: [PACK_PMTILES_URL("ocean-depth-dem.pmtiles")],
             tileSize: 256,
+            maxzoom: OCEAN_DEPTH_DEM_MAX_ZOOM,
             encoding: "terrarium",
             attribution: OCEAN_DEPTH_ATTRIBUTION,
           },
           "ocean-depth-vector": {
             type: "vector",
             tiles: [PACK_PMTILES_URL("ocean-depth-vector.pmtiles")],
+            maxzoom: OCEAN_DEPTH_VECTOR_MAX_ZOOM,
             attribution: OCEAN_DEPTH_ATTRIBUTION,
           },
           "coastline-land": {
@@ -462,14 +486,18 @@ export function composeTerrainStyle(
           },
           "ocean-depth-dem": {
             type: "raster-dem",
-            tiles: [OCEAN_DEPTH_DEM_PMTILES_URL],
+            // Same as land-peaks: bare archive URLs are only valid on
+            // `url:` (tilejson). `tiles:` needs an explicit template.
+            tiles: [`${OCEAN_DEPTH_DEM_PMTILES_URL}/{z}/{x}/{y}`],
             tileSize: 256,
+            maxzoom: OCEAN_DEPTH_DEM_MAX_ZOOM,
             encoding: "terrarium",
             attribution: OCEAN_DEPTH_ATTRIBUTION,
           },
           "ocean-depth-vector": {
             type: "vector",
-            tiles: [OCEAN_DEPTH_VECTOR_PMTILES_URL],
+            tiles: [`${OCEAN_DEPTH_VECTOR_PMTILES_URL}/{z}/{x}/{y}`],
+            maxzoom: OCEAN_DEPTH_VECTOR_MAX_ZOOM,
             attribution: OCEAN_DEPTH_ATTRIBUTION,
           },
           "coastline-land": {
@@ -489,13 +517,27 @@ export function composeTerrainStyle(
     : 1;
   const insertAt = beforeIndex >= 0 ? beforeIndex : 1;
 
+  // Ocean DEM hillshade: useful at overview; at detail zoom the coarse
+  // open-grid cells paint as square waves — fade exaggeration to 0.
   const oceanLayers: LayerSpecification[] = [
     {
       id: TERRAIN_LAYER_IDS.oceanHillshade,
       type: "hillshade",
       source: "ocean-depth-dem",
       paint: {
-        "hillshade-exaggeration": 0.45,
+        "hillshade-exaggeration": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          7,
+          0.45,
+          OCEAN_CONTOUR_DETAIL_MIN_ZOOM - 0.5,
+          0.28,
+          OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
+          0.06,
+          OCEAN_CONTOUR_DETAIL_MIN_ZOOM + 1.5,
+          0,
+        ],
         "hillshade-shadow-color": "#062033",
         "hillshade-highlight-color": "#d7e8f4",
         "hillshade-accent-color": "#1a4a66",
@@ -503,28 +545,78 @@ export function composeTerrainStyle(
     },
   ];
 
+  // Depth-area fills (depare): overview only. At detail zoom open-grid
+  // polygon edges also stair-step — hide them; soft contours meter depth.
   const oceanFills: LayerSpecification = {
     id: TERRAIN_LAYER_IDS.oceanFills,
     type: "fill",
     source: "ocean-depth-vector",
     "source-layer": "depare",
     filter: oceanFillFilter(),
+    maxzoom: OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
     paint: {
       "fill-color": oceanFillColorExpression(),
       "fill-opacity": 0.48,
+      "fill-outline-color": "rgba(0,0,0,0)",
     },
   };
 
+  // Contour thinning: overview deep majors; detail full Hybrid D ladder
+  // (5→1000 m). Soft shallow strokes; stronger deep. DEM square waves stay off.
   const oceanContours: LayerSpecification = {
     id: TERRAIN_LAYER_IDS.oceanContours,
     type: "line",
     source: "ocean-depth-vector",
     "source-layer": "contours",
-    filter: contourBreakFilter(OCEAN_BREAKS_M),
+    filter: contourBreakFilter(OCEAN_CONTOUR_OVERVIEW_BREAKS_M),
+    maxzoom: OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
     paint: {
       "line-color": "#2f6f88",
-      "line-width": 1.2,
-      "line-opacity": 0.8,
+      "line-width": 0.9,
+      "line-opacity": 0.55,
+    },
+  };
+
+  const oceanContoursDetail: LayerSpecification = {
+    id: TERRAIN_LAYER_IDS.oceanContoursDetail,
+    type: "line",
+    source: "ocean-depth-vector",
+    "source-layer": "contours",
+    filter: contourBreakFilter(OCEAN_CONTOUR_DETAIL_BREAKS_M),
+    minzoom: OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
+    paint: {
+      "line-color": "#2f6f88",
+      // Shallow (5–50 m) stay thin; deep majors read as the structure.
+      "line-width": [
+        "match",
+        ["get", "depth_abs_m"],
+        5,
+        0.55,
+        10,
+        0.65,
+        20,
+        0.75,
+        50,
+        0.9,
+        100,
+        1.05,
+        200,
+        1.15,
+        1.25,
+      ],
+      "line-opacity": [
+        "match",
+        ["get", "depth_abs_m"],
+        5,
+        0.38,
+        10,
+        0.4,
+        20,
+        0.42,
+        50,
+        0.48,
+        0.55,
+      ],
     },
   };
 
@@ -533,18 +625,58 @@ export function composeTerrainStyle(
     type: "symbol",
     source: "ocean-depth-vector",
     "source-layer": "contours",
-    filter: contourBreakFilter(OCEAN_BREAKS_M),
+    // Overview: deep majors. Detail: full Hybrid D including shallow 5 m.
+    filter: [
+      "all",
+      [
+        "case",
+        ["<", ["zoom"], OCEAN_CONTOUR_DETAIL_MIN_ZOOM],
+        [
+          "in",
+          ["get", "depth_abs_m"],
+          ["literal", [...OCEAN_CONTOUR_OVERVIEW_BREAKS_M]],
+        ],
+        [
+          "in",
+          ["get", "depth_abs_m"],
+          ["literal", [...OCEAN_CONTOUR_DETAIL_BREAKS_M]],
+        ],
+      ],
+      ["any", ["!", ["has", "sys"]], ["!=", ["get", "sys"], "ft"]],
+    ],
     minzoom: 6,
     layout: {
       "symbol-placement": "line",
       "text-field": ["concat", ["to-string", ["get", "depth_abs_m"]], " m"],
-      "text-size": 11,
+      "text-size": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        6,
+        11,
+        OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
+        12,
+        12,
+        13,
+      ],
       "text-font": ["Noto Sans Regular"],
+      "text-max-angle": 30,
+      "symbol-spacing": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        6,
+        320,
+        OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
+        220,
+        12,
+        160,
+      ],
     },
     paint: {
       "text-color": "#0c2438",
       "text-halo-color": "#ffffff",
-      "text-halo-width": 1.2,
+      "text-halo-width": 1.6,
     },
   };
 
@@ -569,6 +701,7 @@ export function composeTerrainStyle(
     ...oceanLayers,
     oceanFills,
     oceanContours,
+    oceanContoursDetail,
     oceanContourLabels,
     coastlineMask,
   );
@@ -612,6 +745,7 @@ export function composeTerrainStyle(
     "nunat:basemap": "terrain-first",
     "nunat:safety": "not-for-navigation",
     "nunat:meter-bands": METER_BAND_POLICY.key,
+    "nunat:ocean-contour-thinning": METER_BAND_POLICY.oceanContourThinning,
     "nunat:ocean-source": "ibcao-v5.2",
     "nunat:ocean-fallback": "gebco-2026",
     "nunat:land-source": "mapterhorn-terrarium",
@@ -634,6 +768,11 @@ export function composeTerrainStyle(
     "nunat:land-peak-fill": "discrete-color-relief-mapterhorn",
     "nunat:land-peak-resampling": "nearest",
     "nunat:ocean-breaks-m": [...OCEAN_BREAKS_M],
+    "nunat:ocean-contour-overview-breaks-m": [
+      ...OCEAN_CONTOUR_OVERVIEW_BREAKS_M,
+    ],
+    "nunat:ocean-contour-detail-breaks-m": [...OCEAN_CONTOUR_DETAIL_BREAKS_M],
+    "nunat:ocean-contour-detail-minzoom": OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
     "nunat:ocean-fill": "discrete-step-drval1-metric",
     "nunat:contour-field": "depth_abs_m",
   };

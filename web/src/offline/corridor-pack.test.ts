@@ -122,6 +122,30 @@ describe("OPFS corridor pack behavior", () => {
     expect(await readInstalledManifest()).toBeNull();
   });
 
+  it("rejects Vite SPA HTML fallback when a pack asset is missing", async () => {
+    const { provider } = createMemoryOpfsRoot();
+    setOpfsRootProvider(provider);
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith("/manifest.json")) {
+          return new Response(JSON.stringify(stubManifest), { status: 200 });
+        }
+        return new Response("<!doctype html><html></html>", {
+          status: 200,
+          headers: { "content-type": "text/html" },
+        });
+      }),
+    );
+
+    await expect(
+      installCorridorPack("/packages/fixtures/tiny-corridor"),
+    ).rejects.toThrow(/Missing pack asset|web-fetch-corridor-pack/);
+    expect(await readInstalledManifest()).toBeNull();
+  });
+
   it("surfaces OPFS deletion failures instead of swallowing them", async () => {
     const { provider, root } = createMemoryOpfsRoot();
     setOpfsRootProvider(provider);

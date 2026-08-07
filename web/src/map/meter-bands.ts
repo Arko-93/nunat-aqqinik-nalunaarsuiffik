@@ -9,6 +9,20 @@ import type { ExpressionSpecification } from "maplibre-gl";
 
 export const OCEAN_BREAKS_M = [5, 10, 20, 50, 100, 200, 500, 1000] as const;
 
+/**
+ * Contour / fill thinning (dogfood UX):
+ * Overview (below OCEAN_CONTOUR_DETAIL_MIN_ZOOM): Hybrid D fills + DEM
+ * hillshade + deep majors (100/200/500/1000 m).
+ * Detail (at/above that zoom): full Hybrid D contour ladder including
+ * shallow 5/10/20/50 m (tiles have no 1–2 m — Hybrid D starts at 5 m).
+ * Hide depare fills and fade DEM hillshade — open-grid cell edges read as
+ * square waves when overzoomed; the contour lines stay useful.
+ */
+export const OCEAN_CONTOUR_OVERVIEW_BREAKS_M = [100, 200, 500, 1000] as const;
+/** Full Hybrid D ladder at detail — shallow through deep. */
+export const OCEAN_CONTOUR_DETAIL_BREAKS_M = OCEAN_BREAKS_M;
+export const OCEAN_CONTOUR_DETAIL_MIN_ZOOM = 9;
+
 export const LAND_BREAKS_M = [500, 1000, 2000] as const;
 
 export const METER_BAND_POLICY = {
@@ -18,6 +32,8 @@ export const METER_BAND_POLICY = {
   oceanStyle: "filled-plus-contours-masked" as const,
   /** Land bands paint high peaks only (≥500 m), never a full land wash. */
   landPeaksOnly: true as const,
+  /** Contour lines are zoom-thinned majors; fills still use full OCEAN_BREAKS_M. */
+  oceanContourThinning: "zoom-major" as const,
 };
 
 export function oceanBandColor(depthM: number): string {

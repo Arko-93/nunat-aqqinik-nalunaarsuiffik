@@ -4,6 +4,9 @@ import {
   LAND_BREAKS_M,
   METER_BAND_POLICY,
   OCEAN_BREAKS_M,
+  OCEAN_CONTOUR_DETAIL_BREAKS_M,
+  OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
+  OCEAN_CONTOUR_OVERVIEW_BREAKS_M,
   oceanFillColorExpression,
 } from "./meter-bands.ts";
 import {
@@ -15,8 +18,12 @@ import {
   LAND_DEM_TILEJSON,
   LAND_PEAKS_MAX_ZOOM,
   LAND_PEAKS_PMTILES_URL,
+  LAND_RELIEF_PACK_MAX_ZOOM,
+  LAND_RELIEF_PACK_TILE_SIZE,
   OCEAN_DEPTH_ATTRIBUTION,
+  OCEAN_DEPTH_DEM_MAX_ZOOM,
   OCEAN_DEPTH_DEM_PMTILES_URL,
+  OCEAN_DEPTH_VECTOR_MAX_ZOOM,
   OCEAN_DEPTH_VECTOR_PMTILES_URL,
   composeNameOwnedLibertyStyle,
   composeTerrainStyle,
@@ -131,13 +138,19 @@ describe("composeTerrainStyle (hybrid D)", () => {
     const sources = style.sources as Record<string, Record<string, unknown>>;
     const dem = sources["ocean-depth-dem"];
     expect(dem["type"]).toBe("raster-dem");
-    expect(dem["tiles"]).toEqual([OCEAN_DEPTH_DEM_PMTILES_URL]);
+    expect(dem["tiles"]).toEqual([
+      `${OCEAN_DEPTH_DEM_PMTILES_URL}/{z}/{x}/{y}`,
+    ]);
     expect(dem["tileSize"]).toBe(256);
+    expect(dem["maxzoom"]).toBe(OCEAN_DEPTH_DEM_MAX_ZOOM);
     expect(dem["encoding"]).toBe("terrarium");
     expect(dem["url"]).toBeUndefined();
     const vector = sources["ocean-depth-vector"];
     expect(vector["type"]).toBe("vector");
-    expect(vector["tiles"]).toEqual([OCEAN_DEPTH_VECTOR_PMTILES_URL]);
+    expect(vector["tiles"]).toEqual([
+      `${OCEAN_DEPTH_VECTOR_PMTILES_URL}/{z}/{x}/{y}`,
+    ]);
+    expect(vector["maxzoom"]).toBe(OCEAN_DEPTH_VECTOR_MAX_ZOOM);
     expect(vector["url"]).toBeUndefined();
     // The Seascape interim sources are gone from the product path.
     expect(JSON.stringify(style.sources)).not.toContain("openwaters.io");
@@ -156,10 +169,105 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(ids).toContain(TERRAIN_LAYER_IDS.oceanHillshade);
     expect(ids).toContain(TERRAIN_LAYER_IDS.oceanFills);
     expect(ids).toContain(TERRAIN_LAYER_IDS.oceanContours);
+    expect(ids).toContain(TERRAIN_LAYER_IDS.oceanContoursDetail);
     expect(ids).toContain(TERRAIN_LAYER_IDS.landHillshade);
     expect(assertOceanUnderLand(ids)).toEqual({ ok: true });
     expect(ids.indexOf(TERRAIN_LAYER_IDS.oceanFills)).toBeLessThan(
       ids.indexOf("landcover"),
+    );
+  });
+
+  it("fades DEM hillshade and keeps soft major contours at detail zoom", () => {
+    const style = composeTerrainStyle(libertyStub);
+    const meta = style.metadata as Record<string, unknown>;
+    expect(meta["nunat:ocean-contour-thinning"]).toBe("zoom-major");
+    expect(meta["nunat:ocean-contour-overview-breaks-m"]).toEqual([
+      ...OCEAN_CONTOUR_OVERVIEW_BREAKS_M,
+    ]);
+    expect(meta["nunat:ocean-contour-detail-breaks-m"]).toEqual([
+      ...OCEAN_CONTOUR_DETAIL_BREAKS_M,
+    ]);
+    expect(meta["nunat:ocean-contour-detail-minzoom"]).toBe(
+      OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
+    );
+
+    const hillshade = style.layers?.find(
+      (layer) => layer.id === TERRAIN_LAYER_IDS.oceanHillshade,
+    ) as
+      | {
+          paint?: { "hillshade-exaggeration"?: unknown };
+        }
+      | undefined;
+    const exaggeration = JSON.stringify(
+      hillshade?.paint?.["hillshade-exaggeration"],
+    );
+    expect(exaggeration).toContain("interpolate");
+    expect(exaggeration).toContain("0");
+
+    const fills = style.layers?.find(
+      (layer) => layer.id === TERRAIN_LAYER_IDS.oceanFills,
+    ) as
+      | {
+          maxzoom?: number;
+          paint?: { "fill-outline-color"?: string };
+        }
+      | undefined;
+    expect(fills?.maxzoom).toBe(OCEAN_CONTOUR_DETAIL_MIN_ZOOM);
+    expect(fills?.paint?.["fill-outline-color"]).toMatch(/rgba\(0,\s*0,\s*0,\s*0\)/);
+
+    const overview = style.layers?.find(
+      (layer) => layer.id === TERRAIN_LAYER_IDS.oceanContours,
+    ) as
+      | {
+          filter?: unknown;
+          maxzoom?: number;
+          paint?: { "line-opacity"?: number };
+        }
+      | undefined;
+    expect(overview?.maxzoom).toBe(OCEAN_CONTOUR_DETAIL_MIN_ZOOM);
+    expect(JSON.stringify(overview?.filter)).toContain("100");
+    expect(JSON.stringify(overview?.filter)).toContain("1000");
+    expect(JSON.stringify(overview?.filter)).not.toContain('"5"');
+    expect(overview?.paint?.["line-opacity"]).toBeLessThan(0.7);
+
+    const detail = style.layers?.find(
+      (layer) => layer.id === TERRAIN_LAYER_IDS.oceanContoursDetail,
+    ) as
+      | {
+          filter?: unknown;
+          minzoom?: number;
+          paint?: { "line-opacity"?: unknown; "line-width"?: unknown };
+        }
+      | undefined;
+    expect(detail?.minzoom).toBe(OCEAN_CONTOUR_DETAIL_MIN_ZOOM);
+    const detailFilter = JSON.stringify(detail?.filter);
+    // Full Hybrid D at detail — shallow 5 m through 1000 m.
+    expect(detailFilter).toContain("5");
+    expect(detailFilter).toContain("10");
+    expect(detailFilter).toContain("50");
+    expect(detailFilter).toContain("100");
+    expect(detailFilter).toContain("1000");
+    expect(JSON.stringify(detail?.paint?.["line-width"])).toContain("match");
+    expect(JSON.stringify(detail?.paint?.["line-opacity"])).toContain("match");
+
+    const labels = style.layers?.find(
+      (layer) => layer.id === TERRAIN_LAYER_IDS.oceanContourLabels,
+    ) as
+      | {
+          filter?: unknown;
+          layout?: { "text-size"?: unknown; "symbol-spacing"?: unknown };
+        }
+      | undefined;
+    const labelFilter = JSON.stringify(labels?.filter);
+    expect(labelFilter).toContain("case");
+    expect(labelFilter).toContain("5");
+    expect(labelFilter).toContain("100");
+    expect(labelFilter).toContain("1000");
+    expect(JSON.stringify(labels?.layout?.["text-size"])).toContain(
+      "interpolate",
+    );
+    expect(JSON.stringify(labels?.layout?.["symbol-spacing"])).toContain(
+      "interpolate",
     );
   });
 
@@ -172,6 +280,7 @@ describe("composeTerrainStyle (hybrid D)", () => {
       TERRAIN_LAYER_IDS.oceanHillshade,
       TERRAIN_LAYER_IDS.oceanFills,
       TERRAIN_LAYER_IDS.oceanContours,
+      TERRAIN_LAYER_IDS.oceanContoursDetail,
       TERRAIN_LAYER_IDS.oceanContourLabels,
     ]) {
       expect(ids.indexOf(oceanId)).toBeLessThan(maskIdx);
@@ -258,13 +367,15 @@ describe("composeTerrainStyle (hybrid D)", () => {
     const style = composeTerrainStyle(libertyStub, { offline: true });
     const sources = style.sources as Record<string, Record<string, unknown>>;
 
-    // Land relief: pack archive, 256 px tiles (the pack re-encodes).
+    // Land relief: pack archive, native Mapterhorn 512 px through z10.
     const land = sources["land-relief"];
     expect(land["type"]).toBe("raster-dem");
     expect(land["tiles"]).toEqual([
       "pmtiles:///packages/qaarsut-kullorsuaq/land-relief.pmtiles/{z}/{x}/{y}",
     ]);
-    expect(land["tileSize"]).toBe(256);
+    expect(land["tileSize"]).toBe(LAND_RELIEF_PACK_TILE_SIZE);
+    expect(land["tileSize"]).toBe(512);
+    expect(land["maxzoom"]).toBe(LAND_RELIEF_PACK_MAX_ZOOM);
     expect(land["encoding"]).toBe("terrarium");
     expect(land["url"]).toBeUndefined();
 
@@ -286,6 +397,7 @@ describe("composeTerrainStyle (hybrid D)", () => {
       "pmtiles:///packages/qaarsut-kullorsuaq/ocean-depth-dem.pmtiles/{z}/{x}/{y}",
     ]);
     expect(oceanDem["tileSize"]).toBe(256);
+    expect(oceanDem["maxzoom"]).toBe(OCEAN_DEPTH_DEM_MAX_ZOOM);
     expect(oceanDem["encoding"]).toBe("terrarium");
     expect(oceanDem["url"]).toBeUndefined();
     const ocean = sources["ocean-depth-vector"];
@@ -293,6 +405,7 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(ocean["tiles"]).toEqual([
       "pmtiles:///packages/qaarsut-kullorsuaq/ocean-depth-vector.pmtiles/{z}/{x}/{y}",
     ]);
+    expect(ocean["maxzoom"]).toBe(OCEAN_DEPTH_VECTOR_MAX_ZOOM);
 
     // Coastline mask: same logical path, pack-scoped.
     const mask = sources["coastline-land"];
@@ -308,6 +421,7 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(ids).toContain(TERRAIN_LAYER_IDS.oceanHillshade);
     expect(ids).toContain(TERRAIN_LAYER_IDS.oceanFills);
     expect(ids).toContain(TERRAIN_LAYER_IDS.oceanContours);
+    expect(ids).toContain(TERRAIN_LAYER_IDS.oceanContoursDetail);
     expect(ids).toContain(TERRAIN_LAYER_IDS.oceanContourLabels);
     expect(ids).toContain(TERRAIN_LAYER_IDS.coastlineMask);
     expect(ids).toContain(TERRAIN_LAYER_IDS.landHillshade);
@@ -320,6 +434,7 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(meta["nunat:ocean-hillshade-offline"]).toBe("served");
     expect(meta["nunat:ocean-source"]).toBe("ibcao-v5.2");
     expect(meta["nunat:ocean-fallback"]).toBe("gebco-2026");
+    expect(meta["nunat:ocean-contour-thinning"]).toBe("zoom-major");
     expect(meta["nunat:safety"]).toBe("not-for-navigation");
   });
 
@@ -334,11 +449,15 @@ describe("composeTerrainStyle (hybrid D)", () => {
     ]);
     expect(sources["land-peaks"]["maxzoom"]).toBe(LAND_PEAKS_MAX_ZOOM);
     expect(sources["ocean-depth-dem"]["tiles"]).toEqual([
-      OCEAN_DEPTH_DEM_PMTILES_URL,
+      `${OCEAN_DEPTH_DEM_PMTILES_URL}/{z}/{x}/{y}`,
     ]);
+    expect(sources["ocean-depth-dem"]["maxzoom"]).toBe(OCEAN_DEPTH_DEM_MAX_ZOOM);
     expect(sources["ocean-depth-vector"]["tiles"]).toEqual([
-      OCEAN_DEPTH_VECTOR_PMTILES_URL,
+      `${OCEAN_DEPTH_VECTOR_PMTILES_URL}/{z}/{x}/{y}`,
     ]);
+    expect(sources["ocean-depth-vector"]["maxzoom"]).toBe(
+      OCEAN_DEPTH_VECTOR_MAX_ZOOM,
+    );
     expect(sources["coastline-land"]["url"]).toBe(COASTLINE_MASK_PMTILES_URL);
     const meta = style.metadata as Record<string, unknown>;
     expect(meta["nunat:tile-serving"]).toBe("remote");
@@ -351,6 +470,7 @@ describe("composeTerrainStyle (hybrid D)", () => {
       TERRAIN_LAYER_IDS.oceanHillshade,
       TERRAIN_LAYER_IDS.oceanFills,
       TERRAIN_LAYER_IDS.oceanContours,
+      TERRAIN_LAYER_IDS.oceanContoursDetail,
       TERRAIN_LAYER_IDS.oceanContourLabels,
       TERRAIN_LAYER_IDS.coastlineMask,
       "landcover",
@@ -368,6 +488,7 @@ describe("composeTerrainStyle (hybrid D)", () => {
       TERRAIN_LAYER_IDS.oceanHillshade,
       TERRAIN_LAYER_IDS.oceanFills,
       TERRAIN_LAYER_IDS.oceanContours,
+      TERRAIN_LAYER_IDS.oceanContoursDetail,
       TERRAIN_LAYER_IDS.oceanContourLabels,
     ]) {
       const shifted = base.filter((id) => id !== oceanId);
@@ -385,21 +506,29 @@ describe("composeTerrainStyle (hybrid D)", () => {
   });
 
   it("filters contours on depth_abs_m (not signed depth_m)", () => {
-    expect(contourBreakFilter(OCEAN_BREAKS_M)).toEqual([
+    expect(contourBreakFilter(OCEAN_CONTOUR_OVERVIEW_BREAKS_M)).toEqual([
       "all",
-      ["in", ["get", "depth_abs_m"], ["literal", [...OCEAN_BREAKS_M]]],
+      [
+        "in",
+        ["get", "depth_abs_m"],
+        ["literal", [...OCEAN_CONTOUR_OVERVIEW_BREAKS_M]],
+      ],
       ["any", ["!", ["has", "sys"]], ["!=", ["get", "sys"], "ft"]],
     ]);
+    // Fills still use the full Hybrid D ladder.
+    expect(OCEAN_BREAKS_M).toEqual([5, 10, 20, 50, 100, 200, 500, 1000]);
     const style = composeTerrainStyle(libertyStub);
     const labels = style.layers?.find(
       (layer) => layer.id === TERRAIN_LAYER_IDS.oceanContourLabels,
-    ) as { layout?: { "text-field"?: unknown } } | undefined;
+    ) as { layout?: { "text-field"?: unknown }; filter?: unknown } | undefined;
     expect(JSON.stringify(labels?.layout?.["text-field"])).toContain(
       "depth_abs_m",
     );
     expect(JSON.stringify(labels?.layout?.["text-field"])).not.toContain(
       '"depth_m"',
     );
+    expect(JSON.stringify(labels?.filter)).toContain("100");
+    expect(JSON.stringify(labels?.filter)).not.toContain('"5"');
   });
 
   it("uses discrete metric-only fill bands on drval1", () => {
