@@ -10,7 +10,13 @@ import {
   OCEAN_BREAKS_M,
   OCEAN_CONTOUR_DETAIL_BREAKS_M,
   OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
+  OCEAN_CONTOUR_INDEX_M,
+  OCEAN_CONTOUR_INTERMEDIATE_M,
   OCEAN_CONTOUR_OVERVIEW_BREAKS_M,
+  OCEAN_CONTOUR_SHALLOW_LABEL_MIN_ZOOM,
+  oceanContourLineColorExpression,
+  oceanContourLineOpacityExpression,
+  oceanContourLineWidthExpression,
   oceanFillColorExpression,
 } from "./meter-bands.ts";
 
@@ -113,6 +119,8 @@ export type TerrainStyleMeta = {
   "nunat:meter-bands": typeof METER_BAND_POLICY.key;
   /** Contour lines are zoom-thinned majors; fills keep full Hybrid D classes. */
   "nunat:ocean-contour-thinning": typeof METER_BAND_POLICY.oceanContourThinning;
+  /** Marine-chart index / intermediate / shallow line hierarchy. */
+  "nunat:ocean-contour-hierarchy": typeof METER_BAND_POLICY.oceanContourHierarchy;
   "nunat:ocean-source": "ibcao-v5.2";
   /** GEBCO_2026 fills where IBCAO has no data (south of 64N, gaps). */
   "nunat:ocean-fallback": "gebco-2026";
@@ -561,8 +569,14 @@ export function composeTerrainStyle(
     },
   };
 
-  // Contour thinning: overview deep majors; detail full Hybrid D ladder
-  // (5→1000 m). Soft shallow strokes; stronger deep. DEM square waves stay off.
+  // Contours: marine-chart index / intermediate / shallow hierarchy.
+  // Overview deep majors; detail full Hybrid D. DEM square waves stay off.
+  const contourPaint = {
+    "line-color": oceanContourLineColorExpression(),
+    "line-width": oceanContourLineWidthExpression(),
+    "line-opacity": oceanContourLineOpacityExpression(),
+  } as const;
+
   const oceanContours: LayerSpecification = {
     id: TERRAIN_LAYER_IDS.oceanContours,
     type: "line",
@@ -570,11 +584,7 @@ export function composeTerrainStyle(
     "source-layer": "contours",
     filter: contourBreakFilter(OCEAN_CONTOUR_OVERVIEW_BREAKS_M),
     maxzoom: OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
-    paint: {
-      "line-color": "#2f6f88",
-      "line-width": 0.9,
-      "line-opacity": 0.55,
-    },
+    paint: { ...contourPaint },
   };
 
   const oceanContoursDetail: LayerSpecification = {
@@ -584,48 +594,21 @@ export function composeTerrainStyle(
     "source-layer": "contours",
     filter: contourBreakFilter(OCEAN_CONTOUR_DETAIL_BREAKS_M),
     minzoom: OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
-    paint: {
-      "line-color": "#2f6f88",
-      // Shallow (5–50 m) stay thin; deep majors read as the structure.
-      "line-width": [
-        "match",
-        ["get", "depth_abs_m"],
-        5,
-        0.55,
-        10,
-        0.65,
-        20,
-        0.75,
-        50,
-        0.9,
-        100,
-        1.05,
-        200,
-        1.15,
-        1.25,
-      ],
-      "line-opacity": [
-        "match",
-        ["get", "depth_abs_m"],
-        5,
-        0.38,
-        10,
-        0.4,
-        20,
-        0.42,
-        50,
-        0.48,
-        0.55,
-      ],
-    },
+    paint: { ...contourPaint },
   };
+
+  // Labels: index always (from minzoom); intermediate from detail zoom;
+  // shallow only at close zoom so nearshore stays readable.
+  const indexAndIntermediateBreaks = [
+    ...OCEAN_CONTOUR_INDEX_M,
+    ...OCEAN_CONTOUR_INTERMEDIATE_M,
+  ] as const;
 
   const oceanContourLabels: LayerSpecification = {
     id: TERRAIN_LAYER_IDS.oceanContourLabels,
     type: "symbol",
     source: "ocean-depth-vector",
     "source-layer": "contours",
-    // Overview: deep majors. Detail: full Hybrid D including shallow 5 m.
     filter: [
       "all",
       [
@@ -635,6 +618,12 @@ export function composeTerrainStyle(
           "in",
           ["get", "depth_abs_m"],
           ["literal", [...OCEAN_CONTOUR_OVERVIEW_BREAKS_M]],
+        ],
+        ["<", ["zoom"], OCEAN_CONTOUR_SHALLOW_LABEL_MIN_ZOOM],
+        [
+          "in",
+          ["get", "depth_abs_m"],
+          ["literal", [...indexAndIntermediateBreaks]],
         ],
         [
           "in",
@@ -648,6 +637,8 @@ export function composeTerrainStyle(
     layout: {
       "symbol-placement": "line",
       "text-field": ["concat", ["to-string", ["get", "depth_abs_m"]], " m"],
+      // Layout props (symbol-spacing, text-size) only allow zoom expressions —
+      // not feature data. Rank hierarchy stays in paint + the filter above.
       "text-size": [
         "interpolate",
         ["linear"],
@@ -655,8 +646,8 @@ export function composeTerrainStyle(
         6,
         11,
         OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
-        12,
-        12,
+        12.5,
+        OCEAN_CONTOUR_SHALLOW_LABEL_MIN_ZOOM,
         13,
       ],
       "text-font": ["Noto Sans Regular"],
@@ -666,17 +657,19 @@ export function composeTerrainStyle(
         ["linear"],
         ["zoom"],
         6,
-        320,
+        300,
         OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
-        220,
-        12,
-        160,
+        240,
+        OCEAN_CONTOUR_SHALLOW_LABEL_MIN_ZOOM,
+        180,
       ],
     },
     paint: {
-      "text-color": "#0c2438",
-      "text-halo-color": "#ffffff",
-      "text-halo-width": 1.6,
+      // Soft meter text — below land place-name contrast.
+      "text-color": "#3d6f88",
+      "text-halo-color": "rgba(255,255,255,0.85)",
+      "text-halo-width": 1.2,
+      "text-opacity": 0.75,
     },
   };
 
@@ -746,6 +739,7 @@ export function composeTerrainStyle(
     "nunat:safety": "not-for-navigation",
     "nunat:meter-bands": METER_BAND_POLICY.key,
     "nunat:ocean-contour-thinning": METER_BAND_POLICY.oceanContourThinning,
+    "nunat:ocean-contour-hierarchy": METER_BAND_POLICY.oceanContourHierarchy,
     "nunat:ocean-source": "ibcao-v5.2",
     "nunat:ocean-fallback": "gebco-2026",
     "nunat:land-source": "mapterhorn-terrarium",

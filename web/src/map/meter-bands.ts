@@ -23,6 +23,20 @@ export const OCEAN_CONTOUR_OVERVIEW_BREAKS_M = [100, 200, 500, 1000] as const;
 export const OCEAN_CONTOUR_DETAIL_BREAKS_M = OCEAN_BREAKS_M;
 export const OCEAN_CONTOUR_DETAIL_MIN_ZOOM = 9;
 
+/**
+ * Marine-chart contour hierarchy (index / intermediate / shallow).
+ * Index carries structure; shallow meters nearshore without competing.
+ * No 150 m in tiles — Hybrid D only.
+ */
+export const OCEAN_CONTOUR_INDEX_M = [200, 500, 1000] as const;
+export const OCEAN_CONTOUR_INTERMEDIATE_M = [50, 100] as const;
+export const OCEAN_CONTOUR_SHALLOW_M = [5, 10, 20] as const;
+
+/** Shallow contour labels only from this zoom (index/mid sooner). */
+export const OCEAN_CONTOUR_SHALLOW_LABEL_MIN_ZOOM = 11;
+
+export type OceanContourLabelRank = "index" | "intermediate" | "shallow";
+
 export const LAND_BREAKS_M = [500, 1000, 2000] as const;
 
 export const METER_BAND_POLICY = {
@@ -34,7 +48,77 @@ export const METER_BAND_POLICY = {
   landPeaksOnly: true as const,
   /** Contour lines are zoom-thinned majors; fills still use full OCEAN_BREAKS_M. */
   oceanContourThinning: "zoom-major" as const,
+  /** Line weight/color follow marine index/intermediate/shallow ranks. */
+  oceanContourHierarchy: "index-intermediate" as const,
 };
+
+/**
+ * Quiet chart-style widths: hierarchy stays, but land/islands/settlements
+ * remain the primary visual signal (contours as secondary metering).
+ */
+export function oceanContourLineWidthPx(depthAbsM: number): number {
+  if (depthAbsM >= 500) return 1.35;
+  if (depthAbsM >= 200) return 1.2;
+  if (depthAbsM >= 100) return 0.85;
+  if (depthAbsM >= 50) return 0.75;
+  if (depthAbsM >= 20) return 0.55;
+  if (depthAbsM >= 10) return 0.45;
+  return 0.4;
+}
+
+export function oceanContourLineOpacity(depthAbsM: number): number {
+  if (depthAbsM >= 200) return 0.42;
+  if (depthAbsM >= 50) return 0.34;
+  return 0.26;
+}
+
+/** Soft coastal blues — never as dark as land labels / hillshade accents. */
+export function oceanContourLineColor(depthAbsM: number): string {
+  if (depthAbsM >= 500) return "#3d6f88";
+  if (depthAbsM >= 200) return "#4a7f96";
+  if (depthAbsM >= 50) return "#5a93a8";
+  return "#7aafc0";
+}
+
+export function oceanContourLabelRank(
+  depthAbsM: number,
+): OceanContourLabelRank {
+  if (
+    (OCEAN_CONTOUR_INDEX_M as readonly number[]).includes(depthAbsM)
+  ) {
+    return "index";
+  }
+  if (
+    (OCEAN_CONTOUR_INTERMEDIATE_M as readonly number[]).includes(depthAbsM)
+  ) {
+    return "intermediate";
+  }
+  return "shallow";
+}
+
+function matchByDepthAbsM(
+  valueFor: (depthAbsM: number) => string | number,
+): ExpressionSpecification {
+  // match(get depth_abs_m, d1, v1, d2, v2, …, default)
+  const stops: Array<string | number> = [];
+  for (const depth of OCEAN_BREAKS_M) {
+    stops.push(depth, valueFor(depth));
+  }
+  const fallback = valueFor(OCEAN_BREAKS_M[OCEAN_BREAKS_M.length - 1]!);
+  return ["match", ["get", "depth_abs_m"], ...stops, fallback];
+}
+
+export function oceanContourLineWidthExpression(): ExpressionSpecification {
+  return matchByDepthAbsM(oceanContourLineWidthPx);
+}
+
+export function oceanContourLineOpacityExpression(): ExpressionSpecification {
+  return matchByDepthAbsM(oceanContourLineOpacity);
+}
+
+export function oceanContourLineColorExpression(): ExpressionSpecification {
+  return matchByDepthAbsM(oceanContourLineColor);
+}
 
 export function oceanBandColor(depthM: number): string {
   if (depthM <= 10) return "#b9e0f0";

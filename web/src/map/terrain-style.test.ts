@@ -181,6 +181,7 @@ describe("composeTerrainStyle (hybrid D)", () => {
     const style = composeTerrainStyle(libertyStub);
     const meta = style.metadata as Record<string, unknown>;
     expect(meta["nunat:ocean-contour-thinning"]).toBe("zoom-major");
+    expect(meta["nunat:ocean-contour-hierarchy"]).toBe("index-intermediate");
     expect(meta["nunat:ocean-contour-overview-breaks-m"]).toEqual([
       ...OCEAN_CONTOUR_OVERVIEW_BREAKS_M,
     ]);
@@ -221,14 +222,19 @@ describe("composeTerrainStyle (hybrid D)", () => {
       | {
           filter?: unknown;
           maxzoom?: number;
-          paint?: { "line-opacity"?: number };
+          paint?: {
+            "line-opacity"?: unknown;
+            "line-width"?: unknown;
+            "line-color"?: unknown;
+          };
         }
       | undefined;
     expect(overview?.maxzoom).toBe(OCEAN_CONTOUR_DETAIL_MIN_ZOOM);
     expect(JSON.stringify(overview?.filter)).toContain("100");
     expect(JSON.stringify(overview?.filter)).toContain("1000");
     expect(JSON.stringify(overview?.filter)).not.toContain('"5"');
-    expect(overview?.paint?.["line-opacity"]).toBeLessThan(0.7);
+    expect(JSON.stringify(overview?.paint?.["line-width"])).toContain("match");
+    expect(JSON.stringify(overview?.paint?.["line-color"])).toContain("match");
 
     const detail = style.layers?.find(
       (layer) => layer.id === TERRAIN_LAYER_IDS.oceanContoursDetail,
@@ -236,7 +242,11 @@ describe("composeTerrainStyle (hybrid D)", () => {
       | {
           filter?: unknown;
           minzoom?: number;
-          paint?: { "line-opacity"?: unknown; "line-width"?: unknown };
+          paint?: {
+            "line-opacity"?: unknown;
+            "line-width"?: unknown;
+            "line-color"?: unknown;
+          };
         }
       | undefined;
     expect(detail?.minzoom).toBe(OCEAN_CONTOUR_DETAIL_MIN_ZOOM);
@@ -247,8 +257,13 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(detailFilter).toContain("50");
     expect(detailFilter).toContain("100");
     expect(detailFilter).toContain("1000");
-    expect(JSON.stringify(detail?.paint?.["line-width"])).toContain("match");
+    const detailWidth = JSON.stringify(detail?.paint?.["line-width"]);
+    expect(detailWidth).toContain("match");
+    // Quiet hierarchy: index thicker than shallow, neither chart-bold.
+    expect(detailWidth.indexOf("1.2")).toBeGreaterThan(-1);
+    expect(detailWidth.indexOf("0.4")).toBeGreaterThan(-1);
     expect(JSON.stringify(detail?.paint?.["line-opacity"])).toContain("match");
+    expect(JSON.stringify(detail?.paint?.["line-color"])).toContain("#4a7f96");
 
     const labels = style.layers?.find(
       (layer) => layer.id === TERRAIN_LAYER_IDS.oceanContourLabels,
@@ -260,9 +275,11 @@ describe("composeTerrainStyle (hybrid D)", () => {
       | undefined;
     const labelFilter = JSON.stringify(labels?.filter);
     expect(labelFilter).toContain("case");
-    expect(labelFilter).toContain("5");
     expect(labelFilter).toContain("100");
     expect(labelFilter).toContain("1000");
+    // Shallow labels gated to close zoom in the case ladder.
+    expect(labelFilter).toContain("11");
+    // Layout only allows zoom expressions (not feature match).
     expect(JSON.stringify(labels?.layout?.["text-size"])).toContain(
       "interpolate",
     );
