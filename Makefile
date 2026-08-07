@@ -2,7 +2,7 @@
 
 SHELL := /bin/bash
 
-.PHONY: preview-assemble map-fetch map-build map-omarchy preview-omarchy api-install api-typecheck api-test api-dev marine-install marine-test marine-fetch-land-assets marine-publish-land-assets marine-build marine-omarchy web-fetch-coastline-mask web-publish-coastline-mask web-fetch-ocean-depth web-publish-ocean-depth web-fetch-land-peaks web-publish-land-peaks web-fetch-corridor-pack web-publish-corridor-pack
+.PHONY: preview-assemble map-fetch map-build map-omarchy preview-omarchy api-install api-typecheck api-test api-dev api-generate-client marine-install marine-test marine-fetch-land-assets marine-publish-land-assets marine-build marine-omarchy web-fetch-coastline-mask web-publish-coastline-mask web-fetch-ocean-depth web-publish-ocean-depth web-fetch-land-peaks web-publish-land-peaks web-fetch-corridor-pack web-publish-corridor-pack
 
 map-fetch:
 	bash scripts/sync-web-release.sh
@@ -43,6 +43,9 @@ api-test:
 
 api-dev: api-install
 	pnpm --dir api dev
+
+api-generate-client: api-install
+	pnpm --dir api generate:client
 
 marine-install:
 	pnpm --dir marine-poc install
