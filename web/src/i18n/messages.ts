@@ -57,7 +57,10 @@ export type Messages = {
   downloadDelete: string;
   downloadUpdate: string;
   notForNavigation: string;
+  /** Quiet chrome note where land DEM/relief tiles are absent (issue #26). */
   tileGapLabel: string;
+  /** Quiet chrome note where ocean depth tiles are absent (issue #26). */
+  oceanDepthGapLabel: string;
   iosHomeScreenHint: string;
   packVersion: string;
   legendLabel: string;
@@ -129,6 +132,7 @@ const en: Messages = {
   downloadUpdate: "Update available",
   notForNavigation: "Not for navigation — open-grid depth, not a chart",
   tileGapLabel: "Relief data missing here",
+  oceanDepthGapLabel: "Depth data missing here",
   iosHomeScreenHint:
     "On iPhone/iPad: Add to Home Screen so the offline pack is not cleared.",
   packVersion: "Pack",
@@ -200,6 +204,7 @@ const da: Messages = {
   downloadUpdate: "Opdatering klar",
   notForNavigation: "Ikke til navigation — åbent dybdegitter, ikke et søkort",
   tileGapLabel: "Relief mangler her",
+  oceanDepthGapLabel: "Dybdedata mangler her",
   iosHomeScreenHint:
     "På iPhone/iPad: Føj til hjemmeskærm, så offline-pakken ikke slettes.",
   packVersion: "Pakke",
@@ -271,6 +276,8 @@ const kl: Messages = {
   downloadUpdate: "Nutarterneqarsinnaavoq",
   notForNavigation: "Angalanermut atugassaanngilaq — immap itissusia chartinngilaq",
   tileGapLabel: "Relief-data maani peqanngilaq",
+  // Provisional KL UI copy — native review still pending (pendingReviewNote).
+  oceanDepthGapLabel: "Immap itissusia maani peqanngilaq",
   iosHomeScreenHint:
     "iPhone/iPad-imi: Home Screen-imut ilanngutikkit offline-pakke peerneqannginnissaa.",
   packVersion: "Pakke",

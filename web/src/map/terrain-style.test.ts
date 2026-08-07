@@ -111,6 +111,7 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(meta["nunat:meter-bands"]).toBe(METER_BAND_POLICY.key);
     expect(meta["nunat:land-peak-bands"]).toBe("500-1000-2000");
     expect(meta["nunat:land-peaks-only"]).toBe(true);
+    expect(meta["nunat:tile-gap-labels"]).toBe("visible");
     expect(meta["nunat:ocean-under-land"]).toBe(true);
     expect(JSON.stringify(style.layers)).toContain("peak-bands");
     expect(meta["nunat:contour-field"]).toBe("depth_abs_m");

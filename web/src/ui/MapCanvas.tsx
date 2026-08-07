@@ -4,6 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { disclosureMinZoom } from "../domain/disclosure.ts";
 import type { ZoomBand } from "../domain/importance.ts";
 import type { Placename } from "../domain/placename.ts";
+import { useI18n } from "../i18n/I18nContext.tsx";
 import {
   allCoastalLabelLayers,
   allCoastalMarkerOnlyLayers,
@@ -24,8 +25,16 @@ import {
 } from "../map/terrain-style.ts";
 import {
   bindCorridorPackToProtocol,
+  setTileGapReporter,
   unbindCorridorPackFromProtocol,
 } from "../map/pmtiles-protocol.ts";
+import {
+  emptyTileGapState,
+  type BBox,
+  TileGapTracker,
+  type TileGapState,
+  type TileManagerRegistry,
+} from "../map/tile-gaps.ts";
 import {
   getPackInstallState,
   readPackFileHandle,
@@ -109,6 +118,28 @@ function addAdministrativeLayers(map: Map) {
 
 function sourceReady(map: Map): boolean {
   return Boolean(map.isStyleLoaded() && map.getSource(SOURCE_ID));
+}
+
+/** Current camera bounds as a [west, south, east, north] bbox. */
+function viewportBBox(map: Map): BBox | null {
+  try {
+    const [[west, south], [east, north]] = map.getBounds().toArray();
+    return [west, south, east, north];
+  } catch {
+    return null;
+  }
+}
+
+/** MapLibre's per-source tile managers (read-only internal seam). */
+function tileManagersOf(map: Map): TileManagerRegistry | undefined {
+  // MapLibre does not expose tileManagers on the public Map type; the
+  // shape is stable across 5.x (style.tileManagers[sourceId]) and is the
+  // same boundary MapLibre's querySourceFeatures walks.
+  const style = (map as unknown as { style?: unknown }).style;
+  if (!style || typeof style !== "object" || !("tileManagers" in style)) {
+    return undefined;
+  }
+  return style.tileManagers as TileManagerRegistry;
 }
 
 function whenSourceReady(map: Map, run: () => void): () => void {
@@ -397,7 +428,9 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
   const prevSelectedRef = useRef<number | null>(null);
   const inactiveIdsRef = useRef<Set<number>>(new Set());
   const applySeqRef = useRef(0);
+  const { t } = useI18n();
   const [styleEpoch, setStyleEpoch] = useState(0);
+  const [gap, setGap] = useState<TileGapState>(emptyTileGapState);
   onSelectRef.current = onSelect;
   collectionRef.current = collection;
 
@@ -428,6 +461,21 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       new maplibregl.NavigationControl({ showCompass: false }),
       "bottom-right",
     );
+
+    // Tile-gap labelling (issue #26): the pmtiles protocol reports tiles
+    // that resolve empty; re-project them against the viewport whenever the
+    // map settles so the quiet chip only shows for the current gap.
+    const tracker = new TileGapTracker({
+      getViewport: () => viewportBBox(map),
+      getTileManagers: () => tileManagersOf(map),
+      remoteLandSourceId: "land-relief",
+      onChange: setGap,
+    });
+    setTileGapReporter((miss) => tracker.record(miss));
+    const settle = () => tracker.refresh();
+    map.on("moveend", settle);
+    map.on("zoomend", settle);
+    map.on("styledata", settle);
 
     const ensureLayers = () => {
       if (map.getSource(SOURCE_ID)) return;
@@ -537,6 +585,7 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
           }
         }
       }
+      tracker.refresh();
     };
 
     /**
@@ -607,6 +656,11 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
     return () => {
       cancelled = true;
       unsubscribePack();
+      setTileGapReporter(null);
+      tracker.dispose();
+      map.off("moveend", settle);
+      map.off("zoomend", settle);
+      map.off("styledata", settle);
       const win = window as Window & { __nunatMap?: Map };
       if (win.__nunatMap === map) delete win.__nunatMap;
       map.remove();
@@ -705,5 +759,14 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
     // rebuilt — re-run this effect so the selection state is restored.
   }, [collection, selectedId, styleEpoch]);
 
-  return <div className="map-root" ref={containerRef} />;
+  return (
+    <div className="map-root" ref={containerRef}>
+      {(gap.land || gap.ocean) && (
+        <div className="map-gap-labels" role="note">
+          {gap.land && <p className="map-gap-label">{t.tileGapLabel}</p>}
+          {gap.ocean && <p className="map-gap-label">{t.oceanDepthGapLabel}</p>}
+        </div>
+      )}
+    </div>
+  );
 }

@@ -102,6 +102,11 @@ export type TerrainStyleMeta = {
   "nunat:land-peak-bands": "500-1000-2000";
   /** Product policy: land meter bands paint high peaks only, never a full wash. */
   "nunat:land-peaks-only": true;
+  /**
+   * Gap labelling (issue #26): the UI shows a quiet chrome note when land
+   * DEM or ocean depth tiles resolve absent for the current viewport.
+   */
+  "nunat:tile-gap-labels": "visible";
   "nunat:ocean-under-land": true;
   "nunat:coastline-source": "osm-land-polygons";
   "nunat:coastline-licence": "ODbL";
@@ -612,6 +617,7 @@ export function composeTerrainStyle(
     "nunat:land-source": "mapterhorn-terrarium",
     "nunat:land-peak-bands": "500-1000-2000",
     "nunat:land-peaks-only": true,
+    "nunat:tile-gap-labels": "visible",
     "nunat:ocean-under-land": true,
     "nunat:coastline-source": "osm-land-polygons",
     "nunat:coastline-licence": "ODbL",

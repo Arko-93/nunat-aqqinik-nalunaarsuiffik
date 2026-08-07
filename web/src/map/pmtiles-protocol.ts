@@ -4,8 +4,45 @@ import maplibregl, {
 } from "maplibre-gl";
 import { PMTiles, Protocol, type RangeResponse, type Source } from "pmtiles";
 import { CORRIDOR_PACKAGE_BASE, TERRAIN_OFFLINE_FILES } from "../offline/corridor-policy.ts";
+import {
+  archiveKindFor,
+  type TileGapMiss,
+} from "./tile-gaps.ts";
 
 let registered = false;
+
+/**
+ * One tile that resolved empty/absent for a terrain zone — forwarded to the
+ * gap tracker (issue #26). Setting a reporter is optional; the protocol
+ * serves tiles the same way with or without it.
+ */
+let tileGapReporter: ((miss: TileGapMiss) => void) | null = null;
+
+export function setTileGapReporter(
+  reporter: ((miss: TileGapMiss) => void) | null,
+): void {
+  tileGapReporter = reporter;
+}
+
+function reportTileGap(archivePath: string, z: number, x: number, y: number): void {
+  if (!tileGapReporter) return;
+  const kind = archiveKindFor(archivePath);
+  if (!kind) return; // coastline mask etc. is not a gap source.
+  tileGapReporter({ zone: kind.zone, z, x, y });
+}
+
+/** True when a network response holds no usable tile for its archive kind. */
+function isMissingNetworkTile(
+  archivePath: string,
+  result: GetResourceResponse<unknown>,
+): boolean {
+  const kind = archiveKindFor(archivePath);
+  if (!kind) return false;
+  if (kind.raster) return result.data == null;
+  return (
+    result.data instanceof Uint8Array && result.data.byteLength === 0
+  );
+}
 
 /**
  * Network-backed protocol instance: serves same-origin `pmtiles:///...`
@@ -44,6 +81,7 @@ function archivePathFrom(params: RequestParameters): string | null {
  */
 async function serveLocalTile(
   tiles: PMTiles,
+  archivePath: string,
   params: RequestParameters,
   signal: AbortSignal,
 ): Promise<GetResourceResponse<unknown>> {
@@ -58,6 +96,7 @@ async function serveLocalTile(
   const y = Number(match[4]);
   const tile = await tiles.getZxy(z, x, y, signal);
   if (!tile) {
+    reportTileGap(archivePath, z, x, y);
     const header = await tiles.getHeader();
     if (header.tileType === 1 || header.tileType === 6) {
       return { data: new Uint8Array() };
@@ -80,11 +119,33 @@ export function registerPmtilesProtocol(): void {
   if (registered) return;
   maplibregl.addProtocol("pmtiles", (params, abortController) => {
     const archive = archivePathFrom(params);
-    const local = archive ? packTiles.get(archive) : undefined;
-    if (local) {
-      return serveLocalTile(local, params, abortController.signal);
+    if (!archive) {
+      return networkProtocol.tile(params, abortController);
     }
-    return networkProtocol.tile(params, abortController);
+    const local = packTiles.get(archive);
+    if (local) {
+      return serveLocalTile(local, archive, params, abortController.signal);
+    }
+    const promise = networkProtocol.tile(params, abortController);
+    if (tileGapReporter) {
+      const match = TILE_URL_RE.exec(params.url);
+      void promise
+        .then((result) => {
+          if (!match) return;
+          if (isMissingNetworkTile(archive, result)) {
+            reportTileGap(
+              archive,
+              Number(match[2]),
+              Number(match[3]),
+              Number(match[4]),
+            );
+          }
+        })
+        .catch(() => {
+          /* network errors are surfaced by MapLibre, not the reporter */
+        });
+    }
+    return promise;
   });
   registered = true;
 }
