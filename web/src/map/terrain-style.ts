@@ -21,6 +21,24 @@ export const LIBERTY_STYLE_URL =
 export const LAND_DEM_TILEJSON = "https://tiles.mapterhorn.com/tilejson.json";
 
 /**
+ * Land peak color bands (issue #24) — peaks-only color-relief raster
+ * derived from the same Mapterhorn DEM the land hillshade uses.
+ * Pixels below 500 m are transparent; 500-1000 / 1000-2000 / 2000+ m
+ * use landPeakBandColor (meter-bands.ts). z0-z10, 256 px webp — z11+
+ * renders overzoomed (same policy as the land relief / corridor pack).
+ * Same-origin path so the offline corridor pack can serve the same
+ * logical file. Package: web/public/packages/land-peaks
+ * (build-land-peaks.py / fetch-land-peaks-assets.sh).
+ */
+export const LAND_PEAKS_PMTILES_URL =
+  "pmtiles:///packages/land-peaks/land-peaks.pmtiles";
+
+export const LAND_PEAKS_MAX_ZOOM = 10;
+
+export const LAND_DEM_ATTRIBUTION =
+  "Land DEM © Klimadatastyrelsen / Mapterhorn (CC BY 4.0)";
+
+/**
  * Self-tiled ocean depth (issue #23) — IBCAO v5.2 with GEBCO_2026 fallback,
  * clipped to the shared coastline (OSM ∪ Mapterhorn DEM land) before
  * tiling. Same-origin paths so the offline corridor pack can serve the
@@ -39,7 +57,7 @@ export const OCEAN_DEPTH_VECTOR_PMTILES_URL =
 export const OCEAN_DEPTH_ATTRIBUTION =
   "Ocean depth © IBCAO v5.2 (2026) · GEBCO_2026 fallback (open grid, Seabed 2030) — not for navigation";
 
-/** Layers that exist in the composed style today (no deferred peak layer id). */
+/** Layer ids in the composed style (peak bands ship since issue #24). */
 export const TERRAIN_LAYER_IDS = {
   oceanHillshade: "terrain-ocean-hillshade",
   oceanFills: "terrain-ocean-fills",
@@ -47,6 +65,7 @@ export const TERRAIN_LAYER_IDS = {
   oceanContourLabels: "terrain-ocean-contour-labels",
   coastlineMask: "terrain-coastline-mask",
   landHillshade: "terrain-land-hillshade",
+  landPeakBands: "terrain-land-peak-bands",
 } as const;
 
 /**
@@ -79,8 +98,10 @@ export type TerrainStyleMeta = {
   /** GEBCO_2026 fills where IBCAO has no data (south of 64N, gaps). */
   "nunat:ocean-fallback": "gebco-2026";
   "nunat:land-source": "mapterhorn-terrarium";
-  /** Peak color bands are product policy only — not a live layer yet. */
-  "nunat:land-peak-bands": "deferred";
+  /** Discrete peak bands at 500/1000/2000 m (elev < 500 m transparent). */
+  "nunat:land-peak-bands": "500-1000-2000";
+  /** Product policy: land meter bands paint high peaks only, never a full wash. */
+  "nunat:land-peaks-only": true;
   "nunat:ocean-under-land": true;
   "nunat:coastline-source": "osm-land-polygons";
   "nunat:coastline-licence": "ODbL";
@@ -389,8 +410,14 @@ export function composeTerrainStyle(
             // The pack re-encodes Mapterhorn 512 px tiles at 256 px.
             tileSize: 256,
             encoding: "terrarium",
-            attribution:
-              "Land DEM © Klimadatastyrelsen / Mapterhorn (CC BY 4.0)",
+            attribution: LAND_DEM_ATTRIBUTION,
+          },
+          "land-peaks": {
+            type: "raster",
+            tiles: [PACK_PMTILES_URL("land-peaks.pmtiles")],
+            tileSize: 256,
+            maxzoom: LAND_PEAKS_MAX_ZOOM,
+            attribution: LAND_DEM_ATTRIBUTION,
           },
           "ocean-depth-dem": {
             type: "raster-dem",
@@ -416,8 +443,17 @@ export function composeTerrainStyle(
             url: LAND_DEM_TILEJSON,
             tileSize: 512,
             encoding: "terrarium",
-            attribution:
-              "Land DEM © Klimadatastyrelsen / Mapterhorn (CC BY 4.0)",
+            attribution: LAND_DEM_ATTRIBUTION,
+          },
+          "land-peaks": {
+            type: "raster",
+            // Explicit {z}/{x}/{y}: the pmtiles protocol resolves each
+            // request from the archive (bare archive URLs are only valid
+            // for `url:` sources that fetch a tilejson first).
+            tiles: [`${LAND_PEAKS_PMTILES_URL}/{z}/{x}/{y}`],
+            tileSize: 256,
+            maxzoom: LAND_PEAKS_MAX_ZOOM,
+            attribution: LAND_DEM_ATTRIBUTION,
           },
           "ocean-depth-dem": {
             type: "raster-dem",
@@ -543,9 +579,27 @@ export function composeTerrainStyle(
       "hillshade-accent-color": "#6b5e4a",
     },
   };
+  // Peak color bands (issue #24): the color-relief raster sits above the
+  // opaque land hillshade — MapLibre hillshade cannot color by elevation,
+  // and a raster under it would be hidden. Bands are baked flat band
+  // colors (transparent below 500 m), so sub-500 m land keeps full
+  // hillshade relief while tinted peaks are the crisp elevation surface.
+  // The semi-transparent Liberty land fills keep their normal position
+  // above both, and place labels/markers stay above everything.
+  const landPeakBands: LayerSpecification = {
+    id: TERRAIN_LAYER_IDS.landPeakBands,
+    type: "raster",
+    source: "land-peaks",
+    paint: {
+      // Discrete bands: nearest keeps band edges crisp (linear would
+      // blur the 500/1000/2000 m boundaries into fringes).
+      "raster-resampling": "nearest",
+      "raster-opacity": 1,
+    },
+  };
   const landCoverIdx = layers.findIndex(isBasemapLandFillLayer);
   const landInsert = landCoverIdx >= 0 ? landCoverIdx : insertAt + 5;
-  layers.splice(landInsert, 0, landHillshade);
+  layers.splice(landInsert, 0, landHillshade, landPeakBands);
 
   style.layers = layers;
 
@@ -556,7 +610,8 @@ export function composeTerrainStyle(
     "nunat:ocean-source": "ibcao-v5.2",
     "nunat:ocean-fallback": "gebco-2026",
     "nunat:land-source": "mapterhorn-terrarium",
-    "nunat:land-peak-bands": "deferred",
+    "nunat:land-peak-bands": "500-1000-2000",
+    "nunat:land-peaks-only": true,
     "nunat:ocean-under-land": true,
     "nunat:coastline-source": "osm-land-polygons",
     "nunat:coastline-licence": "ODbL",
@@ -570,6 +625,8 @@ export function composeTerrainStyle(
       : {}),
     ...meta,
     "nunat:land-breaks-m": [...LAND_BREAKS_M],
+    "nunat:land-peak-fill": "discrete-color-relief-mapterhorn",
+    "nunat:land-peak-resampling": "nearest",
     "nunat:ocean-breaks-m": [...OCEAN_BREAKS_M],
     "nunat:ocean-fill": "discrete-step-drval1-metric",
     "nunat:contour-field": "depth_abs_m",

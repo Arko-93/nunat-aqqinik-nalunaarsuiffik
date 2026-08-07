@@ -76,6 +76,7 @@ describe("map-first UI contracts", () => {
     for (const locale of ["kl", "da", "en"] as const) {
       const t = MESSAGES[locale];
       expect(t.legendLabel.length).toBeGreaterThan(0);
+      expect(t.landPeakLegend.length).toBeGreaterThan(0);
       expect(t.typeLabelSkerry.length).toBeGreaterThan(0);
       expect(t.typeLabelIsland.length).toBeGreaterThan(0);
       expect(t.typeLabelIslandPart.length).toBeGreaterThan(0);

@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { I18nProvider } from "../i18n/I18nContext.tsx";
 import { MESSAGES, type Locale } from "../i18n/messages.ts";
 import { withMapRank, type Placename } from "../domain/placename.ts";
+import { LAND_BREAKS_M } from "../map/meter-bands.ts";
+import { MapLegend } from "./MapLegend.tsx";
 import {
   searchAlternateMatchText,
   searchPlacenames,
@@ -81,6 +83,25 @@ function renderDossier(subject: Placename, locale: Locale): string {
     </I18nProvider>,
   );
 }
+
+describe("passive legend peak bands (issue #24)", () => {
+  it("renders swatch labels from the shared LAND_BREAKS_M constant", () => {
+    const markup = renderToStaticMarkup(
+      <I18nProvider initialLocale="en">
+        <MapLegend />
+      </I18nProvider>,
+    );
+    // The legend shows the same breaks the style paints (meter-bands.ts).
+    expect(markup).toContain(String(LAND_BREAKS_M[0]));
+    expect(markup).toContain(String(LAND_BREAKS_M[1]));
+    expect(markup).toContain(String(LAND_BREAKS_M[2]));
+    // Passive legend: label + swatches, never a filter/lens control.
+    expect(markup).toContain(MESSAGES.en.landPeakLegend);
+    expect(markup).not.toContain("<button");
+    expect(markup).not.toContain("<input");
+    expect(markup).toContain("map-legend-swatch");
+  });
+});
 
 describe("official Kalaallisut primary labels (issue #15)", () => {
   it("keeps officialName primary across KL/DA/EN with no type suffixes", () => {

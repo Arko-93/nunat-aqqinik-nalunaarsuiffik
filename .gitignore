@@ -23,6 +23,7 @@ web/public/packages/coastline-land/land.pmtiles
 # Fat corridor-pack PMTiles — GitHub Release hosts them
 # (fetch-corridor-pack-assets.sh / build-corridor-pack.py).
 web/public/packages/qaarsut-kullorsuaq/land-relief.pmtiles
+web/public/packages/qaarsut-kullorsuaq/land-peaks.pmtiles
 web/public/packages/qaarsut-kullorsuaq/ocean-depth-dem.pmtiles
 web/public/packages/qaarsut-kullorsuaq/ocean-depth-vector.pmtiles
 web/public/packages/qaarsut-kullorsuaq/coastline-land/land.pmtiles
@@ -31,3 +32,7 @@ web/public/packages/qaarsut-kullorsuaq/coastline-land/land.pmtiles
 # (fetch-ocean-depth-assets.sh / build-ocean-depth.py).
 web/public/packages/ocean-depth/ocean-depth-dem.pmtiles
 web/public/packages/ocean-depth/ocean-depth-vector.pmtiles
+
+# Fat land-peaks PMTiles — GitHub Release hosts them
+# (fetch-land-peaks-assets.sh / build-land-peaks.py).
+web/public/packages/land-peaks/land-peaks.pmtiles

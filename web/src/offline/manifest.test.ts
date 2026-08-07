@@ -93,6 +93,7 @@ describe("corridor pack manifest contracts", () => {
     const files = [
       ...fixtureManifest.files,
       { path: "land-relief.pmtiles", bytes: 1, sha256: "a".repeat(64) },
+      { path: "land-peaks.pmtiles", bytes: 1, sha256: "a".repeat(64) },
       { path: "ocean-depth-dem.pmtiles", bytes: 1, sha256: "b".repeat(64) },
       { path: "ocean-depth-vector.pmtiles", bytes: 1, sha256: "c".repeat(64) },
       { path: "coastline-land/land.pmtiles", bytes: 1, sha256: "d".repeat(64) },
@@ -112,6 +113,7 @@ describe("corridor pack manifest contracts", () => {
     const files = [
       ...fixtureManifest.files,
       { path: "land-relief.pmtiles", bytes: 1, sha256: "a".repeat(64) },
+      { path: "land-peaks.pmtiles", bytes: 1, sha256: "a".repeat(64) },
       { path: "ocean-depth-dem.pmtiles", bytes: 1, sha256: "b".repeat(64) },
       { path: "ocean-depth-vector.pmtiles", bytes: 1, sha256: "c".repeat(64) },
       { path: "coastline-land/land.pmtiles", bytes: 1, sha256: "d".repeat(64) },

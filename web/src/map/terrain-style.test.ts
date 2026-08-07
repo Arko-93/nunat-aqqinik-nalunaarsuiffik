@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { StyleSpecification } from "maplibre-gl";
 import {
+  LAND_BREAKS_M,
   METER_BAND_POLICY,
   OCEAN_BREAKS_M,
   oceanFillColorExpression,
@@ -10,7 +11,10 @@ import {
   assertOceanUnderLand,
   COASTLINE_MASK_ATTRIBUTION,
   COASTLINE_MASK_PMTILES_URL,
+  LAND_DEM_ATTRIBUTION,
   LAND_DEM_TILEJSON,
+  LAND_PEAKS_MAX_ZOOM,
+  LAND_PEAKS_PMTILES_URL,
   OCEAN_DEPTH_ATTRIBUTION,
   OCEAN_DEPTH_DEM_PMTILES_URL,
   OCEAN_DEPTH_VECTOR_PMTILES_URL,
@@ -105,13 +109,15 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(meta["nunat:basemap"]).toBe("terrain-first");
     expect(meta["nunat:safety"]).toBe("not-for-navigation");
     expect(meta["nunat:meter-bands"]).toBe(METER_BAND_POLICY.key);
-    expect(meta["nunat:land-peak-bands"]).toBe("deferred");
-    expect(meta["nunat:land-peaks-only"]).toBeUndefined();
+    expect(meta["nunat:land-peak-bands"]).toBe("500-1000-2000");
+    expect(meta["nunat:land-peaks-only"]).toBe(true);
     expect(meta["nunat:ocean-under-land"]).toBe(true);
-    expect(JSON.stringify(style.layers)).not.toContain("peak-bands");
+    expect(JSON.stringify(style.layers)).toContain("peak-bands");
     expect(meta["nunat:contour-field"]).toBe("depth_abs_m");
+    expect(meta["nunat:land-peak-fill"]).toBe("discrete-color-relief-mapterhorn");
+    expect(meta["nunat:land-peak-resampling"]).toBe("nearest");
     expect(meta["nunat:ocean-fill"]).toBe("discrete-step-drval1-metric");
-    expect(meta["nunat:ocean-breaks-m"]).toEqual([...OCEAN_BREAKS_M]);
+    expect(meta["nunat:land-breaks-m"]).toEqual([...LAND_BREAKS_M]);
     // Product ocean source is self-tiled IBCAO/GEBCO, never Seascape.
     expect(meta["nunat:ocean-source"]).toBe("ibcao-v5.2");
     expect(meta["nunat:ocean-fallback"]).toBe("gebco-2026");
@@ -176,6 +182,53 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(assertMaskAboveOcean(ids)).toEqual({ ok: true });
   });
 
+  it("serves peaks-only color-relief bands above mask + hillshade, below labels", () => {
+    const style = composeTerrainStyle(libertyStub);
+    const sources = style.sources as Record<string, Record<string, unknown>>;
+    const peaks = sources["land-peaks"];
+    // Raster (not raster-dem: colors are baked at build time) served from
+    // the same-origin package with explicit z/x/y tile URLs, 256 px,
+    // capped at the archive maxzoom so z11+ overzooms.
+    expect(peaks["type"]).toBe("raster");
+    expect(peaks["tiles"]).toEqual([`${LAND_PEAKS_PMTILES_URL}/{z}/{x}/{y}`]);
+    expect(peaks["tileSize"]).toBe(256);
+    expect(peaks["maxzoom"]).toBe(LAND_PEAKS_MAX_ZOOM);
+    expect(peaks["url"]).toBeUndefined();
+    expect(String(peaks["attribution"])).toBe(LAND_DEM_ATTRIBUTION);
+    expect(String(peaks["attribution"])).toContain("CC BY 4.0");
+
+    const layer = style.layers?.find(
+      (candidate) => candidate.id === TERRAIN_LAYER_IDS.landPeakBands,
+    ) as
+      | {
+          type?: string;
+          source?: string;
+          paint?: { "raster-resampling"?: string };
+        }
+      | undefined;
+    expect(layer?.type).toBe("raster");
+    expect(layer?.source).toBe("land-peaks");
+    expect(layer?.paint?.["raster-resampling"]).toBe("nearest");
+
+    // Order: above the coastline mask + opaque land hillshade (a raster
+    // under the hillshade would be invisible), below the basemap land
+    // fills and every label. Peaks never sit under the mask.
+    const ids = (style.layers ?? []).map((candidate) => candidate.id);
+    const peaksIdx = ids.indexOf(TERRAIN_LAYER_IDS.landPeakBands);
+    expect(peaksIdx).toBeGreaterThan(
+      ids.indexOf(TERRAIN_LAYER_IDS.coastlineMask),
+    );
+    expect(peaksIdx).toBeGreaterThan(ids.indexOf(TERRAIN_LAYER_IDS.landHillshade));
+    expect(peaksIdx).toBeLessThan(ids.indexOf("landcover"));
+    const firstSymbol = ids.findIndex((id) => {
+      if (id.startsWith("terrain-")) return false;
+      const candidate = style.layers?.find((layerEntry) => layerEntry.id === id);
+      return candidate?.type === "symbol";
+    });
+    expect(peaksIdx).toBeLessThan(firstSymbol);
+    expect(assertMaskAboveOcean(ids)).toEqual({ ok: true });
+  });
+
   it("adds the OSM coastline PMTiles mask source with ODbL attribution", () => {
     const style = composeTerrainStyle(libertyStub);
     const source = style.sources?.["coastline-land"] as
@@ -214,6 +267,16 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(land["encoding"]).toBe("terrarium");
     expect(land["url"]).toBeUndefined();
 
+    // Land peak bands: pack color-relief archive, same 256 px tile policy.
+    const peaks = sources["land-peaks"];
+    expect(peaks["type"]).toBe("raster");
+    expect(peaks["tiles"]).toEqual([
+      "pmtiles:///packages/qaarsut-kullorsuaq/land-peaks.pmtiles/{z}/{x}/{y}",
+    ]);
+    expect(peaks["tileSize"]).toBe(256);
+    expect(peaks["maxzoom"]).toBe(LAND_PEAKS_MAX_ZOOM);
+    expect(peaks["url"]).toBeUndefined();
+
     // Ocean depth: the pack carries the vector source (fills/contours) and
     // the raster DEM (ocean hillshade restored offline, issue #23).
     const oceanDem = sources["ocean-depth-dem"];
@@ -247,6 +310,7 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(ids).toContain(TERRAIN_LAYER_IDS.oceanContourLabels);
     expect(ids).toContain(TERRAIN_LAYER_IDS.coastlineMask);
     expect(ids).toContain(TERRAIN_LAYER_IDS.landHillshade);
+    expect(ids).toContain(TERRAIN_LAYER_IDS.landPeakBands);
     expect(assertMaskAboveOcean(ids)).toEqual({ ok: true });
     expect(assertOceanUnderLand(ids)).toEqual({ ok: true });
 
@@ -262,6 +326,12 @@ describe("composeTerrainStyle (hybrid D)", () => {
     const style = composeTerrainStyle(libertyStub);
     const sources = style.sources as Record<string, Record<string, unknown>>;
     expect(sources["land-relief"]["url"]).toBe(LAND_DEM_TILEJSON);
+    // Peaks online are same-origin (built from the same Mapterhorn DEM):
+    // explicit z/x/y URLs, never the bare archive path.
+    expect(sources["land-peaks"]["tiles"]).toEqual([
+      `${LAND_PEAKS_PMTILES_URL}/{z}/{x}/{y}`,
+    ]);
+    expect(sources["land-peaks"]["maxzoom"]).toBe(LAND_PEAKS_MAX_ZOOM);
     expect(sources["ocean-depth-dem"]["tiles"]).toEqual([
       OCEAN_DEPTH_DEM_PMTILES_URL,
     ]);

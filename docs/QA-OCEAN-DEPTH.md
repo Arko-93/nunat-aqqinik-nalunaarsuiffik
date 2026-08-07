@@ -85,7 +85,9 @@ make web-fetch-ocean-depth            # verify/fetch the published assets instea
 - Asiaq shoreline swap (#25) must update both the mask and the ocean clip
   (same `land.geojson` source), plus the ODbL/CC BY notes in both
   ATTRIBUTION files.
-- Peak color bands (#24) still deferred.
+- Land peak color bands shipped in #24 (peaks-only color relief from the
+  same Mapterhorn DEM as the hillshade; transparent below 500 m, bands
+  500/1000/2000 m; z11+ renders overzoomed) — see docs/QA-LAND-PEAKS.md.
 - `soundings` layer from the old Seascape pack is not reproduced (the
   style does not use it); `vector_layers` metadata lists only
   `depare`/`contours`.

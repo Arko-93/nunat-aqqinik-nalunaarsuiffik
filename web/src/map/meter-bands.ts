@@ -1,7 +1,8 @@
 /**
  * Hybrid D meter-band policy (wayfinder #9 / issue #10).
  * Ocean: filled depth classes + contour metering under land.
- * Land: peaks-only classes when peak layers exist; hillshade carries relief today.
+ * Land: peaks-only color bands (issue #24) — a peaks-only color-relief
+ * raster above the hillshade; elevations below 500 m stay transparent.
  */
 
 import type { ExpressionSpecification } from "maplibre-gl";
@@ -15,7 +16,7 @@ export const METER_BAND_POLICY = {
   oceanBreaksM: OCEAN_BREAKS_M,
   landBreaksM: LAND_BREAKS_M,
   oceanStyle: "filled-plus-contours-masked" as const,
-  /** Product policy for a future peak color-relief layer — not shipped yet. */
+  /** Land bands paint high peaks only (≥500 m), never a full land wash. */
   landPeaksOnly: true as const,
 };
 
@@ -29,7 +30,11 @@ export function oceanBandColor(depthM: number): string {
   return "#0c2438";
 }
 
-export function landPeakBandColor(elevM: number): string {
+export function landPeakBandColor(elevM: number): string | undefined {
+  // Peaks-only policy (LAND_BREAKS_M): elevations below 500 m are NOT a
+  // band — the color-relief bake leaves them transparent. Intervals are
+  // half-open, matching the build: [500, 1000) / [1000, 2000) / [2000, ∞).
+  if (elevM < 500) return undefined;
   if (elevM < 1000) return "#8a7a5c";
   if (elevM < 2000) return "#6b5e4a";
   return "#4a463f";

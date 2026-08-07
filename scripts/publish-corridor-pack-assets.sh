@@ -7,7 +7,7 @@ root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 pkg_dir="${CORRIDOR_PACKAGE_DIR:-$root_dir/web/public/packages/qaarsut-kullorsuaq}"
 manifest="$pkg_dir/manifest.json"
 repo="${CORRIDOR_PACK_ASSETS_REPO:-Arko-93/nunat-aqqinik-nalunaarsuiffik}"
-files=(land-relief.pmtiles ocean-depth-vector.pmtiles ocean-depth-dem.pmtiles coastline-land/land.pmtiles)
+files=(land-relief.pmtiles land-peaks.pmtiles ocean-depth-vector.pmtiles ocean-depth-dem.pmtiles coastline-land/land.pmtiles)
 
 if [[ ! -f "$manifest" ]]; then
 	echo "Missing $manifest — run: .venv/bin/python web/scripts/build-corridor-pack.py" >&2
@@ -31,9 +31,11 @@ notes="$(cat <<EOF
 Full Qaarsut→Kullorsuaq corridor offline pack \`${package_id}\`.
 
 - land-relief.pmtiles: Mapterhorn DEM (Klimadatastyrelsen, CC BY 4.0), z0–z10, 256 px re-encoded
+- land-peaks.pmtiles: peaks-only land color bands (issue #24), transparent below 500 m, discrete 500/1000/2000 m bands, z0–z10 256 px lossless webp
 - ocean-depth-vector.pmtiles: self-tiled IBCAO v5.2 + GEBCO_2026 fallback, clipped to the shared coastline, z0–z11 (z12 renders overzoomed)
 - ocean-depth-dem.pmtiles: ocean hillshade raster (IBCAO v5.2 + GEBCO_2026 fallback, terrarium webp 256 px), z0–z10 — served offline again
 - coastline-land/land.pmtiles: shared coastline mask (OSM ∪ DEM, ODbL + CC BY 4.0), z0–z13
+- localities.geojson: corridor localities (NunaGIS midpoints)
 - Manifest: \`web/public/packages/qaarsut-kullorsuaq/manifest.json\` (kind=full)
 - Not for navigation
 - Fetch with: \`make web-fetch-corridor-pack\`

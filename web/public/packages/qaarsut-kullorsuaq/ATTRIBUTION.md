@@ -12,6 +12,12 @@ map, clipped to the corridor bbox (-58.5, 70.4,
   z0–z10, every tile re-encoded at 256 px
   (offline tileSize 256); z11+ renders overzoomed. The archive
   is the same data the online style serves.
+- Land peak bands (`land-peaks.pmtiles`): peaks-only color relief cut from
+  the same corridor DEM tiles (issue #24) — transparent below 500 m,
+  discrete bands at 500/1000/2000 m (`landPeakBandColor` in
+  `web/src/map/meter-bands.ts`), z0–z10, 256 px
+  lossless webp; z11+ renders overzoomed. Same Mapterhorn DEM source as
+  `land-relief.pmtiles`, so the bands sit on the relief they were cut from.
 - Ocean depth vector (`ocean-depth-vector.pmtiles`): self-tiled from the
   IBCAO v5.2 (2026) 400 m grid with GEBCO_2026 fallback (15 arc-sec) —
   depth band polygons (`depare`) + contour lines, clipped to the shared
@@ -40,7 +46,8 @@ map, clipped to the corridor bbox (-58.5, 70.4,
 - ODbL 1.0 (<https://opendatacommons.org/licenses/odbl/>) applies to the
   OSM-derived mask and to any bathymetry clipped to this coastline;
   the DEM-derived portion keeps CC BY 4.0.
-- CC BY 4.0 applies to the Mapterhorn DEM tiles in land-relief.pmtiles.
+- CC BY 4.0 applies to the Mapterhorn DEM tiles in land-relief.pmtiles
+  and to the derived peak color bands in land-peaks.pmtiles.
 - The IBCAO/GEBCO depth grids are open data; derived products must
   acknowledge IBCAO/GEBCO Compilation Group.
 - Not for navigation: display context and cartographic repair only; no

@@ -2,7 +2,7 @@
 
 SHELL := /bin/bash
 
-.PHONY: preview-assemble map-fetch map-build map-omarchy preview-omarchy api-install api-typecheck api-test api-dev marine-install marine-test marine-fetch-land-assets marine-publish-land-assets marine-build marine-omarchy web-fetch-coastline-mask web-publish-coastline-mask web-fetch-ocean-depth web-publish-ocean-depth web-fetch-corridor-pack web-publish-corridor-pack
+.PHONY: preview-assemble map-fetch map-build map-omarchy preview-omarchy api-install api-typecheck api-test api-dev marine-install marine-test marine-fetch-land-assets marine-publish-land-assets marine-build marine-omarchy web-fetch-coastline-mask web-publish-coastline-mask web-fetch-ocean-depth web-publish-ocean-depth web-fetch-land-peaks web-publish-land-peaks web-fetch-corridor-pack web-publish-corridor-pack
 
 map-fetch:
 	bash scripts/sync-web-release.sh
@@ -74,6 +74,14 @@ web-fetch-ocean-depth:
 
 web-publish-ocean-depth: web-fetch-ocean-depth
 	bash scripts/publish-ocean-depth-assets.sh
+
+# Peaks-only land color bands (issue #24). PMTiles stay local
+# (gitignored). Fetch or build-land-peaks.py.
+web-fetch-land-peaks:
+	bash scripts/fetch-land-peaks-assets.sh
+
+web-publish-land-peaks: web-fetch-land-peaks
+	bash scripts/publish-land-peaks-assets.sh
 
 # Full Qaarsut→Kullorsuaq corridor offline pack. PMTiles stay local
 # (gitignored). Fetch or build-corridor-pack.py.
