@@ -7,7 +7,7 @@ This document is the product and implementation source of truth.
 - Current stage: Product plan Phases 0–2, Phase 4 API scaffold, and Phase 5 quiet UI landed; Phase 3 naming spine complete for qualifying Type 21/23 — 73 places; Asiaq geometry pending
 - Current data: 73 place identities, 73 classification assertions, 106 names, 15 geometries (58 imported localities have no Asiaq `geo_` yet), 73 memberships, 73 external identifiers (`nunagis.global_id`), 2 connections, and 2 service assertions
 - Publication status: still not authoritative; `publish-check` reports expected pending-provenance blockers while `src_legacy_seed` remains on seed place status, geometry, and administrative records
-- Immediate work: Asiaq geometry parked (no external chase); next product tracks are reachability dates / UI polish (API FTS5 landed)
+- Immediate work: Asiaq geometry parked (no external chase); next product track is UI polish (API FTS5 + Phase 6 date filter / passenger isolation landed)
 - First operational extension: structural reachability (joins by `placeId`; multi-service export preserved)
 - Selected release: `data/releases/CURRENT` → `2026.08.07.5` (web mounts via `scripts/sync-web-release.sh`; includes display-only NunaGIS `placenames.geojson`; SQLite FTS5 `place_names_fts`)
 - Read API: `api/` on `:8787` (`make api-dev`); place search uses FTS5 with LIKE fallback

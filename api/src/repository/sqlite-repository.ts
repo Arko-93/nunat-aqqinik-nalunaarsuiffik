@@ -3,6 +3,7 @@ import type {
   ConnectionEdge,
   ConnectionService,
   ExternalIdentifier,
+  IsolationReport,
   PlaceDetail,
   PlaceName,
   PlaceSummary,
@@ -308,40 +309,110 @@ export class SqliteRepository {
           cs.valid_to AS service_valid_to,
           cs.source_refs_json AS service_source_refs_json
         FROM connections c
-        LEFT JOIN connection_services cs ON cs.connection_id = c.id
+        LEFT JOIN connection_services cs
+          ON cs.connection_id = c.id
+          AND (cs.valid_from IS NULL OR cs.valid_from <= @at)
+          AND (cs.valid_to IS NULL OR cs.valid_to >= @at)
         WHERE c.retired_at IS NULL
           AND (c.origin_place_id = @placeId OR c.destination_place_id = @placeId)
-          AND (
-            cs.id IS NULL
-            OR (
-              (cs.valid_from IS NULL OR cs.valid_from <= @at)
-              AND (cs.valid_to IS NULL OR cs.valid_to >= @at)
-            )
-          )
-        ORDER BY c.mode, c.id
+        ORDER BY c.mode, c.id, cs.id
       `,
       )
       .all({ placeId, at }) as Array<Record<string, unknown>>;
 
-    return rows.map((row) => {
-      const originPlaceId = row.origin_place_id as string;
-      const destinationPlaceId = row.destination_place_id as string;
-      const role: ConnectionEdge["role"] =
-        originPlaceId === placeId ? "origin" : "destination";
-      const peerPlaceId =
-        role === "origin" ? destinationPlaceId : originPlaceId;
+    const byConnection = new Map<string, ConnectionEdge>();
+    for (const row of rows) {
+      const connectionId = row.connection_id as string;
+      let edge = byConnection.get(connectionId);
+      if (!edge) {
+        const originPlaceId = row.origin_place_id as string;
+        const destinationPlaceId = row.destination_place_id as string;
+        const role: ConnectionEdge["role"] =
+          originPlaceId === placeId ? "origin" : "destination";
+        edge = {
+          connection_id: connectionId,
+          origin_place_id: originPlaceId,
+          destination_place_id: destinationPlaceId,
+          direction: row.direction as string,
+          mode: row.mode as string,
+          role,
+          peer_place_id:
+            role === "origin" ? destinationPlaceId : originPlaceId,
+          services: [],
+        };
+        byConnection.set(connectionId, edge);
+      }
+      if (row.service_id) {
+        edge.services.push(serviceFromRow(row));
+      }
+    }
 
-      return {
-        connection_id: row.connection_id as string,
-        origin_place_id: originPlaceId,
-        destination_place_id: destinationPlaceId,
-        direction: row.direction as string,
-        mode: row.mode as string,
-        role,
-        peer_place_id: peerPlaceId,
-        service: row.service_id ? serviceFromRow(row) : null,
-      };
-    });
+    return [...byConnection.values()];
+  }
+
+  getPassengerIsolationReport(at: string): IsolationReport {
+    const placeIds = (
+      this.db
+        .prepare(
+          `
+          SELECT id
+          FROM places
+          WHERE status = 'active'
+          ORDER BY id
+        `,
+        )
+        .all() as Array<{ id: string }>
+    ).map((row) => row.id);
+
+    const connectedRows = this.db
+      .prepare(
+        `
+        SELECT DISTINCT endpoint AS place_id
+        FROM (
+          SELECT c.origin_place_id AS endpoint
+          FROM connections c
+          JOIN connection_services cs ON cs.connection_id = c.id
+          WHERE c.retired_at IS NULL
+            AND (cs.valid_from IS NULL OR cs.valid_from <= @at)
+            AND (cs.valid_to IS NULL OR cs.valid_to >= @at)
+            AND EXISTS (
+              SELECT 1
+              FROM json_each(cs.capabilities_json) AS cap
+              WHERE cap.value = 'passenger'
+            )
+          UNION
+          SELECT c.destination_place_id AS endpoint
+          FROM connections c
+          JOIN connection_services cs ON cs.connection_id = c.id
+          WHERE c.retired_at IS NULL
+            AND (cs.valid_from IS NULL OR cs.valid_from <= @at)
+            AND (cs.valid_to IS NULL OR cs.valid_to >= @at)
+            AND EXISTS (
+              SELECT 1
+              FROM json_each(cs.capabilities_json) AS cap
+              WHERE cap.value = 'passenger'
+            )
+        )
+        ORDER BY place_id
+      `,
+      )
+      .all({ at }) as Array<{ place_id: string }>;
+
+    const connected = new Set(connectedRows.map((row) => row.place_id));
+    const connected_place_ids = placeIds.filter((id) => connected.has(id));
+    const isolated_place_ids = placeIds.filter((id) => !connected.has(id));
+
+    return {
+      effective_date: at,
+      capability: "passenger",
+      connected_place_ids,
+      isolated_place_ids,
+      counts: {
+        places: placeIds.length,
+        connected: connected_place_ids.length,
+        isolated: isolated_place_ids.length,
+      },
+    };
   }
 
   resolvePlace(input: {

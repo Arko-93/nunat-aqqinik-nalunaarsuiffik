@@ -75,7 +75,20 @@ export type ConnectionEdge = {
   mode: string;
   role: "origin" | "destination";
   peer_place_id: string;
-  service: ConnectionService | null;
+  /** Every service assertion valid on the requested effective date. */
+  services: ConnectionService[];
+};
+
+export type IsolationReport = {
+  effective_date: string;
+  capability: "passenger";
+  connected_place_ids: string[];
+  isolated_place_ids: string[];
+  counts: {
+    places: number;
+    connected: number;
+    isolated: number;
+  };
 };
 
 export type ResolveIdentifierInput = {

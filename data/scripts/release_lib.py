@@ -34,6 +34,7 @@ RELEASE_ARTIFACTS = [
     "reachability.ndjson",
     "reachability.json",
     "reachability.csv",
+    "isolation-report.json",
     "decision-geography.db",
     "build-manifest.json",
     # Display-only NunaGIS midpoint gazetteer (MapServer/1). Not Asiaq geometry.

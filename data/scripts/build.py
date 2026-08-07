@@ -326,6 +326,76 @@ def build():
         ]
     )
 
+    def service_valid_on(service, at):
+        valid_from = service.get("valid_from")
+        valid_to = service.get("valid_to")
+        if valid_from is not None and valid_from > at:
+            return False
+        if valid_to is not None and valid_to < at:
+            return False
+        return True
+
+    # Passenger isolation on data_as_of (structural edges with passenger service).
+    # Computed after services index; data_as_of finalized below — use provisional
+    # max of source dates here, then rewrite once data_as_of is known.
+    provisional_dates = [
+        record[field]
+        for records in (
+            places,
+            classifications,
+            names,
+            geoms,
+            areas,
+            memberships,
+            external_ids,
+            connections,
+            services,
+            sources,
+        )
+        for record in records
+        for field in (
+            "observed_at",
+            "created_at",
+            "retrieved_at",
+            "effective_from",
+            "valid_from",
+        )
+        if record.get(field)
+    ]
+    isolation_at = max(provisional_dates) if provisional_dates else "1970-01-01"
+    connected = set()
+    for connection in connections:
+        if connection.get("retired_at") is not None:
+            continue
+        passenger_ok = any(
+            service_valid_on(service, isolation_at)
+            and "passenger" in service.get("capabilities", [])
+            for service in svc_by_conn.get(connection["id"], [])
+        )
+        if not passenger_ok:
+            continue
+        connected.add(connection["origin_place_id"])
+        connected.add(connection["destination_place_id"])
+    active_place_ids = sorted(
+        place["id"] for place in places if place.get("status") == "active"
+    )
+    connected_place_ids = [pid for pid in active_place_ids if pid in connected]
+    isolated_place_ids = [pid for pid in active_place_ids if pid not in connected]
+    isolation_report = {
+        "effective_date": isolation_at,
+        "capability": "passenger",
+        "connected_place_ids": connected_place_ids,
+        "isolated_place_ids": isolated_place_ids,
+        "counts": {
+            "places": len(active_place_ids),
+            "connected": len(connected_place_ids),
+            "isolated": len(isolated_place_ids),
+        },
+    }
+    with (DIST_DIR / "isolation-report.json").open("w", encoding="utf-8") as file:
+        json.dump(isolation_report, file, indent=2, ensure_ascii=False)
+        file.write("\n")
+
     def sha256(path):
         digest = hashlib.sha256()
         with path.open("rb") as file:
@@ -353,6 +423,7 @@ def build():
         f"{RCH}.ndjson",
         f"{RCH}.json",
         f"{RCH}.csv",
+        "isolation-report.json",
     ]
     date_fields = (
         "observed_at",
@@ -408,6 +479,7 @@ def build():
             f"{RCH}.ndjson": r_count,
             f"{RCH}.json": r_count,
             f"{RCH}.csv": r_count,
+            "isolation-report.json": 1,
         },
         "sha256": {
             **{

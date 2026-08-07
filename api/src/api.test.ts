@@ -106,6 +106,7 @@ describe("Decision Geography read API", () => {
         connection_id: string;
         peer_place_id: string;
         mode: string;
+        services: Array<{ id: string; status: string }>;
       }>;
       release_id: string;
     };
@@ -119,9 +120,56 @@ describe("Decision Geography read API", () => {
       body.connections.every(
         (c) =>
           c.connection_id.startsWith("con_") &&
-          c.peer_place_id.startsWith("plc_"),
+          c.peer_place_id.startsWith("plc_") &&
+          c.services.length >= 1,
       ),
     ).toBe(true);
+  });
+
+  it("keeps structural edges before service valid_from with empty services", async () => {
+    const response = await app.request(
+      `/v1/places/${QAQORTOQ_ID}/connections?at=2026-04-15`,
+    );
+    expect(response.status).toBe(200);
+
+    const body = (await response.json()) as {
+      connections: Array<{
+        connection_id: string;
+        services: unknown[];
+      }>;
+    };
+
+    expect(body.connections.length).toBe(2);
+    expect(body.connections.every((c) => c.services.length === 0)).toBe(true);
+  });
+
+  it("reports passenger isolation for an effective date", async () => {
+    const before = await app.request("/v1/reports/isolation?at=2026-04-15");
+    expect(before.status).toBe(200);
+    const beforeBody = (await before.json()) as {
+      report: {
+        counts: { places: number; connected: number; isolated: number };
+        connected_place_ids: string[];
+        isolated_place_ids: string[];
+      };
+    };
+    expect(beforeBody.report.counts.connected).toBe(0);
+    expect(beforeBody.report.isolated_place_ids).toContain(QAQORTOQ_ID);
+    expect(beforeBody.report.isolated_place_ids).toContain(NUUK_ID);
+
+    const after = await app.request("/v1/reports/isolation?at=2026-08-01");
+    expect(after.status).toBe(200);
+    const afterBody = (await after.json()) as {
+      report: {
+        counts: { places: number; connected: number; isolated: number };
+        connected_place_ids: string[];
+        isolated_place_ids: string[];
+      };
+    };
+    expect(afterBody.report.counts.connected).toBeGreaterThanOrEqual(3);
+    expect(afterBody.report.connected_place_ids).toContain(QAQORTOQ_ID);
+    expect(afterBody.report.isolated_place_ids).toContain(NUUK_ID);
+    expect(afterBody.report.isolated_place_ids).not.toContain(QAQORTOQ_ID);
   });
 
   it("searches places by name fragment", async () => {
