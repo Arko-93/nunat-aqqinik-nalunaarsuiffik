@@ -82,8 +82,7 @@ def query_page(where: str, offset: int) -> dict:
     return payload
 
 
-def fetch_features(names: list[str]) -> list[dict]:
-    where = build_where(names)
+def fetch_features(where: str) -> list[dict]:
     features: list[dict] = []
     offset = 0
     while True:
@@ -118,6 +117,9 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+TYPE_21_23_WHERE = "Type IN (21,23)"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -143,25 +145,44 @@ def main() -> None:
         action="store_true",
         help="Also mirror output to data/raw/nunagis_placenames/<date>",
     )
+    parser.add_argument(
+        "--localities",
+        action="store_true",
+        help="Fetch all Type 21/23 locality rows (writes type-21-23-query.json)",
+    )
     args = parser.parse_args()
 
-    names = seed_official_names(args.source_dir)
-    features = fetch_features(names)
+    names: list[str] | None = None
+    if args.localities:
+        where = TYPE_21_23_WHERE
+        payload_name = "type-21-23-query.json"
+        query_meta: dict = {
+            "where": where,
+            "outFields": OUT_FIELDS,
+            "returnGeometry": False,
+        }
+    else:
+        names = seed_official_names(args.source_dir)
+        where = build_where(names)
+        payload_name = "seed-name-query.json"
+        query_meta = {
+            "names": names,
+            "where": where,
+            "outFields": OUT_FIELDS,
+            "returnGeometry": False,
+        }
+
+    features = fetch_features(where)
 
     output_dir = args.output_dir or (
         DATA_DIR / "snapshots" / "nunagis_placenames" / args.retrieved_at
     )
-    features_path = output_dir / "seed-name-query.json"
+    features_path = output_dir / payload_name
     write_json(
         features_path,
         {
             "layerUrl": LAYER_URL,
-            "query": {
-                "names": names,
-                "where": build_where(names),
-                "outFields": OUT_FIELDS,
-                "returnGeometry": False,
-            },
+            "query": query_meta,
             "featureCount": len(features),
             "features": features,
         },
@@ -173,7 +194,7 @@ def main() -> None:
         + urllib.parse.urlencode(
             {
                 "f": "json",
-                "where": build_where(names),
+                "where": where,
                 "outFields": OUT_FIELDS,
                 "returnGeometry": "false",
             }
@@ -186,6 +207,11 @@ def main() -> None:
     )
     snapshot_id = f"snp_nunagis_placenames_{args.retrieved_at.replace('-', '_')}"
     storage_path = str(output_dir.relative_to(DATA_DIR))
+    scope_note = (
+        "Full Type 21/23 locality extract."
+        if args.localities
+        else "Seed-name filter extract."
+    )
     snapshot_manifest = {
         "id": snapshot_id,
         "source_dataset_id": "dsd_nunagis_placenames_register",
@@ -202,7 +228,8 @@ def main() -> None:
             "Public ArcGIS REST extract of Stednavneregister offentlig. "
             "Oqaasileriffik (Tino Didriksen) pointed Ole to this endpoint on "
             "2026-07-30 as the official NunaGIS placenames source. "
-            "Attributes only; geometry omitted. Licence not stated on service metadata."
+            f"{scope_note} Attributes only; geometry omitted. "
+            "Licence not stated on service metadata."
         ),
     }
     write_json(output_dir / "manifest.json", snapshot_manifest)
@@ -211,28 +238,34 @@ def main() -> None:
         legacy_dir = DATA_DIR / "raw" / "nunagis_placenames" / args.retrieved_at
         if legacy_dir != output_dir:
             legacy_dir.mkdir(parents=True, exist_ok=True)
-            write_json(legacy_dir / "seed-name-query.json", load_json(features_path))
-            write_json(
-                legacy_dir / "manifest.json",
-                {
-                    "source_id": "src_nunagis_placenames_register",
-                    "title": "NunaGIS PlacenamesRegisterPublic seed-name query",
-                    "publisher": "NunaGIS / Oqaasileriffik",
-                    "url": LAYER_URL,
-                    "query_url": query_url,
-                    "retrieved_at": args.retrieved_at,
-                    "media_type": "application/json",
-                    "checksum": f"sha256:{checksum}",
-                    "licence": None,
-                    "record_count": len(features),
-                    "seed_official_names": names,
-                    "notes": snapshot_manifest["notes"],
-                },
-            )
+            write_json(legacy_dir / payload_name, read_json(features_path))
+            legacy_manifest: dict = {
+                "source_id": "src_nunagis_placenames_register",
+                "title": (
+                    "NunaGIS PlacenamesRegisterPublic Type 21/23 query"
+                    if args.localities
+                    else "NunaGIS PlacenamesRegisterPublic seed-name query"
+                ),
+                "publisher": "NunaGIS / Oqaasileriffik",
+                "url": LAYER_URL,
+                "query_url": query_url,
+                "retrieved_at": args.retrieved_at,
+                "media_type": "application/json",
+                "checksum": f"sha256:{checksum}",
+                "licence": None,
+                "record_count": len(features),
+                "notes": snapshot_manifest["notes"],
+            }
+            if names is not None:
+                legacy_manifest["seed_official_names"] = names
+            write_json(legacy_dir / "manifest.json", legacy_manifest)
 
-    print(
-        f"Wrote {len(features)} features for {len(names)} seed names to {output_dir}"
+    label = (
+        f"{len(features)} Type 21/23 locality features"
+        if args.localities
+        else f"{len(features)} features for {len(names or [])} seed names"
     )
+    print(f"Wrote {label} to {output_dir}")
 
 
 if __name__ == "__main__":

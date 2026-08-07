@@ -29,9 +29,9 @@ SOURCE_NDJSON := $(SOURCE_DIR)/places.ndjson \
                  $(SOURCE_DIR)/sources.ndjson
 
 NUNAGIS_AUTHORITY := reconciliation/authority/oqaasileriffik-nunagis.ndjson
-RELEASE_ID ?= 2026.08.01.1
+RELEASE_ID ?= 2026.08.07.1
 
-.PHONY: all validate test publish-check reconcile fetch-nunagis normalize-nunagis build clean release register-snapshot
+.PHONY: all validate test publish-check reconcile fetch-nunagis fetch-nunagis-localities normalize-nunagis build clean release register-snapshot
 
 all: validate build
 
@@ -58,6 +58,9 @@ publish-check:
 
 fetch-nunagis:
 	$(PYTHON) $(SCRIPTS_DIR)/fetch_nunagis_placenames.py
+
+fetch-nunagis-localities:
+	$(PYTHON) $(SCRIPTS_DIR)/fetch_nunagis_placenames.py --localities
 
 normalize-nunagis:
 	$(PYTHON) $(SCRIPTS_DIR)/normalize_nunagis_placenames.py

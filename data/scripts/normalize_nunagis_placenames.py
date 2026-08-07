@@ -60,13 +60,30 @@ def normalize_features(features: list[dict]) -> list[dict]:
 def carry_confirmations(
     rows: list[dict], previous_rows: list[dict]
 ) -> list[dict]:
-    confirmed = {
-        row.get("record_id"): row["confirmed_place_id"]
-        for row in previous_rows
-        if row.get("confirmed_place_id")
-    }
+    """Preserve confirmed_place_id across re-normalize.
+
+    Prefer decision_ref (stable numeric ID) because NunaGIS GlobalIDs can
+    rotate between extracts. Fall back to record_id for rows without a ref.
+    """
+    by_decision: dict[str, str] = {}
+    by_record: dict[str, str] = {}
+    for row in previous_rows:
+        place_id = row.get("confirmed_place_id")
+        if not place_id:
+            continue
+        decision_ref = row.get("decision_ref")
+        if isinstance(decision_ref, str) and decision_ref:
+            by_decision[decision_ref] = place_id
+        record_id = row.get("record_id")
+        if isinstance(record_id, str) and record_id:
+            by_record[record_id] = place_id
     for row in rows:
-        place_id = confirmed.get(row.get("record_id"))
+        place_id = None
+        decision_ref = row.get("decision_ref")
+        if isinstance(decision_ref, str) and decision_ref:
+            place_id = by_decision.get(decision_ref)
+        if place_id is None:
+            place_id = by_record.get(row.get("record_id"))
         if place_id:
             row["confirmed_place_id"] = place_id
     return rows
@@ -88,17 +105,30 @@ def read_ndjson(path: Path) -> list[dict]:
         return [json.loads(line) for line in file if line.strip()]
 
 
-def latest_snapshot(root: Path, payload_name: str = "seed-name-query.json") -> Path:
+PAYLOAD_NAMES = ("type-21-23-query.json", "seed-name-query.json")
+
+
+def latest_snapshot_payload(
+    root: Path, payload_names: tuple[str, ...] = PAYLOAD_NAMES
+) -> Path:
     if not root.exists():
         raise SystemExit(f"snapshot root missing: {root}")
-    candidates = sorted(
-        path
-        for path in root.iterdir()
-        if path.is_dir() and (path / payload_name).exists()
+    for payload_name in payload_names:
+        candidates = sorted(
+            path
+            for path in root.iterdir()
+            if path.is_dir() and (path / payload_name).exists()
+        )
+        if candidates:
+            return candidates[-1] / payload_name
+    raise SystemExit(
+        f"no {' or '.join(payload_names)} snapshots under {root}"
     )
-    if not candidates:
-        raise SystemExit(f"no {payload_name} snapshots under {root}")
-    return candidates[-1]
+
+
+def latest_snapshot(root: Path, payload_name: str = "seed-name-query.json") -> Path:
+    """Return the latest dated directory that contains payload_name."""
+    return latest_snapshot_payload(root, (payload_name,)).parent
 
 
 def latest_raw_snapshot(raw_root: Path) -> Path:
@@ -111,7 +141,10 @@ def main() -> None:
         "--input",
         type=Path,
         default=None,
-        help="Path to seed-name-query.json (default: latest dated raw snapshot)",
+        help=(
+            "Path to type-21-23-query.json or seed-name-query.json "
+            "(default: latest dated snapshot, preferring type-21-23)"
+        ),
     )
     parser.add_argument(
         "--output",
@@ -125,9 +158,9 @@ def main() -> None:
         snapshot_root = DATA_DIR / "snapshots" / "nunagis_placenames"
         raw_root = DATA_DIR / "raw" / "nunagis_placenames"
         if snapshot_root.exists() and list(snapshot_root.iterdir()):
-            input_path = latest_snapshot(snapshot_root) / "seed-name-query.json"
+            input_path = latest_snapshot_payload(snapshot_root)
         else:
-            input_path = latest_raw_snapshot(raw_root) / "seed-name-query.json"
+            input_path = latest_snapshot_payload(raw_root)
     payload = read_json(input_path)
     features = payload.get("features")
     if not isinstance(features, list):

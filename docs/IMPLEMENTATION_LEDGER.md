@@ -4,7 +4,7 @@
 **Working branch:** `feat/canonical-identity-e2e`  
 **Baseline commit:** `707d01767c568d1cea0a609ae4bbcf9067fdf4d2`  
 **Baseline date:** 2026-08-01  
-**Phase:** 5 UI finished (quiet shell); Phase 3 identity confirmation done — all 15 seed identities confirmed (#29, #31)
+**Phase:** 5 UI finished (quiet shell); Phase 3 locality spine in progress — 19 places (15 seeds + 4 Type 21 towns, #36)
 
 ## Phase 0 — Baseline
 
@@ -113,7 +113,7 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 | 0 Baseline | complete | See above |
 | 1 Canonical identity | complete | `linksFromPlaceId`; no `linksFromOfficialName`; 25 web tests |
 | 2 Snapshots and releases | complete | Schemas, `2026.08.01.1`, web mounts release for identity/reachability |
-| 3 Locality spine | in progress | All 15 seeds confirmed (#29, #31); full Type 21/23 import + Asiaq pending |
+| 3 Locality spine | in progress | 19 places (#29/#31 seeds + #36 first 4 towns); 74 authority rows; ~55 settlements + Asiaq pending |
 | 4 Read API | scaffold complete | `api/` Hono + SQLite; 8 v1 endpoints; 7 tests; FTS follow-up |
 | 5 Greenland-first UI | foundations complete | AppShell, PlaceList, PlaceDossier, MobilePlaceSheet, i18n kl/da/en |
 | 6 Date-aware reachability | partial | Multi-service export done; effective-date filter + isolation reports remain |
@@ -129,9 +129,10 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 
 ### Residual / next integrator work
 
-1. **Phase 3 (done):** all 15 seeds confirmed (Nuuk #29; remaining 14 #31) — 15 canonical `xid_`; no auto-merge.
-2. **Phase 3 (next):** import all qualifying Type 21/23 localities beyond the 15 seeds; Asiaq geometry export.
-3. **Phase 2 residual:** Package gazetteer midpoints into release snapshots (web still loads `/data/placenames.geojson`).
-4. **Phase 4 follow-up:** FTS5 + OpenAPI client generation.
-5. **Phase 5 follow-up:** Native KL review; AccessPlanner; full offline package UX; a11y pass with screen reader.
-6. **Phase 6:** Effective-date service filtering + isolation reports.
+1. **Phase 3 (done):** all 15 seeds confirmed (Nuuk #29; remaining 14 #31) — canonical `xid_`; no auto-merge.
+2. **Phase 3 (2026-08-07, #36 slice):** full Type 21/23 authority (74); `carry_confirmations` by `decision_ref`; GlobalID sync on seeds; minted Kangaatsiaq, Qasigiannguit, Qeqertarsuaq, Upernavik; release `2026.08.07.1`.
+3. **Phase 3 (next):** import remaining ~55 Type 23 settlements (homonyms later); Asiaq geometry export.
+4. **Phase 2 residual:** Package gazetteer midpoints into release snapshots (web still loads `/data/placenames.geojson`).
+5. **Phase 4 follow-up:** FTS5 + OpenAPI client generation.
+6. **Phase 5 follow-up:** Native KL review; AccessPlanner; full offline package UX; a11y pass with screen reader.
+7. **Phase 6:** Effective-date service filtering + isolation reports.

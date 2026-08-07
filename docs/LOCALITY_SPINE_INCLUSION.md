@@ -25,20 +25,24 @@ Exact-name candidates in `data/reconciliation/place-seeds.ndjson` remain **candi
 - **Geometry:** Asiaq when export is available; do not treat NunaGIS midpoints as geometry authority for publication-grade coordinates.
 - Existing `plc_` IDs never change when attributes change.
 
-## Current blocker (2026-08-06)
+## Current status (2026-08-07)
 
-- All 15 seeds confirmed on the Oqaasileriffik side (#29 + #31) — canonical `xid_` + Oqaasileriffik `confirmed_place_id` on every authority row.
-- Every seed stays `unresolved` overall until Asiaq confirms (do not invent an Asiaq match).
-- Asiaq export still waiting; geometry not claimed.
-- `src_legacy_seed` pending provenance on place status, geometry, and administrative records blocks `publish-check`.
+- Authority file covers all Type 21/23 rows (74) from `type-21-23-query.json`.
+- Canonical spine: 19 places — 15 seeds + 4 Type 21 towns (Kangaatsiaq, Qasigiannguit, Qeqertarsuaq, Upernavik; #36 first slice).
+- Every imported place has canonical `xid_` + Oqaasileriffik `confirmed_place_id`.
+- Every place stays `unresolved` overall until Asiaq confirms (do not invent an Asiaq match).
+- New towns have municipality membership from NunaGIS `MunicipalityCode`; no `geo_` (Asiaq owns geometry).
+- Remaining ~55 Type 23 settlements (and homonyms) still to import.
+- `src_legacy_seed` pending provenance on seed place status, geometry, and administrative records blocks `publish-check`.
 
-## Confirm workflow (manual)
+## Confirm / import workflow
 
-1. Open `data/reconciliation/place-seeds.ndjson` and the NunaGIS authority row.
-2. Verify GlobalID, type, municipality/locality codes, and name variants.
-3. If confirmed: add an `external-identifiers` row (`nunagis.global_id`) and set `confirmed_place_id` on the Oqaasileriffik authority row; refresh the queue with `make -C data reconcile` (never hand-edit `place-seeds.ndjson`; `normalize-nunagis` preserves confirmations by `record_id`).
-4. Replace legacy source refs assertion-by-assertion; rebuild crosswalk + release; run `make -C data publish-check`.
+1. Fetch full localities: `make -C data fetch-nunagis-localities`.
+2. Normalize: `make -C data normalize-nunagis` — preserves `confirmed_place_id` by `decision_ref` (stable numeric ID), with `record_id` fallback. GlobalIDs can rotate between extracts.
+3. Mint selected names with `data/scripts/import_nunagis_localities.py --names … --sync-global-ids` (no auto-merge on name; skips if official KL already exists).
+4. Refresh the queue with `make -C data reconcile` (never hand-edit `place-seeds.ndjson`).
+5. Rebuild release + crosswalk; run `make -C data test`.
 
-Naming confirmation = the `xid_` **and** the Oqaasileriffik `confirmed_place_id`. The seed reaches overall `matched` only when Asiaq also confirms; do not force it by inventing an Asiaq confirmation.
+Naming confirmation = the `xid_` **and** the Oqaasileriffik `confirmed_place_id`. A place reaches overall `matched` only when Asiaq also confirms; do not force it by inventing an Asiaq confirmation.
 
 Do **not** auto-merge on name equality.
