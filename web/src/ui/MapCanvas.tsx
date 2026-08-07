@@ -476,6 +476,9 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
     map.on("moveend", settle);
     map.on("zoomend", settle);
     map.on("styledata", settle);
+    // Tiles (incl. the remote-land DEM) can land async after the last settle;
+    // re-probe so the label clears once real data is present, not just stale.
+    map.on("data", settle);
 
     const ensureLayers = () => {
       if (map.getSource(SOURCE_ID)) return;
@@ -646,6 +649,9 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
     // remote). applyMapStyle handles the full reload; the selection/collection
     // effects below re-arm via whenSourceReady and the styleEpoch bump.
     const unsubscribePack = subscribePackInstallState(() => {
+      // Pack bind/unbind changes what the protocol resolves as missing:
+      // drop the miss journal and the remote-DEM latch, then re-derive.
+      tracker.reset();
       setStyleEpoch((epoch) => epoch + 1);
       void applyStyle();
     });
@@ -661,6 +667,7 @@ export function MapCanvas({ collection, selectedId, onSelect }: Props) {
       map.off("moveend", settle);
       map.off("zoomend", settle);
       map.off("styledata", settle);
+      map.off("data", settle);
       const win = window as Window & { __nunatMap?: Map };
       if (win.__nunatMap === map) delete win.__nunatMap;
       map.remove();

@@ -197,6 +197,15 @@ describe("TileGapTracker", () => {
     ]);
     tracker.refresh();
     expect(seen.at(-1)).toEqual({ land: true, ocean: false });
+
+    // DEM tiles arrive async (map 'data' event → refresh): label clears
+    // rather than staying stuck on a gap that no longer exists.
+    registry = landRegistry([
+      { id: "a", hasData: true },
+      { id: "b", hasData: true },
+    ]);
+    tracker.refresh();
+    expect(seen.at(-1)?.land).toBe(false);
     tracker.dispose();
   });
 
