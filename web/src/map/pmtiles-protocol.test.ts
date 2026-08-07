@@ -12,6 +12,7 @@ import { resolve } from "node:path";
 import {
   bindCorridorPackToProtocol,
   registerPmtilesProtocol,
+  setTileGapReporter,
   unbindCorridorPackFromProtocol,
 } from "./pmtiles-protocol.ts";
 import { TERRAIN_OFFLINE_FILES } from "../offline/corridor-policy.ts";
@@ -51,6 +52,7 @@ function tilejsonUrl(path: string): string {
 
 afterEach(() => {
   unbindCorridorPackFromProtocol();
+  setTileGapReporter(null);
   vi.unstubAllGlobals();
 });
 
@@ -103,6 +105,38 @@ describe("pmtiles protocol offline seam", () => {
       "/packages/qaarsut-kullorsuaq/land-relief.pmtiles/{z}/{x}/{y}",
     );
     expect(tilejson.minzoom).toBe(3);
+  });
+
+  it("reports empty pack tiles to the gap tracker (issue #26)", async () => {
+    registerPmtilesProtocol();
+    handler = addProtocolMock.mock.calls[0]![1] as Handler;
+
+    const misses: string[] = [];
+    setTileGapReporter((miss) => misses.push(`${miss.zone}:${miss.z}/${miss.x}/${miss.y}`));
+
+    await bindCorridorPackToProtocol(async (path) =>
+      TERRAIN_OFFLINE_FILES.includes(path as (typeof TERRAIN_OFFLINE_FILES)[number])
+        ? packBlob()
+        : null,
+    );
+
+    const abort = new AbortController();
+    // A tile the tiny fixture pack does not contain → land-relief gap report.
+    // (Missing raster tiles resolve null, missing MVT resolve empty — both
+    // mean "no data" and both must reach the reporter.)
+    const missing = await handler(
+      { url: tileUrl("land-relief.pmtiles", 3, 0, 0) },
+      abort,
+    );
+    expect(
+      missing.data == null ||
+        (missing.data instanceof Uint8Array && missing.data.byteLength === 0),
+    ).toBe(true);
+
+    // The coastline mask is not a terrain gap source → no report.
+    await handler({ url: tileUrl("coastline-land/land.pmtiles", 3, 0, 0) }, abort);
+
+    expect(misses).toEqual(["land:3/0/0"]);
   });
 
   it("falls back to the network protocol for non-pack URLs", async () => {

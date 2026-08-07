@@ -72,6 +72,16 @@ describe("map-first UI contracts", () => {
     }
   });
 
+  it("keeps honest tile-gap copy in all locales (issue #26)", () => {
+    for (const locale of ["kl", "da", "en"] as const) {
+      const t = MESSAGES[locale];
+      expect(t.tileGapLabel.length).toBeGreaterThan(0);
+      expect(t.oceanDepthGapLabel.length).toBeGreaterThan(0);
+      // Land and ocean gaps are distinct conditions; the copy must agree.
+      expect(t.tileGapLabel).not.toEqual(t.oceanDepthGapLabel);
+    }
+  });
+
   it("exposes a passive coastal legend in all locales (not a filter)", () => {
     for (const locale of ["kl", "da", "en"] as const) {
       const t = MESSAGES[locale];
