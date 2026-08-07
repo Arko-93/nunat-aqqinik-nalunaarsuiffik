@@ -128,6 +128,23 @@ body,
   margin: 0;
 }
 
+.map-legend-peaks {
+  margin-top: 0.15rem;
+}
+
+.map-legend-peak-band {
+  white-space: nowrap;
+}
+
+.map-legend-swatch {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin: 0 0.15rem 0 0.35rem;
+  border-radius: 0.1rem;
+  vertical-align: -0.05rem;
+}
+
 .map-legend-review {
   margin: 0.2rem 0 0;
   opacity: 0.85;

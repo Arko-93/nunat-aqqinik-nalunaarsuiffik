@@ -59,9 +59,12 @@ TILE_PX = 256  # re-encoded from native 512 px Mapterhorn tiles
 
 # landPeakBandColor() from meter-bands.ts, baked into the raster.
 # Keys are (low, high) half-open elevation bands; the last is +inf.
+# Peaks-only: the first band starts at LAND_BREAKS_M[0] — elevations
+# below 500 m are never colored (RGBA stays alpha 0), so a mixed tile
+# keeps its lowland pixels transparent instead of washing them.
 BAND_COLORS: list[tuple[tuple[float, float], tuple[int, int, int]]] = [
-    ((0, 1000), (138, 122, 92)),  # <1000 -> #8a7a5c
-    ((1000, 2000), (107, 94, 74)),  # <2000 -> #6b5e4a
+    ((500, 1000), (138, 122, 92)),  # [500, 1000) -> #8a7a5c
+    ((1000, 2000), (107, 94, 74)),  # [1000, 2000) -> #6b5e4a
     ((2000, math.inf), (74, 70, 63)),  # >=2000 -> #4a463f
 ]
 
@@ -188,8 +191,9 @@ def peaks_webp(raw: bytes) -> bytes | None:
         mask = (elev >= low) & (elev < high)
         rgba[mask, 0:3] = color
         rgba[mask, 3] = 255
-    # Elevations at exactly the top break (>= 2000) are covered by the
-    # (2000, inf) entry; anything else (nodata) stays transparent.
+    # Elevations below 500 m (and nodata) stay transparent — peaks-only:
+    # the first band starts at LAND_BREAKS_M[0], so lowland pixels inside
+    # a mixed tile never get a wash color.
 
     out = io.BytesIO()
     # Lossless: keeps band edges exact (lossy webp blurs the discrete

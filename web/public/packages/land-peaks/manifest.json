@@ -1,5 +1,5 @@
 {
-  "id": "land-peaks_2026-08-06",
+  "id": "land-peaks_2026-08-07",
   "slug": "land-peaks",
   "title": {
     "kl": "Nunap qaammartaasut (land peak bands)",
@@ -12,14 +12,14 @@
     -10.0,
     84.0
   ],
-  "bytes": 4767522,
-  "createdAt": "2026-08-06T00:00:00Z",
+  "bytes": 11646263,
+  "createdAt": "2026-08-07T00:00:00Z",
   "kind": "full",
   "files": [
     {
       "path": "land-peaks.pmtiles",
-      "bytes": 4767522,
-      "sha256": "42ba81e955cac1bbbcbefe88137a7ffd6e79ac25d27bd53d441fda8d70aafb59"
+      "bytes": 11646263,
+      "sha256": "dabf81fd4a0cec3d5d7f9662d4af5da723aab16ffaa1900afd8344d99022d911"
     }
   ],
   "notForNavigation": true,

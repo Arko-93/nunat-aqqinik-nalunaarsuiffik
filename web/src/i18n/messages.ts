@@ -61,6 +61,8 @@ export type Messages = {
   iosHomeScreenHint: string;
   packVersion: string;
   legendLabel: string;
+  /** Short label for the passive land peak-band legend line (issue #24). */
+  landPeakLegend: string;
   typeLabelSkerry: string;
   typeLabelIsland: string;
   typeLabelIslandPart: string;
@@ -131,6 +133,7 @@ const en: Messages = {
     "On iPhone/iPad: Add to Home Screen so the offline pack is not cleared.",
   packVersion: "Pack",
   legendLabel: "Named coastal features",
+  landPeakLegend: "Land peaks",
   typeLabelSkerry: "Skerry",
   typeLabelIsland: "Island",
   typeLabelIslandPart: "Island part",
@@ -201,6 +204,7 @@ const da: Messages = {
     "På iPhone/iPad: Føj til hjemmeskærm, så offline-pakken ikke slettes.",
   packVersion: "Pakke",
   legendLabel: "Navngivne kystforekomster",
+  landPeakLegend: "Landtoppe",
   typeLabelSkerry: "Skær",
   typeLabelIsland: "Ø",
   typeLabelIslandPart: "Del af ø",
@@ -272,6 +276,8 @@ const kl: Messages = {
   packVersion: "Pakke",
   // Accessibility chrome reuses existing KL UI word; type words stay NunaGIS Danish.
   legendLabel: "Takussutissat — Skær · Ø · Del af ø · Øgruppe",
+  // Provisional KL UI copy — native review still pending (pendingReviewNote).
+  landPeakLegend: "Nunap qaammartaasai",
   // NunaGIS Danish register terms until native Kalaallisut review — do not invent KL.
   typeLabelSkerry: "Skær",
   typeLabelIsland: "Ø",

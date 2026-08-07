@@ -46,6 +46,7 @@ test:
 	$(PYTHON) $(SCRIPTS_DIR)/test_build.py
 	$(PYTHON) $(SCRIPTS_DIR)/test_schema_meta.py
 	$(PYTHON) $(SCRIPTS_DIR)/test_release.py
+	$(PYTHON) $(SCRIPTS_DIR)/test_land_peaks.py
 
 publish-check:
 	$(PYTHON) $(SCRIPTS_DIR)/validate.py --mode publish-check --source-dir $(SOURCE_DIR)
@@ -53,6 +54,7 @@ publish-check:
 	$(PYTHON) $(SCRIPTS_DIR)/test_build.py
 	$(PYTHON) $(SCRIPTS_DIR)/test_schema_meta.py
 	$(PYTHON) $(SCRIPTS_DIR)/test_release.py
+	$(PYTHON) $(SCRIPTS_DIR)/test_land_peaks.py
 
 fetch-nunagis:
 	$(PYTHON) $(SCRIPTS_DIR)/fetch_nunagis_placenames.py

@@ -30,7 +30,11 @@ export function oceanBandColor(depthM: number): string {
   return "#0c2438";
 }
 
-export function landPeakBandColor(elevM: number): string {
+export function landPeakBandColor(elevM: number): string | undefined {
+  // Peaks-only policy (LAND_BREAKS_M): elevations below 500 m are NOT a
+  // band — the color-relief bake leaves them transparent. Intervals are
+  // half-open, matching the build: [500, 1000) / [1000, 2000) / [2000, ∞).
+  if (elevM < 500) return undefined;
   if (elevM < 1000) return "#8a7a5c";
   if (elevM < 2000) return "#6b5e4a";
   return "#4a463f";

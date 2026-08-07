@@ -53,12 +53,18 @@ z0–z10 at 256 px; z11+ renders overzoomed (same policy as land-relief).
   labels, offline pack path served.
 - Offline contract: `corridor-pack.test.ts` / `manifest.test.ts` —
   kind=full requires `land-peaks.pmtiles`; OPFS install reads it.
-- Pack build: `land-peaks.pmtiles` (973 tiles, 0.2 MB) in the corridor
-  pack manifest with sha256; z10 peak tile x368/y182 is all-2000+ band,
-  Qaarsut/Upernavik-adjacent lowland tiles absent.
+- Peaks-only policy enforced in the bake: `BAND_COLORS` starts at
+  LAND_BREAKS_M[0] — elevations below 500 m stay transparent even inside
+  mixed tiles (regression-tested by data/scripts/test_land_peaks.py:
+  synthetic 100/600/1500/2500 m quadrants -> transparent/band1/band2/
+  band3; boundary 499/500/1999/2000 m; all-below-500 tile omitted).
+- Pack build: `land-peaks.pmtiles` (973 tiles, 0.4 MB) in the corridor
+  pack manifest with sha256; 454 mixed tiles, all with clean
+  band/transparent separation.
 - Full-country archive: `packages/land-peaks/land-peaks.pmtiles`
-  4.8 MB, 35,572 tiles (z0–z10: 1/1/2/6/20/55/162/523/1861/6925/26016);
-  ice cap present, Qaarsut + Nuuk coastal tiles absent.
+  11.6 MB, 35,572 tiles (z0–z10: 1/1/2/6/20/55/162/523/1861/6925/26016);
+  11,344 mixed tiles at z9–z10, all with clean separation; ice cap
+  present, Qaarsut + Nuuk coastal tiles absent.
 - Browser dogfood (Qaarsut→Kullorsuaq, production build): style meta
   `nunat:land-peak-bands: 500-1000-2000` + `terrain-land-peak-bands`
   live in the map; land-peaks.pmtiles range requests confirmed in the
@@ -68,6 +74,9 @@ z0–z10 at 256 px; z11+ renders overzoomed (same policy as land-relief).
   markers are added on top on style load). Full visual pass was limited
   by the harness Chrome window staying backgrounded (rAF frozen), not
   by a feature failure.
+- Releases (fixed bake): web-land-peaks-land-peaks_2026-08-07,
+  web-corridor-pack-corridor_qaarsut_kullorsuaq_2026-08-07 (the
+  2026-08-06 tags still carry the pre-fix lowland-wash archive).
 
 ## Remaining gaps
 

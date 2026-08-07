@@ -1,5 +1,5 @@
 {
-  "id": "corridor_qaarsut_kullorsuaq_2026-08-06",
+  "id": "corridor_qaarsut_kullorsuaq_2026-08-07",
   "slug": "qaarsut-kullorsuaq",
   "title": {
     "kl": "Qaarsut–Kullorsuaq",
@@ -12,29 +12,29 @@
     -50.5,
     74.9
   ],
-  "bytes": 87455102,
-  "createdAt": "2026-08-06T22:42:13Z",
+  "bytes": 87659702,
+  "createdAt": "2026-08-07T00:38:09Z",
   "kind": "full",
   "files": [
     {
       "path": "land-relief.pmtiles",
       "bytes": 66338299,
-      "sha256": "80ffce5851853caf085ef15e7b47f8ed9308df42a4bd562cf025ff058ecd70b6"
+      "sha256": "53090a55fbeaa19156dedfabc03c50a1e0f3f227b9d0c44440756e6e0cf9ffc1"
     },
     {
       "path": "land-peaks.pmtiles",
-      "bytes": 215875,
-      "sha256": "816eea1954fe94e15c87c5a941b225f05a9e91253aec5884038c0ba4da826c8f"
+      "bytes": 420475,
+      "sha256": "8f8313360de84131973b0eae2892a9212054d953a243d26529773735ac4e026c"
     },
     {
       "path": "ocean-depth-vector.pmtiles",
       "bytes": 10409625,
-      "sha256": "877c9009ae44869db37e8a10d0931247e5ca5090e8ac423cc4769e16194442e2"
+      "sha256": "b65d1f8ad71fe8793b1f4bec8edc31bd7a60bd8bf44166af9c99f43f4a052963"
     },
     {
       "path": "ocean-depth-dem.pmtiles",
       "bytes": 6132074,
-      "sha256": "4bdcea32fce296baf0b1bb3d132d5dd0145f37602d88fe40f80fe87f0a8cb0fa"
+      "sha256": "8582c897afae303e863700a46f007609252c1bbee7d9a574ee36b5e604f7227b"
     },
     {
       "path": "coastline-land/land.pmtiles",
