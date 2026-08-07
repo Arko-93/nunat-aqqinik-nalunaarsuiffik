@@ -91,6 +91,51 @@ export type IsolationReport = {
   };
 };
 
+export type ConnectionFilters = {
+  mode: string | null;
+  capability: string | null;
+  operator: string | null;
+};
+
+export type SingleDependencyReport = {
+  effective_date: string;
+  capability: "passenger";
+  single_connection: Array<{ place_id: string; connection_id: string }>;
+  single_mode: Array<{ place_id: string; mode: string }>;
+  single_operator: Array<{ place_id: string; operator: string }>;
+  counts: {
+    single_connection: number;
+    single_mode: number;
+    single_operator: number;
+  };
+};
+
+export type SeasonalLossEntry = {
+  place_id: string;
+  connected_months: number[];
+  isolated_months: number[];
+};
+
+export type SeasonalLossReport = {
+  year: number;
+  capability: "passenger";
+  losses: SeasonalLossEntry[];
+  counts: {
+    places_with_seasonal_loss: number;
+  };
+};
+
+export type ReachabilityResult = {
+  from_place_id: string;
+  to_place_id: string;
+  effective_date: string;
+  capability: string;
+  reachable: boolean;
+  hops: number | null;
+  path: string[];
+  connections: string[];
+};
+
 export type ResolveIdentifierInput = {
   namespace: string;
   value: string;

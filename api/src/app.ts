@@ -10,6 +10,7 @@ import type { ApiContext } from "./context.js";
 import { ReleaseStore } from "./repository/release-store.js";
 import { openRepository } from "./repository/sqlite-repository.js";
 import { createPlacesRouter } from "./routes/places.js";
+import { createReachabilityRoutes } from "./routes/reachability.js";
 import { createReleaseRoutes } from "./routes/releases.js";
 import { createReportRoutes } from "./routes/reports.js";
 import { createSourceHealthRoutes } from "./routes/source-health.js";
@@ -52,6 +53,7 @@ export const createApp = (options: CreateAppOptions = {}) => {
   app.route("/v1/source-health", createSourceHealthRoutes());
   app.route("/v1/places", createPlacesRouter());
   app.route("/v1/reports", createReportRoutes());
+  app.route("/v1/reachability", createReachabilityRoutes());
 
   app.notFound((c) =>
     c.json(

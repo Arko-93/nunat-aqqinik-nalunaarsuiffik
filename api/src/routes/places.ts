@@ -145,12 +145,22 @@ export const createPlaceRoutes = () => {
     }
 
     const effective = effectiveDate(ctx, at);
-    const connections = ctx.repository.getPlaceConnections(placeId, effective);
+    const filters = {
+      mode: c.req.query("mode") ?? null,
+      capability: c.req.query("capability") ?? null,
+      operator: c.req.query("operator") ?? null,
+    };
+    const connections = ctx.repository.getPlaceConnections(
+      placeId,
+      effective,
+      filters,
+    );
 
     return c.json(
       withReleaseMeta(ctx, {
         place_id: placeId,
         effective_date: effective,
+        filters,
         connections,
       }),
     );

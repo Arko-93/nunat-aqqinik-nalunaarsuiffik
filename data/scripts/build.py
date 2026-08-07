@@ -396,6 +396,125 @@ def build():
         json.dump(isolation_report, file, indent=2, ensure_ascii=False)
         file.write("\n")
 
+    # Single-dependency: places with passenger access via one connection/mode/operator.
+    place_connections: dict[str, set[str]] = {}
+    place_modes: dict[str, set[str]] = {}
+    place_operators: dict[str, set[str]] = {}
+    for connection in connections:
+        if connection.get("retired_at") is not None:
+            continue
+        passenger_services = [
+            service
+            for service in svc_by_conn.get(connection["id"], [])
+            if service_valid_on(service, isolation_at)
+            and "passenger" in service.get("capabilities", [])
+        ]
+        if not passenger_services:
+            continue
+        for place_id in (
+            connection["origin_place_id"],
+            connection["destination_place_id"],
+        ):
+            place_connections.setdefault(place_id, set()).add(connection["id"])
+            place_modes.setdefault(place_id, set()).add(connection["mode"])
+            for service in passenger_services:
+                operator = service.get("operator")
+                if operator:
+                    place_operators.setdefault(place_id, set()).add(operator)
+
+    single_connection = [
+        {
+            "place_id": place_id,
+            "connection_id": next(iter(place_connections[place_id])),
+        }
+        for place_id in sorted(place_connections)
+        if len(place_connections[place_id]) == 1
+    ]
+    single_mode = [
+        {"place_id": place_id, "mode": next(iter(place_modes[place_id]))}
+        for place_id in sorted(place_modes)
+        if len(place_modes[place_id]) == 1
+    ]
+    single_operator = [
+        {
+            "place_id": place_id,
+            "operator": next(iter(place_operators[place_id])),
+        }
+        for place_id in sorted(place_operators)
+        if len(place_operators[place_id]) == 1
+    ]
+    single_dependency_report = {
+        "effective_date": isolation_at,
+        "capability": "passenger",
+        "single_connection": single_connection,
+        "single_mode": single_mode,
+        "single_operator": single_operator,
+        "counts": {
+            "single_connection": len(single_connection),
+            "single_mode": len(single_mode),
+            "single_operator": len(single_operator),
+        },
+    }
+    with (DIST_DIR / "single-dependency-report.json").open(
+        "w", encoding="utf-8"
+    ) as file:
+        json.dump(single_dependency_report, file, indent=2, ensure_ascii=False)
+        file.write("\n")
+
+    # Seasonal-loss: places connected in some months and isolated in others.
+    def service_active_in_month(service, year: int, month: int) -> bool:
+        at = f"{year}-{month:02d}-15"
+        if not service_valid_on(service, at):
+            return False
+        seasonality = service.get("seasonality") or {}
+        if seasonality.get("kind") == "seasonal":
+            return month in (seasonality.get("months") or [])
+        return True
+
+    loss_year = int(isolation_at[:4])
+    month_connected: dict[int, set[str]] = {}
+    for month in range(1, 13):
+        connected_month: set[str] = set()
+        for connection in connections:
+            if connection.get("retired_at") is not None:
+                continue
+            if any(
+                service_active_in_month(service, loss_year, month)
+                and "passenger" in service.get("capabilities", [])
+                for service in svc_by_conn.get(connection["id"], [])
+            ):
+                connected_month.add(connection["origin_place_id"])
+                connected_month.add(connection["destination_place_id"])
+        month_connected[month] = connected_month
+
+    seasonal_losses = []
+    for place_id in active_place_ids:
+        connected_months = [
+            month for month in range(1, 13) if place_id in month_connected[month]
+        ]
+        isolated_months = [
+            month
+            for month in range(1, 13)
+            if place_id not in month_connected[month]
+        ]
+        if connected_months and isolated_months:
+            seasonal_losses.append(
+                {
+                    "place_id": place_id,
+                    "connected_months": connected_months,
+                    "isolated_months": isolated_months,
+                }
+            )
+    seasonal_loss_report = {
+        "year": loss_year,
+        "capability": "passenger",
+        "losses": seasonal_losses,
+        "counts": {"places_with_seasonal_loss": len(seasonal_losses)},
+    }
+    with (DIST_DIR / "seasonal-loss-report.json").open("w", encoding="utf-8") as file:
+        json.dump(seasonal_loss_report, file, indent=2, ensure_ascii=False)
+        file.write("\n")
+
     def sha256(path):
         digest = hashlib.sha256()
         with path.open("rb") as file:
@@ -424,6 +543,8 @@ def build():
         f"{RCH}.json",
         f"{RCH}.csv",
         "isolation-report.json",
+        "single-dependency-report.json",
+        "seasonal-loss-report.json",
     ]
     date_fields = (
         "observed_at",
@@ -480,6 +601,8 @@ def build():
             f"{RCH}.json": r_count,
             f"{RCH}.csv": r_count,
             "isolation-report.json": 1,
+            "single-dependency-report.json": 1,
+            "seasonal-loss-report.json": 1,
         },
         "sha256": {
             **{
