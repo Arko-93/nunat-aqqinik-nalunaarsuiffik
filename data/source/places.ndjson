@@ -13,3 +13,7 @@
 {"id":"plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864","status":"active","created_at":"2024-01-01","retired_at":null,"source_refs":[{"source_id":"src_legacy_seed","record_id":null}]}
 {"id":"plc_b5089ce8-becf-4195-b632-71175c2d0ada","status":"active","created_at":"2024-01-01","retired_at":null,"source_refs":[{"source_id":"src_legacy_seed","record_id":null}]}
 {"id":"plc_d82ad42c-d2b6-4236-ae32-16ace9a0ffbd","status":"active","created_at":"2024-01-01","retired_at":null,"source_refs":[{"source_id":"src_legacy_seed","record_id":null}]}
+{"id":"plc_eeccbd92-0381-4df8-be89-e7c42d0d3282","status":"active","created_at":"2026-08-07","retired_at":null,"source_refs":[{"source_id":"src_nunagis_placenames_register","record_id":"D31C85B5-63E0-4AB9-8BDE-3EAF0F296171"}]}
+{"id":"plc_28de668b-105f-417c-8ab2-9b01ebebdd38","status":"active","created_at":"2026-08-07","retired_at":null,"source_refs":[{"source_id":"src_nunagis_placenames_register","record_id":"88D699D0-59EA-4F28-BDF6-5107EA2F324C"}]}
+{"id":"plc_5d78eab5-5a6a-4a57-8792-5b73c80223cd","status":"active","created_at":"2026-08-07","retired_at":null,"source_refs":[{"source_id":"src_nunagis_placenames_register","record_id":"8C7BAF0B-A820-4293-8017-57F508BD20AC"}]}
+{"id":"plc_9e739985-6d0a-4347-b9a5-035f4a0b0553","status":"active","created_at":"2026-08-07","retired_at":null,"source_refs":[{"source_id":"src_nunagis_placenames_register","record_id":"AD72C641-A718-4404-AFC3-10DE943C6017"}]}

@@ -1,0 +1,1193 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_0c776092-d46f-4076-a0e4-37a3f32bcc30",
+        "slug": "ittoqqortoormiit",
+        "name_kl": "Ittoqqortoormiit",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_cf789959-6868-4aed-a6ef-8a78834de40d",
+            "value": "Scoresbysund",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "4F5A234E-3A5A-449C-A57B-7C5A9CFE29A9"
+              }
+            ]
+          }
+        ],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4F5A234E-3A5A-449C-A57B-7C5A9CFE29A9"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_0c25ca08-c7a4-4b30-97d4-9e933293f95b",
+            "level": "municipality",
+            "name": "Sermersooq",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4F5A234E-3A5A-449C-A57B-7C5A9CFE29A9"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -21.962,
+          70.485
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_1c06718f-c482-4102-bd9d-9e01a1441459",
+        "slug": "kangerlussuaq",
+        "name_kl": "Kangerlussuaq",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_831d88b7-e564-4237-88d8-ebc0f8a94786",
+            "value": "Søndre Strømfjord",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ]
+          }
+        ],
+        "feature_type": "settlement",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "D5A803B9-E69D-4C35-B2C4-B1094D88146A"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_5cf989d9-780c-4b3f-a9d1-b2d32bff793d",
+            "level": "municipality",
+            "name": "Qeqqata",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "D5A803B9-E69D-4C35-B2C4-B1094D88146A"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -50.689,
+          67.008
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_28de668b-105f-417c-8ab2-9b01ebebdd38",
+        "slug": "qasigiannguit",
+        "name_kl": "Qasigiannguit",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_88c68285-053d-4453-9954-1f3abc26c365",
+            "value": "Christianshåb",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "88D699D0-59EA-4F28-BDF6-5107EA2F324C"
+              }
+            ]
+          }
+        ],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "88D699D0-59EA-4F28-BDF6-5107EA2F324C"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_751b2292-9a17-4465-b95b-8f8427771b11",
+            "level": "municipality",
+            "name": "Qeqertalik",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "88D699D0-59EA-4F28-BDF6-5107EA2F324C"
+              }
+            ],
+            "observed_at": "2026-08-07"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "88D699D0-59EA-4F28-BDF6-5107EA2F324C"
+          }
+        ],
+        "geometry_source_refs": [],
+        "updated_at": "2026-08-07"
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_2e957e7e-3814-4e34-9e07-262eceb32584",
+        "slug": "paamiut",
+        "name_kl": "Paamiut",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_6c9f8b95-4a9e-41da-b6a5-e8cdcdcde361",
+            "value": "Frederikshåb",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "4D1988E8-AFCA-4C75-B38D-BF7636379F6B"
+              }
+            ]
+          }
+        ],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4D1988E8-AFCA-4C75-B38D-BF7636379F6B"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_f04ef999-da11-47b3-8047-9a045ee49e3a",
+            "level": "municipality",
+            "name": "Sermersooq",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4D1988E8-AFCA-4C75-B38D-BF7636379F6B"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -49.667,
+          61.994
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_4122e504-40d9-49a4-9e91-dbd13280ac75",
+        "slug": "uummannaq",
+        "name_kl": "Uummannaq",
+        "alternate_names": [],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "F63022A0-9E34-4F27-8461-96D7F40B1B80"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_64359b21-3254-436a-ba60-1ea37091d89d",
+            "level": "municipality",
+            "name": "Avannaata",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "F63022A0-9E34-4F27-8461-96D7F40B1B80"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -52.131,
+          70.679
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_5d78eab5-5a6a-4a57-8792-5b73c80223cd",
+        "slug": "qeqertarsuaq",
+        "name_kl": "Qeqertarsuaq",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_620b3aed-ee67-408e-accb-1ec9155ece9d",
+            "value": "Godhavn",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "8C7BAF0B-A820-4293-8017-57F508BD20AC"
+              }
+            ]
+          }
+        ],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "8C7BAF0B-A820-4293-8017-57F508BD20AC"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_1c5404cf-de8e-487f-8380-49a89b952e27",
+            "level": "municipality",
+            "name": "Qeqertalik",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "8C7BAF0B-A820-4293-8017-57F508BD20AC"
+              }
+            ],
+            "observed_at": "2026-08-07"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "8C7BAF0B-A820-4293-8017-57F508BD20AC"
+          }
+        ],
+        "geometry_source_refs": [],
+        "updated_at": "2026-08-07"
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+        "slug": "nuuk",
+        "name_kl": "Nuuk",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_4a771a84-9138-4817-bf22-89918b3559a3",
+            "value": "Godthåb",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "1AB00601-6698-492D-9C16-5E3C655259FA"
+              }
+            ]
+          }
+        ],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "1AB00601-6698-492D-9C16-5E3C655259FA"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_d2bf68d6-471f-4737-89fc-049d7d604924",
+            "level": "municipality",
+            "name": "Sermersooq",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "1AB00601-6698-492D-9C16-5E3C655259FA"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.733,
+          64.175
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_6bbbde6c-8ce0-4627-a72b-d1187126d4c6",
+        "slug": "aasiaat",
+        "name_kl": "Aasiaat",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_d5c9eb27-f91a-4707-b97b-fc2b6b6b3326",
+            "value": "Egedesminde",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "EBAF1AE8-CDD7-4A34-B8CE-B2D569074448"
+              }
+            ]
+          }
+        ],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "EBAF1AE8-CDD7-4A34-B8CE-B2D569074448"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_b4347204-566f-4de0-b0fc-e93710af47df",
+            "level": "municipality",
+            "name": "Qeqertalik",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "EBAF1AE8-CDD7-4A34-B8CE-B2D569074448"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -52.876,
+          68.71
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_7fd60259-8b40-4dc0-947f-cdcdb16b9e42",
+        "slug": "ilulissat",
+        "name_kl": "Ilulissat",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_3fbe7bc0-44c9-41f0-b6bb-9e0a0c5ce396",
+            "value": "Jakobshavn",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "ED783009-9AC4-4F13-ADF0-7EA19A8F9450"
+              }
+            ]
+          }
+        ],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "ED783009-9AC4-4F13-ADF0-7EA19A8F9450"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_2d3257cf-ca2d-46aa-8034-0ffaf82b46bd",
+            "level": "municipality",
+            "name": "Avannaata",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "ED783009-9AC4-4F13-ADF0-7EA19A8F9450"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -51.099,
+          69.22
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864",
+        "slug": "nanortalik",
+        "name_kl": "Nanortalik",
+        "alternate_names": [],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4E20C33A-E51D-4D06-A60C-CE100C8C4E76"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_056e9ec3-87be-40e2-ae29-7c1f28df63f8",
+            "level": "municipality",
+            "name": "Kujalleq",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4E20C33A-E51D-4D06-A60C-CE100C8C4E76"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -45.24,
+          60.141
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_9e739985-6d0a-4347-b9a5-035f4a0b0553",
+        "slug": "upernavik",
+        "name_kl": "Upernavik",
+        "alternate_names": [],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "AD72C641-A718-4404-AFC3-10DE943C6017"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_97997e59-a3f7-430f-9710-e7dc2307175c",
+            "level": "municipality",
+            "name": "Avannaata",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "AD72C641-A718-4404-AFC3-10DE943C6017"
+              }
+            ],
+            "observed_at": "2026-08-07"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "AD72C641-A718-4404-AFC3-10DE943C6017"
+          }
+        ],
+        "geometry_source_refs": [],
+        "updated_at": "2026-08-07"
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_a0c38659-994b-4e7e-8ba6-9a8e1f86653f",
+        "slug": "narsaq",
+        "name_kl": "Narsaq",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_2f7a2d5f-d495-4123-8612-45993f5450dc",
+            "value": "Narssaq",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ]
+          }
+        ],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "3945A03D-D309-4C00-9968-75C33498D502"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_1cea3bef-635d-4ee6-afd8-1399893315ea",
+            "level": "municipality",
+            "name": "Kujalleq",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "3945A03D-D309-4C00-9968-75C33498D502"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -46.05,
+          60.913
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_b5089ce8-becf-4195-b632-71175c2d0ada",
+        "slug": "maniitsoq",
+        "name_kl": "Maniitsoq",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_405dca83-b6da-44fb-882c-1f3b6af1f7be",
+            "value": "Sukkertoppen",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "8D48535A-1BA0-47F1-8111-AF75A13342B0"
+              }
+            ]
+          }
+        ],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "8D48535A-1BA0-47F1-8111-AF75A13342B0"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_ca109ac0-6b1d-4455-861f-5f0db38d5edc",
+            "level": "municipality",
+            "name": "Qeqqata",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "8D48535A-1BA0-47F1-8111-AF75A13342B0"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -52.894,
+          65.413
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_bc0c50c0-552d-4f4b-8c9f-c65fcc33bf3b",
+        "slug": "sisimiut",
+        "name_kl": "Sisimiut",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_848e672b-ab98-4851-be6f-233f329eeb51",
+            "value": "Holsteinsborg",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "A099393B-0601-426A-862C-CDAA9492B702"
+              }
+            ]
+          }
+        ],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "A099393B-0601-426A-862C-CDAA9492B702"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_c2a8026a-37d3-47ad-86df-8ded9633561f",
+            "level": "municipality",
+            "name": "Qeqqata",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "A099393B-0601-426A-862C-CDAA9492B702"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -53.673,
+          66.939
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_d60fc5a9-ee06-4aed-96c9-b6231af88aa6",
+        "slug": "tasiilaq",
+        "name_kl": "Tasiilaq",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_fff18cb1-3e07-4155-9fec-8089678ebf84",
+            "value": "Ammassalik",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "4061D539-8921-4EFF-A778-36E227622680"
+              }
+            ]
+          }
+        ],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4061D539-8921-4EFF-A778-36E227622680"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_38b1b476-fbb6-48a1-85e8-55d6a9ce5c24",
+            "level": "municipality",
+            "name": "Sermersooq",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "4061D539-8921-4EFF-A778-36E227622680"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -37.637,
+          65.614
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_d82ad42c-d2b6-4236-ae32-16ace9a0ffbd",
+        "slug": "kulusuk",
+        "name_kl": "Kulusuk",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_8891aec0-efec-4b03-aab2-74b1bc53fd9e",
+            "value": "Kap Dan",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ]
+          }
+        ],
+        "feature_type": "settlement",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "B7189B05-F52D-4040-8966-CB1F61DE8F78"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_58397dbd-eefb-439b-aadd-3bf24f4d2440",
+            "level": "municipality",
+            "name": "Sermersooq",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "B7189B05-F52D-4040-8966-CB1F61DE8F78"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -37.184,
+          65.575
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_e707fa48-b27a-4eac-baf2-e100c32288b7",
+        "slug": "qaanaaq",
+        "name_kl": "Qaanaaq",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_ad9bb523-14eb-4bd0-b61e-3664ce37c1a4",
+            "value": "Thule",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "D386F48D-A901-4C84-867B-5C4211E28B34"
+              }
+            ]
+          }
+        ],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "D386F48D-A901-4C84-867B-5C4211E28B34"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_85f51832-2a58-43bc-b607-7b8e76e20f52",
+            "level": "municipality",
+            "name": "Avannaata",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "D386F48D-A901-4C84-867B-5C4211E28B34"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -69.232,
+          77.467
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722",
+        "slug": "qaqortoq",
+        "name_kl": "Qaqortoq",
+        "alternate_names": [
+          {
+            "assertion_id": "nam_6ba45119-1ae8-41e8-9955-bd53ca467ee4",
+            "value": "Julianehåb",
+            "language": "da",
+            "kind": "exonym",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "9B8A88EC-0FD8-4AD2-B04E-A2B133BEA527"
+              }
+            ]
+          }
+        ],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "9B8A88EC-0FD8-4AD2-B04E-A2B133BEA527"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_8074e06b-64e3-4610-8081-06fc061ff7c6",
+            "level": "municipality",
+            "name": "Kujalleq",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_legacy_seed",
+                "record_id": null
+              }
+            ],
+            "observed_at": "2024-01-01"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "9B8A88EC-0FD8-4AD2-B04E-A2B133BEA527"
+          }
+        ],
+        "geometry_source_refs": [
+          {
+            "source_id": "src_legacy_seed",
+            "record_id": null
+          }
+        ],
+        "updated_at": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -46.036,
+          60.718
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "plc_eeccbd92-0381-4df8-be89-e7c42d0d3282",
+        "slug": "kangaatsiaq",
+        "name_kl": "Kangaatsiaq",
+        "alternate_names": [],
+        "feature_type": "town",
+        "status": "active",
+        "classification_source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "D31C85B5-63E0-4AB9-8BDE-3EAF0F296171"
+          }
+        ],
+        "administrative_memberships": [
+          {
+            "assertion_id": "mem_71e6ac94-0bb2-49fe-9c2b-ebf6ecf50a0b",
+            "level": "municipality",
+            "name": "Qeqertalik",
+            "valid_from": null,
+            "valid_to": null,
+            "source_refs": [
+              {
+                "source_id": "src_nunagis_placenames_register",
+                "record_id": "D31C85B5-63E0-4AB9-8BDE-3EAF0F296171"
+              }
+            ],
+            "observed_at": "2026-08-07"
+          }
+        ],
+        "source_refs": [
+          {
+            "source_id": "src_nunagis_placenames_register",
+            "record_id": "D31C85B5-63E0-4AB9-8BDE-3EAF0F296171"
+          }
+        ],
+        "geometry_source_refs": [],
+        "updated_at": "2026-08-07"
+      },
+      "geometry": null
+    }
+  ]
+}

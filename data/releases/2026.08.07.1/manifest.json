@@ -1,0 +1,395 @@
+{
+  "release_id": "2026.08.07.1",
+  "created_at": "2026-08-07T21:21:28Z",
+  "data_as_of": "2026-08-07",
+  "schema_versions": {
+    "canonical_source": "1.0",
+    "release_manifest": "1.0",
+    "source_snapshot": "1.0",
+    "source_dataset": "1.0"
+  },
+  "record_counts": {
+    "places": 19,
+    "place_classifications": 19,
+    "place_names": 34,
+    "place_geometries": 15,
+    "administrative_areas": 5,
+    "administrative_memberships": 19,
+    "external_identifiers": 19,
+    "connections": 2,
+    "connection_services": 2,
+    "sources": 3
+  },
+  "source_snapshot_ids": [
+    "snp_nunagis_placenames_2026_08_01",
+    "snp_nunagis_placenames_2026_08_07",
+    "snp_nunagis_placenames_midpoint_2026_08_05"
+  ],
+  "checksums": {
+    "nunat-aqqinik-nalunaarsuiffik.ndjson": "sha256:3a53fea52754f45637747d9725f78aaba588ffcbd3b6f015601e98ef47d29fce",
+    "nunat-aqqinik-nalunaarsuiffik.json": "sha256:a19b6a54f92b22c924da43301a2db1f77190e8f849da98084a788787e46f91fd",
+    "nunat-aqqinik-nalunaarsuiffik.geojson": "sha256:f306597db94c743b89bdb7467a8c24ceacd0c7d96a501384891ce88f80180dbc",
+    "nunat-aqqinik-nalunaarsuiffik.csv": "sha256:eae7fde5b8c17e25c972ee1bbd3f72516f5c49c7df0488bc29529ff6ab178bc8",
+    "reachability.ndjson": "sha256:33f74cdf40d18cc08cfdc59ef4739534513101e8ed24c7ae14c5eb3f740c7972",
+    "reachability.json": "sha256:f21fe52e430109def636127657ef282d0945d9bbe3947164ad0e27cba17e9f45",
+    "reachability.csv": "sha256:e7bcf8518985796cd336f6434da1c9d095b50d39326e5bd6a822ff6a35644b37",
+    "decision-geography.db": "sha256:02e01da65260a0222527893f0603f9af60d599c411bdbe36e465b29c6ef3d719",
+    "build-manifest.json": "sha256:cc03cebac3eedba45446bd7577c40c2d18fec3530237723b18cf48d6394e7022"
+  },
+  "publication_blockers": [
+    {
+      "code": "pending_provenance",
+      "message": "sources.ndjson:1: source 'src_legacy_seed' pending — blocks publish",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:1: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:2: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:3: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:4: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:5: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:6: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:7: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:8: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:9: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:10: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:11: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:12: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:13: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:14: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "places.ndjson:15: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-names.ndjson:10: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-names.ndjson:19: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-names.ndjson:28: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:1: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:2: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:3: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:4: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:5: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:6: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:7: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:8: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:9: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:10: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:11: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:12: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:13: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:14: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:15: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-areas.ndjson:1: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-areas.ndjson:2: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-areas.ndjson:3: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-areas.ndjson:4: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-areas.ndjson:5: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:1: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:2: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:3: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:4: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:5: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:6: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:7: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:8: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:9: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:10: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:11: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:12: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:13: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:14: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-memberships.ndjson:15: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "unknown_redistribution_status",
+      "message": "Snapshot 'snp_nunagis_placenames_2026_08_01' has unknown licence_status; redistribution terms are not verified.",
+      "severity": "blocker",
+      "snapshot_id": "snp_nunagis_placenames_2026_08_01"
+    },
+    {
+      "code": "unknown_redistribution_status",
+      "message": "Snapshot 'snp_nunagis_placenames_2026_08_07' has unknown licence_status; redistribution terms are not verified.",
+      "severity": "blocker",
+      "snapshot_id": "snp_nunagis_placenames_2026_08_07"
+    },
+    {
+      "code": "unknown_redistribution_status",
+      "message": "Snapshot 'snp_nunagis_placenames_midpoint_2026_08_05' has unknown licence_status; redistribution terms are not verified.",
+      "severity": "blocker",
+      "snapshot_id": "snp_nunagis_placenames_midpoint_2026_08_05"
+    },
+    {
+      "code": "unknown_source_licence",
+      "message": "Verified source 'src_58f6b0b6-7a68-4b81-9c58-8ed742912d04' has no licence field; redistribution status is not recorded.",
+      "severity": "warning",
+      "source_id": "src_58f6b0b6-7a68-4b81-9c58-8ed742912d04"
+    },
+    {
+      "code": "unknown_source_licence",
+      "message": "Verified source 'src_nunagis_placenames_register' has no licence field; redistribution status is not recorded.",
+      "severity": "warning",
+      "source_id": "src_nunagis_placenames_register"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 # Place-seed reconciliation
 
-`place-seeds.ndjson` is the review queue for the 15 provisional seed identities.
-It is generated and must not change canonical assertions by itself.
+`place-seeds.ndjson` is the review queue for provisional place identities in
+`data/source/`. It is generated and must not change canonical assertions by itself.
 
 ## Empty queue
 
@@ -18,14 +18,15 @@ Oqaasileriffik pointed to the public NunaGIS PlacenamesRegister REST layer as
 the official placenames extract. Fetch, normalize, then reconcile:
 
 ```sh
-make -C data fetch-nunagis
+make -C data fetch-nunagis-localities   # full Type 21/23 (preferred for Phase 3)
+# or: make -C data fetch-nunagis        # seed-name filter only
 make -C data normalize-nunagis
 make -C data reconcile
 ```
 
 That writes:
 
-- `data/raw/nunagis_placenames/<YYYY-MM-DD>/` — dated attributes-only snapshot + manifest
+- `data/snapshots/nunagis_placenames/<YYYY-MM-DD>/type-21-23-query.json` — full locality extract (+ manifest)
 - `data/reconciliation/authority/oqaasileriffik-nunagis.ndjson` — Type 21 (By/`town`) and Type 23 (Bygd/`settlement`) rows only
 - `data/reconciliation/place-seeds.ndjson` — regenerated review queue
 
@@ -74,7 +75,8 @@ the authority row after a manual review (see Phase 3 Nuuk, #29). Regenerate the
 queue with `make -C data reconcile` only — do not hand-edit `place-seeds.ndjson`,
 it is a generated queue. `normalize-nunagis` overwrites the authority file from
 the latest snapshot, but it **preserves** existing `confirmed_place_id` values by
-`record_id` (`carry_confirmations`), so confirmations survive re-fetches.
+`decision_ref` (stable numeric ID), with `record_id` fallback — so confirmations
+survive GlobalID rotation between extracts.
 
 A place whose Oqaasileriffik side is confirmed stays `unresolved` overall until
 its Asiaq side also confirms. Do not invent an Asiaq confirmation to force

@@ -1,0 +1,20 @@
+id,slug,name_kl,name_da,latitude,longitude,feature_type,municipality,status,updated_at
+plc_0c776092-d46f-4076-a0e4-37a3f32bcc30,ittoqqortoormiit,Ittoqqortoormiit,Scoresbysund,70.485,-21.962,town,Sermersooq,active,2026-08-01
+plc_1c06718f-c482-4102-bd9d-9e01a1441459,kangerlussuaq,Kangerlussuaq,Søndre Strømfjord,67.008,-50.689,settlement,Qeqqata,active,2026-08-01
+plc_28de668b-105f-417c-8ab2-9b01ebebdd38,qasigiannguit,Qasigiannguit,Christianshåb,,,town,Qeqertalik,active,2026-08-07
+plc_2e957e7e-3814-4e34-9e07-262eceb32584,paamiut,Paamiut,Frederikshåb,61.994,-49.667,town,Sermersooq,active,2026-08-01
+plc_4122e504-40d9-49a4-9e91-dbd13280ac75,uummannaq,Uummannaq,,70.679,-52.131,town,Avannaata,active,2026-08-01
+plc_5d78eab5-5a6a-4a57-8792-5b73c80223cd,qeqertarsuaq,Qeqertarsuaq,Godhavn,,,town,Qeqertalik,active,2026-08-07
+plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80,nuuk,Nuuk,Godthåb,64.175,-51.733,town,Sermersooq,active,2026-08-01
+plc_6bbbde6c-8ce0-4627-a72b-d1187126d4c6,aasiaat,Aasiaat,Egedesminde,68.71,-52.876,town,Qeqertalik,active,2026-08-01
+plc_7fd60259-8b40-4dc0-947f-cdcdb16b9e42,ilulissat,Ilulissat,Jakobshavn,69.22,-51.099,town,Avannaata,active,2026-08-01
+plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864,nanortalik,Nanortalik,,60.141,-45.24,town,Kujalleq,active,2026-08-01
+plc_9e739985-6d0a-4347-b9a5-035f4a0b0553,upernavik,Upernavik,,,,town,Avannaata,active,2026-08-07
+plc_a0c38659-994b-4e7e-8ba6-9a8e1f86653f,narsaq,Narsaq,Narssaq,60.913,-46.05,town,Kujalleq,active,2026-08-01
+plc_b5089ce8-becf-4195-b632-71175c2d0ada,maniitsoq,Maniitsoq,Sukkertoppen,65.413,-52.894,town,Qeqqata,active,2026-08-01
+plc_bc0c50c0-552d-4f4b-8c9f-c65fcc33bf3b,sisimiut,Sisimiut,Holsteinsborg,66.939,-53.673,town,Qeqqata,active,2026-08-01
+plc_d60fc5a9-ee06-4aed-96c9-b6231af88aa6,tasiilaq,Tasiilaq,Ammassalik,65.614,-37.637,town,Sermersooq,active,2026-08-01
+plc_d82ad42c-d2b6-4236-ae32-16ace9a0ffbd,kulusuk,Kulusuk,Kap Dan,65.575,-37.184,settlement,Sermersooq,active,2026-08-01
+plc_e707fa48-b27a-4eac-baf2-e100c32288b7,qaanaaq,Qaanaaq,Thule,77.467,-69.232,town,Avannaata,active,2026-08-01
+plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722,qaqortoq,Qaqortoq,Julianehåb,60.718,-46.036,town,Kujalleq,active,2026-08-01
+plc_eeccbd92-0381-4df8-be89-e7c42d0d3282,kangaatsiaq,Kangaatsiaq,,,,town,Qeqertalik,active,2026-08-07

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a non-destructive reconciliation queue for the 15 seed places."""
+"""Build a non-destructive reconciliation queue for provisional place identities."""
 
 import argparse
 import json
