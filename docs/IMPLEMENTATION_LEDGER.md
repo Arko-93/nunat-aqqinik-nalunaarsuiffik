@@ -135,7 +135,7 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 4. **Phase 3 (2026-08-07, #40):** Aappilattoq×2 and Tasiusaq×2 minted as distinct places (Kujalleq vs Avannaata); `--record-ids` import path; slug validation allows shared official names; release `2026.08.07.3`.
 5. **Phase 3 (2026-08-07):** excluded `Grise Fiord :100:` (ID=13434) — Canadian / corrupt label; authority 73 = spine 73.
 6. **Phase 3 (next):** Asiaq geometry export.
-7. **Phase 2 residual:** Package gazetteer midpoints into release snapshots (web still loads `/data/placenames.geojson`).
+7. **Phase 2 (2026-08-07):** gazetteer midpoints packaged into release `2026.08.07.4` (`placenames.geojson`); App loads `${base}/placenames.geojson`; no live fetch in `map-fetch` / `map-omarchy`.
 8. **Phase 4 follow-up:** FTS5 + OpenAPI client generation.
 9. **Phase 5 follow-up:** Native KL review; AccessPlanner; full offline package UX; a11y pass with screen reader.
 10. **Phase 6:** Effective-date service filtering + isolation reports.

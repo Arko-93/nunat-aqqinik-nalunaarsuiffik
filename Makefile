@@ -6,7 +6,6 @@ SHELL := /bin/bash
 
 map-fetch:
 	bash scripts/sync-web-release.sh
-	pnpm --dir web fetch:placenames
 
 map-build: map-fetch
 	pnpm --dir web install
@@ -18,7 +17,6 @@ map-build: map-fetch
 map-omarchy:
 	pnpm --dir web install
 	bash scripts/sync-web-release.sh
-	pnpm --dir web fetch:placenames
 	bash scripts/fetch-coastline-mask-assets.sh
 	bash scripts/fetch-ocean-depth-assets.sh
 	pnpm --dir web build

@@ -19,6 +19,7 @@ from release_lib import (
     default_release_id,
     discover_snapshot_manifests,
     iso_datetime,
+    latest_placenames_gazetteer,
     load_json,
     publication_blockers,
     read_ndjson,
@@ -92,6 +93,16 @@ def build_release(
 
     for name in RELEASE_ARTIFACTS:
         if name == "build-manifest.json":
+            continue
+        if name == "placenames.geojson":
+            gazetteer = latest_placenames_gazetteer()
+            if gazetteer is None:
+                raise SystemExit(
+                    "missing placenames.geojson snapshot under "
+                    "data/snapshots/nunagis_placenames_midpoint/*/ — "
+                    "package the full NunaGIS midpoint gazetteer first"
+                )
+            shutil.copy2(gazetteer, release_dir / name)
             continue
         shutil.copy2(dist_dir / name, release_dir / name)
 

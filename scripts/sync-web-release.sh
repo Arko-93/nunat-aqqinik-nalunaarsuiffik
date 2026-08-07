@@ -26,11 +26,17 @@ cp -f "$SRC/manifest.json" "$DEST/manifest.json"
 cp -f "$SRC/source-health.json" "$DEST/source-health.json"
 cp -f "$SRC/release.json" "$DEST/release.json"
 
+if [[ -f "$SRC/placenames.geojson" ]]; then
+  cp -f "$SRC/placenames.geojson" "$DEST/placenames.geojson"
+else
+  echo "Missing $SRC/placenames.geojson — rebuild release with gazetteer snapshot" >&2
+  exit 1
+fi
+
 # Product overlays built from canonical source (not live upstream)
 python3 "$ROOT/web/scripts/build-identity-crosswalk.py"
 python3 "$ROOT/web/scripts/export-reachability-graph.py"
 cp -f "$ROOT/web/public/data/identity-crosswalk.json" "$DEST/identity-crosswalk.json"
 cp -f "$ROOT/web/public/data/reachability-graph.json" "$DEST/reachability-graph.json"
 
-echo "Synced release $RELEASE_ID → $DEST"
-echo "Note: full gazetteer placenames.geojson remains under web/public/data/ until snapshot packaging (Phase 2 residual)."
+echo "Synced release $RELEASE_ID → $DEST (includes placenames.geojson)"

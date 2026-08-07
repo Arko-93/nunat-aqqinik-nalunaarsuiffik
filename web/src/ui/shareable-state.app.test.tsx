@@ -102,7 +102,7 @@ const fetchStub = vi.fn(async (input: RequestInfo | URL) => {
       data_as_of: "2026-01-01",
     });
   }
-  if (url === "/data/placenames.geojson") {
+  if (url.endsWith("/placenames.geojson")) {
     return jsonResponse(placenamesFixture);
   }
   if (url.endsWith("/identity-crosswalk.json")) {
