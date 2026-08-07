@@ -149,36 +149,76 @@ def sync_seed_global_ids(
     return {"global_id_rewrites": updated, "observed_at": observed_at}
 
 
-def import_names(
-    names: list[str],
+def resolve_authority_rows(
+    authority: list[dict],
+    *,
+    names: list[str] | None,
+    record_ids: list[str] | None,
+) -> list[dict]:
+    """Select authority rows to mint.
+
+    --names requires each official name to match exactly one unconfirmed row
+    (rejects homonyms). --record-ids selects by MapServer/0 GlobalID and is the
+    safe path for south/north villages that share a PlacenameOfficial.
+    """
+    if bool(names) == bool(record_ids):
+        raise SystemExit("pass exactly one of --names or --record-ids")
+
+    if record_ids is not None:
+        wanted = [strip_global_id(value) for value in record_ids]
+        by_gid = {row["record_id"]: row for row in authority}
+        missing = [gid for gid in wanted if gid not in by_gid]
+        if missing:
+            raise SystemExit(
+                "authority missing GlobalIDs: " + ", ".join(missing)
+            )
+        selected = [by_gid[gid] for gid in wanted]
+    else:
+        assert names is not None
+        wanted_names = list(names)
+        selected = []
+        for official_name in wanted_names:
+            matches = [
+                row
+                for row in authority
+                if row.get("official_name") == official_name
+                and not row.get("confirmed_place_id")
+            ]
+            if len(matches) == 0:
+                raise SystemExit(
+                    f"authority missing unconfirmed official name: {official_name}"
+                )
+            if len(matches) > 1:
+                gids = ", ".join(row["record_id"] for row in matches)
+                raise SystemExit(
+                    f"homonym '{official_name}' matches {len(matches)} rows "
+                    f"({gids}); use --record-ids with MunicipalityCode review"
+                )
+            selected.append(matches[0])
+
+    for row in selected:
+        if row.get("confirmed_place_id"):
+            raise SystemExit(
+                f"{row['official_name']} ({row['record_id']}) already confirmed "
+                f"as {row['confirmed_place_id']}"
+            )
+    return selected
+
+
+def import_authority_rows(
+    selected: list[dict],
     authority: list[dict],
     attrs_by_gid: dict[str, dict],
     observed_at: str,
     created_at: str,
 ) -> list[str]:
-    wanted = set(names)
-    by_official = {
-        row["official_name"]: row
-        for row in authority
-        if row.get("official_name") in wanted
-    }
-    missing = sorted(wanted - set(by_official))
-    if missing:
-        raise SystemExit(f"authority missing official names: {', '.join(missing)}")
-
-    existing_names = {
+    existing_gids = {
         row["value"]
-        for row in read_ndjson(SOURCE_DIR / "place-names.ndjson")
-        if row.get("kind") == "official"
-        and row.get("language") == "kl"
+        for row in read_ndjson(SOURCE_DIR / "external-identifiers.ndjson")
+        if row.get("namespace") == "nunagis.global_id"
+        and row.get("entity_type") == "place"
         and row.get("valid_to") is None
     }
-    already = sorted(wanted & existing_names)
-    if already:
-        raise SystemExit(
-            "official KL names already in source (no auto-merge): "
-            + ", ".join(already)
-        )
 
     places = read_ndjson(SOURCE_DIR / "places.ndjson")
     classifications = read_ndjson(SOURCE_DIR / "place-classifications.ndjson")
@@ -187,9 +227,13 @@ def import_names(
     memberships = read_ndjson(SOURCE_DIR / "administrative-memberships.ndjson")
 
     minted: list[str] = []
-    for official_name in sorted(wanted):
-        auth = by_official[official_name]
+    for auth in selected:
+        official_name = auth["official_name"]
         gid = auth["record_id"]
+        if gid in existing_gids:
+            raise SystemExit(
+                f"nunagis.global_id already in source (no auto-merge): {gid}"
+            )
         attrs = attrs_by_gid.get(gid)
         if attrs is None:
             raise SystemExit(f"snapshot missing attributes for GlobalID {gid}")
@@ -199,6 +243,13 @@ def import_names(
             raise SystemExit(
                 f"{official_name}: unknown MunicipalityCode {muni_code!r}"
             )
+        muni_label = {
+            955: "Kujalleq",
+            956: "Sermersooq",
+            957: "Qeqqata",
+            959: "Qeqertalik",
+            960: "Avannaata",
+        }.get(muni_code, str(muni_code))
 
         place_id = mint("plc_")
         places.append(
@@ -285,7 +336,11 @@ def import_names(
             }
         )
         auth["confirmed_place_id"] = place_id
-        minted.append(f"{official_name} → {place_id} ({gid})")
+        lok = attrs.get("LokalityCode")
+        minted.append(
+            f"{official_name} ({muni_label}, lok {lok}) → {place_id} ({gid})"
+        )
+        existing_gids.add(gid)
 
     write_ndjson(SOURCE_DIR / "places.ndjson", places)
     write_ndjson(SOURCE_DIR / "place-classifications.ndjson", classifications)
@@ -321,8 +376,19 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--names",
-        required=True,
-        help="Comma-separated PlacenameOfficial values to mint",
+        default=None,
+        help=(
+            "Comma-separated PlacenameOfficial values to mint "
+            "(unique names only; homonyms must use --record-ids)"
+        ),
+    )
+    parser.add_argument(
+        "--record-ids",
+        default=None,
+        help=(
+            "Comma-separated NunaGIS MapServer/0 GlobalIDs to mint "
+            "(required for homonyms that share an official name)"
+        ),
     )
     parser.add_argument(
         "--snapshot",
@@ -360,10 +426,22 @@ def main() -> None:
         stats = sync_seed_global_ids(authority, observed_at)
         print(f"Synced GlobalIDs: {stats['global_id_rewrites']} place xid_ rows")
 
-    names = [part.strip() for part in args.names.split(",") if part.strip()]
+    names = (
+        [part.strip() for part in args.names.split(",") if part.strip()]
+        if args.names
+        else None
+    )
+    record_ids = (
+        [part.strip() for part in args.record_ids.split(",") if part.strip()]
+        if args.record_ids
+        else None
+    )
+    selected = resolve_authority_rows(
+        authority, names=names, record_ids=record_ids
+    )
     attrs = attributes_by_global_id(snapshot_path)
-    minted = import_names(
-        names,
+    minted = import_authority_rows(
+        selected,
         authority,
         attrs,
         observed_at=observed_at,

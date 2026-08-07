@@ -28,11 +28,12 @@ Exact-name candidates in `data/reconciliation/place-seeds.ndjson` remain **candi
 ## Current status (2026-08-07)
 
 - Authority file covers all Type 21/23 rows (74) from `type-21-23-query.json`.
-- Canonical spine: 69 places — 15 seeds + 4 Type 21 towns (#36) + 50 unique Type 23 settlements (#38).
+- Canonical spine: 73 places — 15 seeds + 4 Type 21 towns (#36) + 50 unique Type 23 (#38) + 4 homonyms (#40).
 - Every imported place has canonical `xid_` + Oqaasileriffik `confirmed_place_id`.
 - Every place stays `unresolved` overall until Asiaq confirms (do not invent an Asiaq match).
 - Imported localities have municipality membership from NunaGIS `MunicipalityCode`; no `geo_` (Asiaq owns geometry).
-- Still out: Aappilattoq×2, Tasiusaq×2 (homonyms); `Grise Fiord :100:` (not imported — likely bad/non-GL label).
+- Homonyms share official KL names but are distinct places (Kujalleq vs Avannaata); import via `--record-ids` after municipality + midpoint-lat review. Midpoint GlobalIDs must not replace register GlobalIDs in `xid_`.
+- Still out: `Grise Fiord :100:` (not imported — likely bad/non-GL label).
 - `src_legacy_seed` pending provenance on seed place status, geometry, and administrative records blocks `publish-check`.
 
 ## Confirm / import workflow

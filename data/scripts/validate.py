@@ -241,22 +241,46 @@ class ValidationRunner:
 
 
     def slug_uniqueness(self):
+        """Ensure denormalized URL slugs stay unique.
+
+        Official KL names may repeat across places (south/north homonyms).
+        Match build.py: first place id keeps the base slug; later ones get -2, -3.
+        """
         import urllib.parse
+
         names = self.records.get("place-names.ndjson", [])
         plc = self.records.get("places.ndjson", [])
         kl = {}
         for n in names:
-            if n.get("kind") == "official" and n.get("language") == "kl" and n.get("valid_to") is None:
+            if (
+                n.get("kind") == "official"
+                and n.get("language") == "kl"
+                and n.get("valid_to") is None
+            ):
                 kl[n["place_id"]] = n["value"]
-        slugs = {}
-        for p in plc:
+        slug_counts: dict[str, int] = {}
+        assigned: dict[str, list[str]] = {}
+        for p in sorted(
+            (row for row in plc if row.get("status") != "retired"),
+            key=lambda row: row["id"],
+        ):
             pid = p["id"]
             name = kl.get(pid, pid)
-            slug = urllib.parse.quote(name.lower().replace(" ", "-").replace("/", "-"), safe="-")
-            slugs.setdefault(slug, []).append(pid)
-        for slug, pids in slugs.items():
+            base = urllib.parse.quote(
+                name.lower().replace(" ", "-").replace("/", "-"), safe="-"
+            )
+            slug_counts[base] = slug_counts.get(base, 0) + 1
+            slug = (
+                base
+                if slug_counts[base] == 1
+                else f"{base}-{slug_counts[base]}"
+            )
+            assigned.setdefault(slug, []).append(pid)
+        for slug, pids in assigned.items():
             if len(pids) > 1:
-                self.errors.append(f"Duplicate slug '{slug}' for places: {', '.join(pids)}")
+                self.errors.append(
+                    f"Duplicate slug '{slug}' for places: {', '.join(pids)}"
+                )
 
     def retired_entity_assertions(self):
         plc = {r["id"]: r for r in self.records.get("places.ndjson", [])}
@@ -351,7 +375,8 @@ CROSS_EXPECTED = {
     "duplicate-id": "Duplicate ID",
     "pending-source": "pending",
     "year-round-with-months": "year_round",
-    "duplicate-slug": "Duplicate slug",
+    # shared official KL names (e.g. Aappilattoq south/north) are allowed;
+    # build.py suffixes slugs (-2, -3). Fixture cross/duplicate-slug must PASS.
     "retired-entity-active": "active assertion on retired place",
     "assertion-pending-source": "references pending source",
 }

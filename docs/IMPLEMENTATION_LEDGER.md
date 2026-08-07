@@ -4,7 +4,7 @@
 **Working branch:** `feat/canonical-identity-e2e`  
 **Baseline commit:** `707d01767c568d1cea0a609ae4bbcf9067fdf4d2`  
 **Baseline date:** 2026-08-01  
-**Phase:** 5 UI finished (quiet shell); Phase 3 locality spine nearly complete — 69 places (#36 towns + #38 settlements)
+**Phase:** 5 UI finished (quiet shell); Phase 3 locality spine nearly complete — 73 places (#40 homonyms done; Grise Fiord left)
 
 ## Phase 0 — Baseline
 
@@ -113,7 +113,7 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 | 0 Baseline | complete | See above |
 | 1 Canonical identity | complete | `linksFromPlaceId`; no `linksFromOfficialName`; 25 web tests |
 | 2 Snapshots and releases | complete | Schemas, `2026.08.01.1`, web mounts release for identity/reachability |
-| 3 Locality spine | in progress | 69 places confirmed; 5 authority rows left (4 homonyms + Grise Fiord); Asiaq pending |
+| 3 Locality spine | in progress | 73 places confirmed; only `Grise Fiord :100:` left; Asiaq pending |
 | 4 Read API | scaffold complete | `api/` Hono + SQLite; 8 v1 endpoints; 7 tests; FTS follow-up |
 | 5 Greenland-first UI | foundations complete | AppShell, PlaceList, PlaceDossier, MobilePlaceSheet, i18n kl/da/en |
 | 6 Date-aware reachability | partial | Multi-service export done; effective-date filter + isolation reports remain |
@@ -131,9 +131,10 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 
 1. **Phase 3 (done):** all 15 seeds confirmed (Nuuk #29; remaining 14 #31) — canonical `xid_`; no auto-merge.
 2. **Phase 3 (2026-08-07, #36 slice):** full Type 21/23 authority (74); minted 4 Type 21 towns; release `2026.08.07.1`.
-3. **Phase 3 (2026-08-07, #38):** minted 50 unique Type 23 settlements; skipped Aappilattoq×2, Tasiusaq×2, `Grise Fiord :100:`; release `2026.08.07.2`.
-4. **Phase 3 (next):** homonym disambiguation + Grise Fiord review; Asiaq geometry export.
-5. **Phase 2 residual:** Package gazetteer midpoints into release snapshots (web still loads `/data/placenames.geojson`).
-6. **Phase 4 follow-up:** FTS5 + OpenAPI client generation.
-7. **Phase 5 follow-up:** Native KL review; AccessPlanner; full offline package UX; a11y pass with screen reader.
-8. **Phase 6:** Effective-date service filtering + isolation reports.
+3. **Phase 3 (2026-08-07, #38):** minted 50 unique Type 23 settlements; release `2026.08.07.2`.
+4. **Phase 3 (2026-08-07, #40):** Aappilattoq×2 and Tasiusaq×2 minted as distinct places (Kujalleq vs Avannaata); `--record-ids` import path; slug validation allows shared official names; release `2026.08.07.3`.
+5. **Phase 3 (next):** `Grise Fiord :100:` review; Asiaq geometry export.
+6. **Phase 2 residual:** Package gazetteer midpoints into release snapshots (web still loads `/data/placenames.geojson`).
+7. **Phase 4 follow-up:** FTS5 + OpenAPI client generation.
+8. **Phase 5 follow-up:** Native KL review; AccessPlanner; full offline package UX; a11y pass with screen reader.
+9. **Phase 6:** Effective-date service filtering + isolation reports.

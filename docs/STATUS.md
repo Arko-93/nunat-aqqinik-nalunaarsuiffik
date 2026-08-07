@@ -4,12 +4,12 @@
 
 This document is the product and implementation source of truth.
 
-- Current stage: Product plan Phases 0–2, Phase 4 API scaffold, and Phase 5 quiet UI landed; Phase 3 locality spine nearly complete — 69 places (#29/#31/#36/#38)
-- Current data: 69 place identities, 69 classification assertions, 102 names, 15 geometries (54 imported localities have no Asiaq `geo_` yet), 69 memberships, 69 external identifiers (`nunagis.global_id`), 2 connections, and 2 service assertions
+- Current stage: Product plan Phases 0–2, Phase 4 API scaffold, and Phase 5 quiet UI landed; Phase 3 locality spine nearly complete — 73 places (#29/#31/#36/#38/#40)
+- Current data: 73 place identities, 73 classification assertions, 106 names, 15 geometries (58 imported localities have no Asiaq `geo_` yet), 73 memberships, 73 external identifiers (`nunagis.global_id`), 2 connections, and 2 service assertions
 - Publication status: still not authoritative; `publish-check` reports expected pending-provenance blockers while `src_legacy_seed` remains on seed place status, geometry, and administrative records
-- Immediate work: Phase 3 residual — disambiguate homonyms (Aappilattoq×2, Tasiusaq×2); review/exclude `Grise Fiord :100:`; Asiaq geometry still waiting
+- Immediate work: Phase 3 residual — decide fate of `Grise Fiord :100:`; Asiaq geometry still waiting
 - First operational extension: structural reachability (joins by `placeId`; multi-service export preserved)
-- Selected release: `data/releases/CURRENT` → `2026.08.07.2` (web mounts via `scripts/sync-web-release.sh`)
+- Selected release: `data/releases/CURRENT` → `2026.08.07.3` (web mounts via `scripts/sync-web-release.sh`)
 - Read API: `api/` on `:8787` (`make api-dev`)
 - Phase 5 UI: terrain-first map on `web/` (land hillshade + land peak color bands — peaks-only, transparent below 500 m, discrete 500/1000/2000 m bands above the hillshade and below place labels, `nunat:land-peak-bands: 500-1000-2000` — + ocean meter bands hybrid D via `depth_abs_m` + discrete metric fills; ocean source is now self-tiled IBCAO v5.2 bathymetry with GEBCO_2026 fallback, depth bands/contours clipped to the shared coastline before tiling, raster hillshade + vector MVT served as same-origin PMTiles from `packages/ocean-depth`), V1 interim coastline land mask — OSM coastline ∪ Mapterhorn DEM land (ODbL + CC BY 4.0), above all ocean layers, map-first shell (search → Overview+Sources; no lens/Access/List–Map), KL/DA/EN switch (KL first; KL copy provisional), Download area corridor pack (OPFS; full Qaarsut→Kullorsuaq pack: land-relief z0–10 native 512 px + land peak bands z0–10 + ocean-depth vector z0–11 + ocean hillshade raster z0–10 + corridor mask z0–13 + localities, kind=full manifest, offline serves the same tile paths via OPFS), app-shell SW (`nunat-shell-*` only), not-for-navigation, tile-gap labels (issue #26: quiet chrome chip when land DEM or ocean-depth tiles are absent in the viewport — protocol-reported, `nunat:tile-gap-labels: visible`, never a symbol layer so NunaGIS labels stay primary); gaps remain: Asiaq geometry swap for the shared shoreline; no Google Fonts
 - Locality inclusion rule: `docs/LOCALITY_SPINE_INCLUSION.md`
@@ -19,9 +19,9 @@ This document is the product and implementation source of truth.
 - Marine POC: `marine-poc/` private trip notebook (Uummannaq–Qaarsut); Omarchy `:3459` via `make marine-omarchy`; does not write into `data/source/`
 - Map data: NunaGIS PlacenamesRegisterSearch midpoint layer (`MapServer/1`), 30,542 midpoints with locality filter (Type 21/23 → 74)
 - Authority requests: Oqaasileriffik replied 2026-07-30 pointing to NunaGIS; Asiaq reply still pending
-- Reconciliation (data ops): 0 matched, 0 conflicting, 0 missing, 69 unresolved overall; Oqaasileriffik `confirmed` ×69 via `confirmed_place_id`; Asiaq `waiting_for_export` ×69
-- Phase 3: authority covers all 74 Type 21/23 rows; 69 confirmed in spine; left unconfirmed: Aappilattoq×2, Tasiusaq×2 (homonyms), and `Grise Fiord :100:` (likely non-Greenland / bad label — not imported). Danish conflicts kept visible on seeds: Kangerlussuaq — register Danish `Danmarkshavn` vs seed `Søndre Strømfjord`; Narsaq — register has no Danish claim vs seed `Narssaq`; Kulusuk — register Danish `Kulusuk` vs seed `Kap Dan`
-- Identity crosswalk: release-mounted `identity-crosswalk.json` — 69 canonical mappings (0 candidate)
+- Reconciliation (data ops): 0 matched, 0 conflicting, 0 missing, 73 unresolved overall; Oqaasileriffik `confirmed` ×73 via `confirmed_place_id`; Asiaq `waiting_for_export` ×73
+- Phase 3: 73 / 74 Type 21/23 confirmed; Aappilattoq and Tasiusaq each minted twice (#40) — Kujalleq (~60°N) vs Avannaata/Upernavik (~73°N), keyed by GlobalID + MunicipalityCode + LokalityCode (never by name alone); left unconfirmed: `Grise Fiord :100:`. Danish conflicts kept visible on seeds: Kangerlussuaq — register Danish `Danmarkshavn` vs seed `Søndre Strømfjord`; Narsaq — register has no Danish claim vs seed `Narssaq`; Kulusuk — register Danish `Kulusuk` vs seed `Kap Dan`
+- Identity crosswalk: release-mounted `identity-crosswalk.json` — 73 canonical mappings (0 candidate)
 - Note: “Nunat Aqqinik Nalunaarsuiffik” is the NunaGIS public placenames register name; naming decisions remain Nunat Aqqinik Aalajangiisartut at Oqaasileriffik
 - Last implementation audit: 2026-08-07
 
@@ -507,12 +507,12 @@ Exit condition: all 15 seed places pass `publish-check`.
 
 ### Phase 3 — Complete the operational locality spine
 
-Status: in progress — 69 / 74 Type 21/23 confirmed in spine (#29/#31/#36/#38); 4 homonym rows + 1 bad label left; Asiaq geometry still pending.
+Status: in progress — 73 / 74 Type 21/23 confirmed (#40 homonyms done); only `Grise Fiord :100:` left; Asiaq geometry still pending.
 
 - Confirm naming identity per place against the NunaGIS authority (no auto-merge): a confirmed place gets both a `nunagis.global_id` `xid_` and `confirmed_place_id` on the Oqaasileriffik authority row
 - Asiaq geometry confirmation is still required before a place reaches overall `matched` — do not invent an Asiaq confirmation
-- Disambiguate Aappilattoq×2 and Tasiusaq×2; decide fate of `Grise Fiord :100:`
-- Match existing identities before minting new IDs
+- Decide fate of `Grise Fiord :100:` (exclude vs investigate)
+- Match existing identities before minting new IDs; homonyms use `--record-ids` after municipality/lat review
 - Create a machine-readable reconciliation report
 - Review duplicates, homonyms, historical names, and missing coordinates
 
