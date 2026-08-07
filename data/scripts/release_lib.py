@@ -36,7 +36,24 @@ RELEASE_ARTIFACTS = [
     "reachability.csv",
     "decision-geography.db",
     "build-manifest.json",
+    # Display-only NunaGIS midpoint gazetteer (MapServer/1). Not Asiaq geometry.
+    "placenames.geojson",
 ]
+
+
+def latest_placenames_gazetteer() -> Path | None:
+    """Return the newest midpoint snapshot that contains placenames.geojson."""
+    root = SNAPSHOTS_DIR / "nunagis_placenames_midpoint"
+    if not root.exists():
+        return None
+    candidates = sorted(
+        path
+        for path in root.iterdir()
+        if path.is_dir() and (path / "placenames.geojson").exists()
+    )
+    if not candidates:
+        return None
+    return candidates[-1] / "placenames.geojson"
 
 
 def utc_now() -> datetime:

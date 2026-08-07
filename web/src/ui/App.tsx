@@ -49,7 +49,7 @@ export function App() {
         const base = selectedRelease.basePath;
         // load-clean-enough: placenames + optional crosswalk; reachability not on v1 terrain map
         const [places, crosswalk] = await Promise.all([
-          fetch("/data/placenames.geojson").then(async (response) => {
+          fetch(`${base}/placenames.geojson`).then(async (response) => {
             if (!response.ok) {
               throw new Error(`Failed to load placenames (${response.status})`);
             }
