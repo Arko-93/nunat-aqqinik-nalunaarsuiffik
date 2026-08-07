@@ -5,12 +5,19 @@ import { useI18n } from "../i18n/I18nContext.tsx";
 import {
   CORRIDOR_PACKAGE_BASE,
   deleteCorridorPack,
+  fetchRemotePackManifest,
   getPackInstallState,
   installCorridorPack,
   notifyPackInstallStateChanged,
+  subscribePackInstallState,
   type PackInstallState,
 } from "../offline/corridor-pack.ts";
-import { isTerrainOfflineReady } from "../offline/manifest.ts";
+import {
+  formatPackSizeMb,
+  isTerrainOfflineReady,
+  packUpdateAvailable,
+  type CorridorPackManifest,
+} from "../offline/manifest.ts";
 
 type Props = {
   packageBase?: string;
@@ -21,17 +28,35 @@ export function DownloadArea({
 }: Props) {
   const { t, locale } = useI18n();
   const [state, setState] = useState<PackInstallState>({ status: "absent" });
+  const [remote, setRemote] = useState<CorridorPackManifest | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    void getPackInstallState().then((next) => {
-      if (!cancelled) setState(next);
+    const refresh = () => {
+      void getPackInstallState().then((next) => {
+        if (!cancelled) setState(next);
+      });
+    };
+    refresh();
+    return subscribePackInstallState(() => {
+      if (!cancelled) refresh();
     });
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchRemotePackManifest(packageBase)
+      .then((manifest) => {
+        if (!cancelled) setRemote(manifest);
+      })
+      .catch(() => {
+        if (!cancelled) setRemote(null);
+      });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [packageBase]);
 
   const onDownload = async () => {
     setActionError(null);
@@ -53,6 +78,7 @@ export function DownloadArea({
         manifest,
         terrainOffline: isTerrainOfflineReady(manifest),
       });
+      setRemote(manifest);
       // The map switches its terrain sources to the pack (or back).
       notifyPackInstallStateChanged();
     } catch (cause) {
@@ -77,12 +103,23 @@ export function DownloadArea({
 
   const errorText =
     actionError ?? (state.status === "error" ? state.message : null);
+  const updateAvailable =
+    state.status === "installed" &&
+    remote != null &&
+    packUpdateAvailable(state.manifest, remote);
+  const sizeLabel =
+    state.status === "installed"
+      ? formatPackSizeMb(state.manifest.bytes)
+      : remote
+        ? formatPackSizeMb(remote.bytes)
+        : null;
 
   return (
     <div className="download-area" aria-label={t.downloadArea}>
       <p className="download-area-hint">
         <Text as="span" variant="secondary" size="xs">
           {t.downloadAreaHint}
+          {sizeLabel ? ` · ${sizeLabel}` : ""}
         </Text>
       </p>
       {state.status === "installed" ? (
@@ -92,7 +129,13 @@ export function DownloadArea({
           </Button>
           <Text as="span" variant="secondary" size="xs">
             {t.packVersion} {state.manifest.id}
+            {sizeLabel ? ` · ${sizeLabel}` : ""}
           </Text>
+          {updateAvailable ? (
+            <Button type="button" size="sm" variant="primary" onClick={onDownload}>
+              {t.downloadUpdate}
+            </Button>
+          ) : null}
           {!state.terrainOffline ? (
             <p className="download-area-stub-hint">
               <Text as="span" variant="secondary" size="xs">
@@ -124,6 +167,7 @@ export function DownloadArea({
       ) : (
         <Button type="button" size="sm" variant="primary" onClick={onDownload}>
           {t.downloadArea}
+          {sizeLabel ? ` (${sizeLabel})` : ""}
         </Button>
       )}
       {errorText ? (

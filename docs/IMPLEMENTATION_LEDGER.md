@@ -137,5 +137,5 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 6. **Phase 3 (next):** Asiaq geometry export.
 7. **Phase 2 (2026-08-07):** gazetteer midpoints packaged into release `2026.08.07.4` (`placenames.geojson`); App loads `${base}/placenames.geojson`; no live fetch in `map-fetch` / `map-omarchy`.
 8. **Phase 4 (2026-08-07):** FTS5 `place_names_fts` in `ndjson2db.py`; API search MATCH + LIKE fallback. Remaining: OpenAPI client generation.
-9. **Phase 5 follow-up:** Native KL review; AccessPlanner; full offline package UX; a11y pass with screen reader.
+9. **Phase 5 (2026-08-07 polish):** Offline pack size + update check; OfflineStatus shows pack state; search results use plain lists; mobile sheet `aria-modal` + Escape/focus restore. Remaining: Native KL review; AccessPlanner (deferred — map-first); full screen-reader pass.
 10. **Phase 6 (2026-08-07):** API connections group `services[]` with date filter in JOIN; `GET /v1/reports/isolation`; dist `isolation-report.json`. Remaining: capability query filters, seasonal-loss / single-dependency reports, `/v1/reachability` path.

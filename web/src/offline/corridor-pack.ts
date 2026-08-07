@@ -113,6 +113,26 @@ export async function getPackInstallState(): Promise<PackInstallState> {
   };
 }
 
+/** Fetch and parse the remote corridor pack manifest (no download). */
+export async function fetchRemotePackManifest(
+  packageBase: string = CORRIDOR_PACKAGE_BASE,
+): Promise<CorridorPackManifest> {
+  const base = packageBase.replace(/\/$/, "");
+  const response = await fetch(`${base}/manifest.json`, { cache: "no-store" });
+  if (!response.ok) {
+    throw new PackError(
+      `Failed to load pack manifest (${response.status})`,
+    );
+  }
+  let raw: unknown;
+  try {
+    raw = await response.json();
+  } catch {
+    throw new PackError("Pack manifest response is not JSON");
+  }
+  return parseManifest(raw);
+}
+
 export async function requestPersistentStorage(): Promise<boolean> {
   if (
     typeof navigator === "undefined" ||

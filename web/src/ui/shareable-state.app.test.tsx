@@ -193,8 +193,8 @@ describe("app URL-state seam", () => {
     // Both restored: selected row highlighted, map selection set, URL intact.
     expect(
       railWithin()
-        .getByRole("option", { name: /Naajaat/ })
-        .getAttribute("aria-selected"),
+        .getByRole("button", { name: /Naajaat/ })
+        .getAttribute("aria-current"),
     ).toBe("true");
     expect(mapCanvas().getAttribute("data-selected-id")).toBe("1");
     expect(qParam()).toBe("naaj");

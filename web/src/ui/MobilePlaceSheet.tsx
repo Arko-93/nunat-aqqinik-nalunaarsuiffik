@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Button } from "@cloudflare/kumo/components/button";
 import { Text } from "@cloudflare/kumo/components/text";
 import type { Placename } from "../domain/placename.ts";
@@ -32,8 +33,37 @@ export function MobilePlaceSheet({
   onClose,
 }: Props) {
   const { t } = useI18n();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  if (!queryActive && !place) return null;
+  const open = queryActive || place != null;
+
+  useEffect(() => {
+    if (!open) return;
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const closeControl = rootRef.current?.querySelector<HTMLElement>(
+      "[data-sheet-close]",
+    );
+    closeControl?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      previousFocusRef.current?.focus?.();
+      previousFocusRef.current = null;
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
 
   const cycle = () => {
     if (sheet === "collapsed") onSheetChange("half");
@@ -47,9 +77,12 @@ export function MobilePlaceSheet({
 
   return (
     <div
+      ref={rootRef}
       className={`mobile-place-sheet is-${sheet}`}
       role="dialog"
+      aria-modal="true"
       aria-label={title}
+      tabIndex={-1}
     >
       <div className="mobile-place-sheet-handle">
         <Button
@@ -69,6 +102,7 @@ export function MobilePlaceSheet({
           type="button"
           size="sm"
           variant="ghost"
+          data-sheet-close=""
           aria-label={t.closePlace}
           onClick={onClose}
         >
@@ -85,9 +119,9 @@ export function MobilePlaceSheet({
                 </Text>
               </p>
             ) : (
-              <ul className="place-list-items" role="listbox" aria-label={t.results}>
+              <ul className="place-list-items" aria-label={t.results}>
                 {searchHits.map((hit) => (
-                  <li key={hit.place.featureId} role="option">
+                  <li key={hit.place.featureId}>
                     <PlaceResultCard
                       place={hit.place}
                       matchedField={hit.matchedField}

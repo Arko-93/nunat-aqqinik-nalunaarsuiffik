@@ -4,7 +4,9 @@ import { resolve } from "node:path";
 import { CORRIDOR_BBOX, MAX_PACK_BYTES } from "./corridor-policy.ts";
 import {
   assertCorridorBbox,
+  formatPackSizeMb,
   isTerrainOfflineReady,
+  packUpdateAvailable,
   parseManifest,
   sha256Hex,
   verifyPackFiles,
@@ -37,6 +39,35 @@ const fixtureManifest = {
   notForNavigation: true as const,
   notes: "Tiny Vitest fixture — not terrain-offline capable.",
 };
+
+describe("pack size and update helpers", () => {
+  it("formats pack bytes as MB", () => {
+    expect(formatPackSizeMb(5 * 1024 * 1024)).toBe("5 MB");
+    expect(formatPackSizeMb(1.24 * 1024 * 1024)).toBe("1.2 MB");
+  });
+
+  it("detects pack updates by id or createdAt", () => {
+    const installed = { id: "pack-a", createdAt: "2026-08-01T00:00:00Z" };
+    expect(
+      packUpdateAvailable(installed, {
+        id: "pack-a",
+        createdAt: "2026-08-01T00:00:00Z",
+      }),
+    ).toBe(false);
+    expect(
+      packUpdateAvailable(installed, {
+        id: "pack-a",
+        createdAt: "2026-08-07T00:00:00Z",
+      }),
+    ).toBe(true);
+    expect(
+      packUpdateAvailable(installed, {
+        id: "pack-b",
+        createdAt: "2026-07-01T00:00:00Z",
+      }),
+    ).toBe(true);
+  });
+});
 
 describe("corridor pack manifest contracts", () => {
   it("accepts the Qaarsut→Kullorsuaq fixture manifest as a stub", () => {

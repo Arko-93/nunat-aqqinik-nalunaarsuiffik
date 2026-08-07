@@ -52,17 +52,9 @@ export function PlaceList({
               </Text>
             </p>
           ) : (
-            <ul
-              className="place-list-items"
-              role="listbox"
-              aria-label={t.results}
-            >
+            <ul className="place-list-items" aria-label={t.results}>
               {items.map((hit) => (
-                <li
-                  key={hit.place.featureId}
-                  role="option"
-                  aria-selected={selectedId === hit.place.recordId}
-                >
+                <li key={hit.place.featureId}>
                   <PlaceResultCard
                     place={hit.place}
                     matchedField={hit.matchedField}
