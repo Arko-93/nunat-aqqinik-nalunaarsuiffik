@@ -108,6 +108,22 @@ def verify_database() -> None:
         db.execute("SELECT * FROM current_places LIMIT 1").fetchall()
         db.execute("SELECT * FROM current_connections LIMIT 1").fetchall()
 
+        fts_name = db.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'place_names_fts'"
+        ).fetchone()
+        if not fts_name:
+            raise AssertionError("place_names_fts FTS5 table missing")
+
+        fts_count = db.execute("SELECT count(*) FROM place_names_fts").fetchone()[0]
+        if fts_count < 1:
+            raise AssertionError("place_names_fts is empty")
+
+        prefix_hits = db.execute(
+            "SELECT place_id FROM place_names_fts WHERE place_names_fts MATCH '\"Nuuk\"*' LIMIT 1"
+        ).fetchall()
+        if not prefix_hits:
+            raise AssertionError("place_names_fts prefix MATCH failed for Nuuk")
+
 
 def verify_concurrent_service_projection() -> None:
     with tempfile.TemporaryDirectory() as temp_dir:

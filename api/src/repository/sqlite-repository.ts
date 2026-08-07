@@ -17,6 +17,17 @@ const parseJson = <T>(value: string | null | undefined, fallback: T): T => {
   return JSON.parse(value) as T;
 };
 
+/** Build an FTS5 MATCH query: quoted tokens with prefix (`"Nuuk"*`). */
+export const buildFtsMatchQuery = (raw: string): string | null => {
+  const tokens = raw
+    .trim()
+    .split(/\s+/)
+    .map((part) => part.replace(/"/g, '""'))
+    .filter((part) => part.length > 0);
+  if (tokens.length === 0) return null;
+  return tokens.map((token) => `"${token}"*`).join(" AND ");
+};
+
 const serviceFromRow = (row: Record<string, unknown>): ConnectionService => ({
   id: row.service_id as string,
   operator: (row.operator as string | null) ?? null,
@@ -73,6 +84,9 @@ export class SqliteRepository {
     }
 
     const languageClause = params.language
+      ? "AND fts.language = @language"
+      : "";
+    const likeLanguageClause = params.language
       ? "AND pn.language = @language"
       : "";
 
@@ -85,7 +99,43 @@ export class SqliteRepository {
       namedParams.language = params.language;
     }
 
-    // LIKE search across current names; FTS5 is a planned follow-up.
+    const match = buildFtsMatchQuery(trimmed);
+    if (match) {
+      try {
+        const ftsParams: Record<string, string | number> = {
+          ...namedParams,
+          match,
+        };
+        const ftsRows = this.db
+          .prepare(
+            `
+            SELECT DISTINCT
+              cp.id AS place_id,
+              cp.canonical_name_kl,
+              cp.feature_type,
+              cp.municipality,
+              cp.municipality_id,
+              fts.value AS matched_name,
+              fts.language AS matched_language,
+              fts.kind AS matched_kind
+            FROM place_names_fts fts
+            JOIN current_places cp ON cp.id = fts.place_id
+            WHERE fts MATCH @match
+              ${languageClause}
+            ORDER BY
+              CASE WHEN LOWER(fts.value) = LOWER(@exact) THEN 0 ELSE 1 END,
+              cp.canonical_name_kl
+            LIMIT @limit
+          `,
+          )
+          .all(ftsParams) as PlaceSummary[];
+        if (ftsRows.length > 0) return ftsRows;
+      } catch {
+        // Fall through to LIKE if FTS is missing or the query is rejected.
+      }
+    }
+
+    // Substring fallback (and environments without place_names_fts).
     const rows = this.db
       .prepare(
         `
@@ -101,7 +151,7 @@ export class SqliteRepository {
         FROM current_places cp
         JOIN place_names pn ON pn.place_id = cp.id AND pn.valid_to IS NULL
         WHERE pn.value LIKE @like COLLATE NOCASE
-          ${languageClause}
+          ${likeLanguageClause}
         ORDER BY
           CASE WHEN LOWER(pn.value) = LOWER(@exact) THEN 0 ELSE 1 END,
           cp.canonical_name_kl

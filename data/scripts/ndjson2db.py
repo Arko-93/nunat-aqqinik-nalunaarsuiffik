@@ -325,6 +325,31 @@ def build():
           x.get("valid_from"), x.get("valid_to"), j(x["source_refs"]))
          for x in ext_ids])
 
+    # FTS5 over current names + place external identifiers (API search).
+    db.executescript(
+        """
+        CREATE VIRTUAL TABLE place_names_fts USING fts5(
+            place_id UNINDEXED,
+            name_id UNINDEXED,
+            value,
+            language UNINDEXED,
+            kind UNINDEXED,
+            tokenize = 'unicode61'
+        );
+
+        INSERT INTO place_names_fts(place_id, name_id, value, language, kind)
+        SELECT place_id, id, value, language, kind
+        FROM place_names
+        WHERE valid_to IS NULL;
+
+        INSERT INTO place_names_fts(place_id, name_id, value, language, kind)
+        SELECT entity_id, id, value, 'und', 'external_identifier'
+        FROM external_identifiers
+        WHERE entity_type = 'place'
+          AND (valid_to IS NULL);
+        """
+    )
+
     db.commit()
 
     # FK integrity check

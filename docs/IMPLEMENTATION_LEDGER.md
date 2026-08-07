@@ -104,7 +104,7 @@ No confirmed `external-identifiers` yet. Crosswalk is generated from `data/recon
 | `pnpm --dir api typecheck` | PASS |
 | `pnpm --dir api test` | PASS — 7 tests |
 
-Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-geography.db` via Node 22 `node:sqlite`. Search uses SQL LIKE; FTS5 documented as follow-up.
+Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-geography.db` via Node 22 `node:sqlite`. Search uses FTS5 (`place_names_fts`) with LIKE fallback.
 
 ## Phase log
 
@@ -114,7 +114,7 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 | 1 Canonical identity | complete | `linksFromPlaceId`; no `linksFromOfficialName`; 25 web tests |
 | 2 Snapshots and releases | complete | Schemas, `2026.08.01.1`, web mounts release for identity/reachability |
 | 3 Locality spine | naming done / geometry pending | 73 confirmed; Grise Fiord excluded; Asiaq export waiting |
-| 4 Read API | scaffold complete | `api/` Hono + SQLite; 8 v1 endpoints; 7 tests; FTS follow-up |
+| 4 Read API | scaffold complete | `api/` Hono + SQLite; 8 v1 endpoints; FTS5 search + LIKE fallback |
 | 5 Greenland-first UI | foundations complete | AppShell, PlaceList, PlaceDossier, MobilePlaceSheet, i18n kl/da/en |
 | 6 Date-aware reachability | partial | Multi-service export done; effective-date filter + isolation reports remain |
 | 7 Operational sources | pending | |
@@ -136,6 +136,6 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 5. **Phase 3 (2026-08-07):** excluded `Grise Fiord :100:` (ID=13434) — Canadian / corrupt label; authority 73 = spine 73.
 6. **Phase 3 (next):** Asiaq geometry export.
 7. **Phase 2 (2026-08-07):** gazetteer midpoints packaged into release `2026.08.07.4` (`placenames.geojson`); App loads `${base}/placenames.geojson`; no live fetch in `map-fetch` / `map-omarchy`.
-8. **Phase 4 follow-up:** FTS5 + OpenAPI client generation.
+8. **Phase 4 (2026-08-07):** FTS5 `place_names_fts` in `ndjson2db.py`; API search MATCH + LIKE fallback. Remaining: OpenAPI client generation.
 9. **Phase 5 follow-up:** Native KL review; AccessPlanner; full offline package UX; a11y pass with screen reader.
 10. **Phase 6:** Effective-date service filtering + isolation reports.
