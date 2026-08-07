@@ -136,7 +136,7 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 5. **Phase 3 (2026-08-07):** excluded `Grise Fiord :100:` (ID=13434) — Canadian / corrupt label; authority 73 = spine 73.
 6. **Phase 3 (next):** Asiaq geometry export.
 7. **Phase 2 (2026-08-07):** gazetteer midpoints packaged into release `2026.08.07.4` (`placenames.geojson`); App loads `${base}/placenames.geojson`; no live fetch in `map-fetch` / `map-omarchy`.
-8. **Phase 4 (2026-08-07):** FTS5 `place_names_fts` in `ndjson2db.py`; API search MATCH + LIKE fallback. Remaining: OpenAPI client generation.
+8. **Phase 4 (2026-08-07):** FTS5 `place_names_fts` in `ndjson2db.py`; API search MATCH + LIKE fallback. OpenAPI 3.1 + typed client (`api/openapi/openapi.yaml`, `pnpm --dir api generate:client`).
 9. **Phase 5 (2026-08-07 polish):** Offline pack size + update check; OfflineStatus shows pack state; search results use plain lists; mobile sheet `aria-modal` + Escape/focus restore. Remaining: Native KL review; AccessPlanner (deferred — map-first); full screen-reader pass.
 10. **Phase 6 (2026-08-07):** API connections group `services[]` with date filter in JOIN; `GET /v1/reports/isolation`; dist `isolation-report.json`.
 11. **Phase 6 (2026-08-07 filters/reports):** connections accept `mode` / `capability` / `operator`; seasonality months applied on `at`; `GET /v1/reports/single-dependency` + `seasonal-loss`; structural `GET /v1/reachability?from=&to=&at=`; dist `single-dependency-report.json` + `seasonal-loss-report.json`. Remaining: max_transfers fan-out, freight/emergency gap reports, OpenAPI sync for new routes.

@@ -53,6 +53,40 @@ The server listens on `http://127.0.0.1:8787` by default.
 
 Every factual response includes `release_id`, `data_as_of`, and `freshness` where available.
 
+## OpenAPI client
+
+Hand-written OpenAPI 3.1 contract: `openapi/openapi.yaml`.
+
+Generated TypeScript paths: `src/generated/schema.d.ts` (committed).
+
+Typed fetch client factory: `src/client.ts` (`openapi-fetch` ^0.17).
+
+### Regenerate
+
+After editing `openapi/openapi.yaml`:
+
+```sh
+pnpm --dir api generate:client
+# or: make api-generate-client
+```
+
+Then commit the updated `src/generated/schema.d.ts`.
+
+### Use
+
+```ts
+import { createDecisionGeographyClient } from "./client.js";
+
+const client = createDecisionGeographyClient({
+  baseUrl: "http://127.0.0.1:8787",
+});
+
+const { data, error } = await client.GET("/v1/places", {
+  params: { query: { q: "Nuuk" } },
+});
+```
+
+
 ## Tests
 
 ```sh

@@ -1,0 +1,792 @@
+openapi: 3.1.0
+info:
+  title: Decision Geography read API
+  version: 0.1.0
+  description: |
+    Thin versioned read API over the generated release SQLite database
+    (`decision-geography.db`). Every factual response includes `release_id`,
+    `data_as_of`, and `freshness` where available.
+  license:
+    name: See repository LICENSE
+servers:
+  - url: http://127.0.0.1:8787
+    description: Local default (`make api-dev`)
+
+tags:
+  - name: health
+  - name: releases
+  - name: source-health
+  - name: places
+  - name: reports
+
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      tags: [health]
+      summary: Process health check
+      responses:
+        "200":
+          description: Server is up and a release is mounted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /v1/releases/latest:
+    get:
+      operationId: getLatestRelease
+      tags: [releases]
+      summary: Active release pointer and freshness
+      responses:
+        "200":
+          description: Latest mounted release metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LatestReleaseResponse"
+
+  /v1/releases/{release_id}/manifest:
+    get:
+      operationId: getReleaseManifest
+      tags: [releases]
+      summary: Full release manifest (ETag supported)
+      parameters:
+        - $ref: "#/components/parameters/ReleaseId"
+        - name: If-None-Match
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Manifest for the mounted release
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReleaseManifestResponse"
+        "404":
+          description: Requested release is not mounted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/source-health:
+    get:
+      operationId: getSourceHealth
+      tags: [source-health]
+      summary: Snapshot and publication blockers
+      responses:
+        "200":
+          description: Source-health snapshot for the mounted release
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SourceHealthResponse"
+
+  /v1/places:
+    get:
+      operationId: searchPlaces
+      tags: [places]
+      summary: Search places by name or place id
+      description: |
+        Prefers SQLite FTS5 (`place_names_fts`) with prefix tokens; falls back
+        to SQL `LIKE` when FTS is unavailable or returns no rows.
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+            default: ""
+          description: Name fragment, prefix, or `plc_` id
+        - name: language
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Optional name language filter (e.g. `kl`, `da`)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+      responses:
+        "200":
+          description: Matching places
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaceSearchResponse"
+
+  /v1/places/resolve:
+    post:
+      operationId: resolvePlace
+      tags: [places]
+      summary: Resolve identifiers or names to place candidates
+      description: |
+        Never auto-merges. Name matches return `candidate` (requires
+        confirmation). Exact external identifiers may return `resolved`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResolveRequest"
+      responses:
+        "200":
+          description: Resolution result with candidates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResolveResponse"
+        "400":
+          description: Request body is not JSON
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/places/{place_id}:
+    get:
+      operationId: getPlace
+      tags: [places]
+      summary: Place detail with names and geometry
+      parameters:
+        - $ref: "#/components/parameters/PlaceId"
+        - $ref: "#/components/parameters/EffectiveDate"
+      responses:
+        "200":
+          description: Place detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaceDetailResponse"
+        "400":
+          description: Invalid `at` date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Place not found in mounted release
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/places/{place_id}/identifiers:
+    get:
+      operationId: getPlaceIdentifiers
+      tags: [places]
+      summary: External identifiers for a place
+      parameters:
+        - $ref: "#/components/parameters/PlaceId"
+      responses:
+        "200":
+          description: Identifiers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaceIdentifiersResponse"
+        "404":
+          description: Place not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/places/{place_id}/connections:
+    get:
+      operationId: getPlaceConnections
+      tags: [places]
+      summary: Structural connections and services valid on an effective date
+      parameters:
+        - $ref: "#/components/parameters/PlaceId"
+        - $ref: "#/components/parameters/EffectiveDate"
+      responses:
+        "200":
+          description: Connections with `services[]` filtered by effective date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaceConnectionsResponse"
+        "400":
+          description: Invalid `at` date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Place not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/reports/isolation:
+    get:
+      operationId: getIsolationReport
+      tags: [reports]
+      summary: Passenger isolation report for an effective date
+      parameters:
+        - $ref: "#/components/parameters/EffectiveDate"
+      responses:
+        "200":
+          description: Isolation report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IsolationReportResponse"
+        "400":
+          description: Invalid `at` date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  parameters:
+    PlaceId:
+      name: place_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: "^plc_"
+      description: Permanent place id (`plc_<uuid>`)
+    ReleaseId:
+      name: release_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Release id (must match the mounted release)
+    EffectiveDate:
+      name: at
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+      description: Effective date `YYYY-MM-DD` (defaults to release `data_as_of`)
+
+  schemas:
+    SourceRef:
+      type: object
+      additionalProperties: false
+      required: [source_id, record_id]
+      properties:
+        source_id:
+          type: string
+        record_id:
+          type: ["string", "null"]
+
+    Freshness:
+      type: object
+      additionalProperties: false
+      required: [status, last_observed_at]
+      properties:
+        status:
+          type: string
+          enum: [current, stale, unknown]
+        last_observed_at:
+          type: ["string", "null"]
+
+    ReleaseMeta:
+      type: object
+      additionalProperties: false
+      required: [release_id, data_as_of]
+      properties:
+        release_id:
+          type: string
+        data_as_of:
+          type: string
+          format: date
+        freshness:
+          $ref: "#/components/schemas/Freshness"
+
+    ErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseMeta"
+        - type: object
+          required: [error, message]
+          properties:
+            error:
+              type: string
+            message:
+              type: string
+
+    HealthResponse:
+      type: object
+      additionalProperties: false
+      required: [status, release_id, data_as_of]
+      properties:
+        status:
+          type: string
+          const: ok
+        release_id:
+          type: string
+        data_as_of:
+          type: string
+          format: date
+
+    LatestReleaseResponse:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseMeta"
+        - type: object
+          required:
+            - created_at
+            - manifest_path
+            - publish_ready
+            - publication_blocker_count
+          properties:
+            created_at:
+              type: string
+            manifest_path:
+              type: string
+            publish_ready:
+              type: boolean
+            publication_blocker_count:
+              type: integer
+
+    PublicationBlocker:
+      type: object
+      additionalProperties: true
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        severity:
+          type: string
+
+    ReleaseManifest:
+      type: object
+      additionalProperties: true
+      required: [release_id, created_at, data_as_of]
+      properties:
+        release_id:
+          type: string
+        created_at:
+          type: string
+        data_as_of:
+          type: string
+          format: date
+        record_counts:
+          type: object
+          additionalProperties:
+            type: number
+        checksums:
+          type: object
+          additionalProperties:
+            type: string
+        publication_blockers:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicationBlocker"
+
+    ReleaseManifestResponse:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseMeta"
+        - type: object
+          required: [manifest]
+          properties:
+            manifest:
+              $ref: "#/components/schemas/ReleaseManifest"
+
+    SourceHealthResponse:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseMeta"
+        - type: object
+          required:
+            - checked_at
+            - publish_ready
+            - publication_blockers
+            - source_snapshots
+            - canonical_sources
+          properties:
+            checked_at:
+              type: string
+            publish_ready:
+              type: boolean
+            publication_blockers:
+              type: array
+              items:
+                $ref: "#/components/schemas/PublicationBlocker"
+            source_snapshots:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            canonical_sources:
+              type: object
+              additionalProperties:
+                type: number
+
+    PlaceSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - place_id
+        - canonical_name_kl
+        - feature_type
+        - municipality
+        - municipality_id
+      properties:
+        place_id:
+          type: string
+        canonical_name_kl:
+          type: ["string", "null"]
+        feature_type:
+          type: ["string", "null"]
+        municipality:
+          type: ["string", "null"]
+        municipality_id:
+          type: ["string", "null"]
+        matched_name:
+          type: string
+        matched_language:
+          type: string
+        matched_kind:
+          type: string
+
+    PlaceName:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - value
+        - language
+        - kind
+        - valid_from
+        - valid_to
+        - source_refs
+      properties:
+        id:
+          type: string
+        value:
+          type: string
+        language:
+          type: string
+        kind:
+          type: string
+        valid_from:
+          type: ["string", "null"]
+        valid_to:
+          type: ["string", "null"]
+        source_refs:
+          type: array
+          items:
+            $ref: "#/components/schemas/SourceRef"
+
+    PointGeometry:
+      type: object
+      additionalProperties: false
+      required: [type, coordinates]
+      properties:
+        type:
+          type: string
+          const: Point
+        coordinates:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            type: number
+
+    PlaceDetail:
+      allOf:
+        - $ref: "#/components/schemas/PlaceSummary"
+        - type: object
+          required: [status, created_at, geometry, names, source_refs]
+          properties:
+            status:
+              type: string
+            created_at:
+              type: string
+            geometry:
+              oneOf:
+                - $ref: "#/components/schemas/PointGeometry"
+                - type: "null"
+            names:
+              type: array
+              items:
+                $ref: "#/components/schemas/PlaceName"
+            source_refs:
+              type: array
+              items:
+                $ref: "#/components/schemas/SourceRef"
+
+    PlaceSearchResponse:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseMeta"
+        - type: object
+          required: [query, total, places]
+          properties:
+            query:
+              type: string
+            total:
+              type: integer
+            places:
+              type: array
+              items:
+                $ref: "#/components/schemas/PlaceSummary"
+
+    PlaceDetailResponse:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseMeta"
+        - type: object
+          required: [effective_date, place]
+          properties:
+            effective_date:
+              type: string
+              format: date
+            place:
+              $ref: "#/components/schemas/PlaceDetail"
+            source_refs:
+              type: array
+              items:
+                $ref: "#/components/schemas/SourceRef"
+
+    ExternalIdentifier:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - namespace
+        - value
+        - valid_from
+        - valid_to
+        - source_refs
+      properties:
+        id:
+          type: string
+        namespace:
+          type: string
+        value:
+          type: string
+        valid_from:
+          type: ["string", "null"]
+        valid_to:
+          type: ["string", "null"]
+        source_refs:
+          type: array
+          items:
+            $ref: "#/components/schemas/SourceRef"
+
+    PlaceIdentifiersResponse:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseMeta"
+        - type: object
+          required: [place_id, identifiers]
+          properties:
+            place_id:
+              type: string
+            identifiers:
+              type: array
+              items:
+                $ref: "#/components/schemas/ExternalIdentifier"
+
+    ConnectionService:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - operator
+        - capabilities
+        - seasonality
+        - frequency_band
+        - frequency_basis
+        - status
+        - valid_from
+        - valid_to
+        - source_refs
+      properties:
+        id:
+          type: string
+        operator:
+          type: ["string", "null"]
+        capabilities:
+          type: array
+          items:
+            type: string
+        seasonality:
+          type: object
+          additionalProperties: true
+        frequency_band:
+          type: string
+        frequency_basis:
+          type: string
+        status:
+          type: string
+        valid_from:
+          type: ["string", "null"]
+        valid_to:
+          type: ["string", "null"]
+        source_refs:
+          type: array
+          items:
+            $ref: "#/components/schemas/SourceRef"
+
+    ConnectionEdge:
+      type: object
+      additionalProperties: false
+      required:
+        - connection_id
+        - origin_place_id
+        - destination_place_id
+        - direction
+        - mode
+        - role
+        - peer_place_id
+        - services
+      properties:
+        connection_id:
+          type: string
+        origin_place_id:
+          type: string
+        destination_place_id:
+          type: string
+        direction:
+          type: string
+        mode:
+          type: string
+        role:
+          type: string
+          enum: [origin, destination]
+        peer_place_id:
+          type: string
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConnectionService"
+          description: Service assertions valid on the requested effective date
+
+    PlaceConnectionsResponse:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseMeta"
+        - type: object
+          required: [place_id, effective_date, connections]
+          properties:
+            place_id:
+              type: string
+            effective_date:
+              type: string
+              format: date
+            connections:
+              type: array
+              items:
+                $ref: "#/components/schemas/ConnectionEdge"
+
+    IsolationReport:
+      type: object
+      additionalProperties: false
+      required:
+        - effective_date
+        - capability
+        - connected_place_ids
+        - isolated_place_ids
+        - counts
+      properties:
+        effective_date:
+          type: string
+          format: date
+        capability:
+          type: string
+          const: passenger
+        connected_place_ids:
+          type: array
+          items:
+            type: string
+        isolated_place_ids:
+          type: array
+          items:
+            type: string
+        counts:
+          type: object
+          additionalProperties: false
+          required: [places, connected, isolated]
+          properties:
+            places:
+              type: integer
+            connected:
+              type: integer
+            isolated:
+              type: integer
+
+    IsolationReportResponse:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseMeta"
+        - type: object
+          required: [report]
+          properties:
+            report:
+              $ref: "#/components/schemas/IsolationReport"
+
+    ResolveIdentifierInput:
+      type: object
+      additionalProperties: false
+      required: [namespace, value]
+      properties:
+        namespace:
+          type: string
+        value:
+          type: string
+
+    ResolveRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        identifiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResolveIdentifierInput"
+        name:
+          type: string
+        municipality_code:
+          type: number
+        coordinates:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            type: number
+
+    ResolveCandidate:
+      type: object
+      additionalProperties: false
+      required: [place_id, confidence, reasons]
+      properties:
+        place_id:
+          type: string
+        confidence:
+          type: number
+        reasons:
+          type: array
+          items:
+            type: string
+
+    ResolveResponse:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseMeta"
+        - type: object
+          required: [result, candidates, requires_confirmation]
+          properties:
+            result:
+              type: string
+              enum: [resolved, candidate, ambiguous, not_found]
+            candidates:
+              type: array
+              items:
+                $ref: "#/components/schemas/ResolveCandidate"
+            requires_confirmation:
+              type: boolean
