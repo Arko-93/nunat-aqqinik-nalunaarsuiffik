@@ -91,6 +91,26 @@ def verify_manifest() -> None:
             raise AssertionError(f"{name} count does not match manifest")
 
 
+def verify_isolation_report() -> None:
+    report_path = DIST_DIR / "isolation-report.json"
+    with report_path.open(encoding="utf-8") as file:
+        report = json.load(file)
+
+    if report.get("capability") != "passenger":
+        raise AssertionError("isolation-report capability must be passenger")
+
+    nuuk = "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80"
+    qaqortoq = "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722"
+    if nuuk not in report.get("isolated_place_ids", []):
+        raise AssertionError("Nuuk must be passenger-isolated in current graph")
+    if qaqortoq not in report.get("connected_place_ids", []):
+        raise AssertionError("Qaqortoq must be passenger-connected in current graph")
+
+    counts = report.get("counts") or {}
+    if counts.get("places") != counts.get("connected", -1) + counts.get("isolated", -1):
+        raise AssertionError("isolation-report counts do not add up")
+
+
 def verify_database() -> None:
     db_path = DIST_DIR / "decision-geography.db"
     with sqlite3.connect(db_path) as db:
@@ -175,12 +195,14 @@ def main() -> None:
     build()
     verify_manifest()
     verify_database()
+    verify_isolation_report()
     verify_concurrent_service_projection()
     first = output_hashes()
 
     build()
     verify_manifest()
     verify_database()
+    verify_isolation_report()
     second = output_hashes()
 
     if first != second:

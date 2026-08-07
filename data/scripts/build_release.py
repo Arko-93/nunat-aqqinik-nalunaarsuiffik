@@ -37,6 +37,7 @@ def ensure_dist_built(source_dir: Path, dist_dir: Path) -> None:
     required = [
         "nunat-aqqinik-nalunaarsuiffik.ndjson",
         "reachability.ndjson",
+        "isolation-report.json",
         "decision-geography.db",
     ]
     if all((dist_dir / name).exists() for name in required):

@@ -44,7 +44,8 @@ The server listens on `http://127.0.0.1:8787` by default.
 | GET | `/v1/places?q=` | Name search (FTS5 prefix; LIKE fallback) |
 | GET | `/v1/places/{place_id}` | Place detail + names + geometry |
 | GET | `/v1/places/{place_id}/identifiers` | External identifiers |
-| GET | `/v1/places/{place_id}/connections?at=YYYY-MM-DD` | Structural connections |
+| GET | `/v1/places/{place_id}/connections?at=YYYY-MM-DD` | Structural connections + services valid on `at` |
+| GET | `/v1/reports/isolation?at=YYYY-MM-DD` | Passenger isolation report for effective date |
 | POST | `/v1/places/resolve` | Identifier/name resolution (candidates only) |
 
 Every factual response includes `release_id`, `data_as_of`, and `freshness` where available.

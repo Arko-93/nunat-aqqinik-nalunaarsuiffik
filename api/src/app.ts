@@ -11,6 +11,7 @@ import { ReleaseStore } from "./repository/release-store.js";
 import { openRepository } from "./repository/sqlite-repository.js";
 import { createPlacesRouter } from "./routes/places.js";
 import { createReleaseRoutes } from "./routes/releases.js";
+import { createReportRoutes } from "./routes/reports.js";
 import { createSourceHealthRoutes } from "./routes/source-health.js";
 
 export type CreateAppOptions = {
@@ -50,6 +51,7 @@ export const createApp = (options: CreateAppOptions = {}) => {
   app.route("/v1/releases", createReleaseRoutes());
   app.route("/v1/source-health", createSourceHealthRoutes());
   app.route("/v1/places", createPlacesRouter());
+  app.route("/v1/reports", createReportRoutes());
 
   app.notFound((c) =>
     c.json(
