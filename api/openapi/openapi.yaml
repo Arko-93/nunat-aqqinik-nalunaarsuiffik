@@ -18,6 +18,7 @@ tags:
   - name: source-health
   - name: places
   - name: reports
+  - name: reachability
 
 paths:
   /health:
@@ -211,6 +212,24 @@ paths:
       parameters:
         - $ref: "#/components/parameters/PlaceId"
         - $ref: "#/components/parameters/EffectiveDate"
+        - name: mode
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by structural connection mode (e.g. helicopter)
+        - name: capability
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by service capability (e.g. passenger)
+        - name: operator
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by service operator
       responses:
         "200":
           description: Connections with `services[]` filtered by effective date
@@ -247,6 +266,101 @@ paths:
                 $ref: "#/components/schemas/IsolationReportResponse"
         "400":
           description: Invalid `at` date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/reports/single-dependency:
+    get:
+      operationId: getSingleDependencyReport
+      tags: [reports]
+      summary: Places with a single passenger connection, mode, or operator
+      parameters:
+        - $ref: "#/components/parameters/EffectiveDate"
+      responses:
+        "200":
+          description: Single-dependency report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SingleDependencyReportResponse"
+        "400":
+          description: Invalid `at` date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/reports/seasonal-loss:
+    get:
+      operationId: getSeasonalLossReport
+      tags: [reports]
+      summary: Places that lose passenger connectivity in some months of a year
+      parameters:
+        - name: year
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1900
+            maximum: 2100
+          description: Calendar year (defaults from `at` or release `data_as_of`)
+        - $ref: "#/components/parameters/EffectiveDate"
+      responses:
+        "200":
+          description: Seasonal-loss report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeasonalLossReportResponse"
+        "400":
+          description: Invalid `year` or `at`
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/reachability:
+    get:
+      operationId: getReachabilityPath
+      tags: [reachability]
+      summary: Structural BFS path between two places on an effective date
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^plc_"
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^plc_"
+        - $ref: "#/components/parameters/EffectiveDate"
+        - name: capability
+          in: query
+          required: false
+          schema:
+            type: string
+            default: passenger
+      responses:
+        "200":
+          description: Reachability path result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReachabilityResponse"
+        "400":
+          description: Missing endpoints or invalid date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Place not found
           content:
             application/json:
               schema:
@@ -671,17 +785,31 @@ components:
             $ref: "#/components/schemas/ConnectionService"
           description: Service assertions valid on the requested effective date
 
+    ConnectionFilters:
+      type: object
+      additionalProperties: false
+      required: [mode, capability, operator]
+      properties:
+        mode:
+          type: ["string", "null"]
+        capability:
+          type: ["string", "null"]
+        operator:
+          type: ["string", "null"]
+
     PlaceConnectionsResponse:
       allOf:
         - $ref: "#/components/schemas/ReleaseMeta"
         - type: object
-          required: [place_id, effective_date, connections]
+          required: [place_id, effective_date, filters, connections]
           properties:
             place_id:
               type: string
             effective_date:
               type: string
               format: date
+            filters:
+              $ref: "#/components/schemas/ConnectionFilters"
             connections:
               type: array
               items:
@@ -731,6 +859,168 @@ components:
           properties:
             report:
               $ref: "#/components/schemas/IsolationReport"
+
+    SingleDependencyReport:
+      type: object
+      additionalProperties: false
+      required:
+        - effective_date
+        - capability
+        - single_connection
+        - single_mode
+        - single_operator
+        - counts
+      properties:
+        effective_date:
+          type: string
+          format: date
+        capability:
+          type: string
+          const: passenger
+        single_connection:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [place_id, connection_id]
+            properties:
+              place_id:
+                type: string
+              connection_id:
+                type: string
+        single_mode:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [place_id, mode]
+            properties:
+              place_id:
+                type: string
+              mode:
+                type: string
+        single_operator:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [place_id, operator]
+            properties:
+              place_id:
+                type: string
+              operator:
+                type: string
+        counts:
+          type: object
+          additionalProperties: false
+          required: [single_connection, single_mode, single_operator]
+          properties:
+            single_connection:
+              type: integer
+            single_mode:
+              type: integer
+            single_operator:
+              type: integer
+
+    SingleDependencyReportResponse:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseMeta"
+        - type: object
+          required: [report]
+          properties:
+            report:
+              $ref: "#/components/schemas/SingleDependencyReport"
+
+    SeasonalLossEntry:
+      type: object
+      additionalProperties: false
+      required: [place_id, connected_months, isolated_months]
+      properties:
+        place_id:
+          type: string
+        connected_months:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+            maximum: 12
+        isolated_months:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+            maximum: 12
+
+    SeasonalLossReport:
+      type: object
+      additionalProperties: false
+      required: [year, capability, losses, counts]
+      properties:
+        year:
+          type: integer
+        capability:
+          type: string
+          const: passenger
+        losses:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeasonalLossEntry"
+        counts:
+          type: object
+          additionalProperties: false
+          required: [places_with_seasonal_loss]
+          properties:
+            places_with_seasonal_loss:
+              type: integer
+
+    SeasonalLossReportResponse:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseMeta"
+        - type: object
+          required: [report]
+          properties:
+            report:
+              $ref: "#/components/schemas/SeasonalLossReport"
+
+    ReachabilityResult:
+      type: object
+      additionalProperties: false
+      required:
+        - from_place_id
+        - to_place_id
+        - effective_date
+        - capability
+        - reachable
+        - hops
+        - path
+        - connections
+      properties:
+        from_place_id:
+          type: string
+        to_place_id:
+          type: string
+        effective_date:
+          type: string
+          format: date
+        capability:
+          type: string
+        reachable:
+          type: boolean
+        hops:
+          type: ["integer", "null"]
+        path:
+          type: array
+          items:
+            type: string
+        connections:
+          type: array
+          items:
+            type: string
+
+    ReachabilityResponse:
+      allOf:
+        - $ref: "#/components/schemas/ReleaseMeta"
+        - $ref: "#/components/schemas/ReachabilityResult"
 
     ResolveIdentifierInput:
       type: object

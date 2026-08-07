@@ -182,6 +182,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reports/single-dependency": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Places with a single passenger connection, mode, or operator */
+        get: operations["getSingleDependencyReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reports/seasonal-loss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Places that lose passenger connectivity in some months of a year */
+        get: operations["getSeasonalLossReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reachability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Structural BFS path between two places on an effective date */
+        get: operations["getReachabilityPath"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -334,10 +385,16 @@ export interface components {
             /** @description Service assertions valid on the requested effective date */
             services: components["schemas"]["ConnectionService"][];
         };
+        ConnectionFilters: {
+            mode: string | null;
+            capability: string | null;
+            operator: string | null;
+        };
         PlaceConnectionsResponse: components["schemas"]["ReleaseMeta"] & {
             place_id: string;
             /** Format: date */
             effective_date: string;
+            filters: components["schemas"]["ConnectionFilters"];
             connections: components["schemas"]["ConnectionEdge"][];
         };
         IsolationReport: {
@@ -356,6 +413,61 @@ export interface components {
         IsolationReportResponse: components["schemas"]["ReleaseMeta"] & {
             report: components["schemas"]["IsolationReport"];
         };
+        SingleDependencyReport: {
+            /** Format: date */
+            effective_date: string;
+            /** @constant */
+            capability: "passenger";
+            single_connection: {
+                place_id: string;
+                connection_id: string;
+            }[];
+            single_mode: {
+                place_id: string;
+                mode: string;
+            }[];
+            single_operator: {
+                place_id: string;
+                operator: string;
+            }[];
+            counts: {
+                single_connection: number;
+                single_mode: number;
+                single_operator: number;
+            };
+        };
+        SingleDependencyReportResponse: components["schemas"]["ReleaseMeta"] & {
+            report: components["schemas"]["SingleDependencyReport"];
+        };
+        SeasonalLossEntry: {
+            place_id: string;
+            connected_months: number[];
+            isolated_months: number[];
+        };
+        SeasonalLossReport: {
+            year: number;
+            /** @constant */
+            capability: "passenger";
+            losses: components["schemas"]["SeasonalLossEntry"][];
+            counts: {
+                places_with_seasonal_loss: number;
+            };
+        };
+        SeasonalLossReportResponse: components["schemas"]["ReleaseMeta"] & {
+            report: components["schemas"]["SeasonalLossReport"];
+        };
+        ReachabilityResult: {
+            from_place_id: string;
+            to_place_id: string;
+            /** Format: date */
+            effective_date: string;
+            capability: string;
+            reachable: boolean;
+            hops: number | null;
+            path: string[];
+            connections: string[];
+        };
+        ReachabilityResponse: components["schemas"]["ReleaseMeta"] & components["schemas"]["ReachabilityResult"];
         ResolveIdentifierInput: {
             namespace: string;
             value: string;
@@ -628,6 +740,12 @@ export interface operations {
             query?: {
                 /** @description Effective date `YYYY-MM-DD` (defaults to release `data_as_of`) */
                 at?: components["parameters"]["EffectiveDate"];
+                /** @description Filter by structural connection mode (e.g. helicopter) */
+                mode?: string;
+                /** @description Filter by service capability (e.g. passenger) */
+                capability?: string;
+                /** @description Filter by service operator */
+                operator?: string;
             };
             header?: never;
             path: {
@@ -690,6 +808,116 @@ export interface operations {
             };
             /** @description Invalid `at` date */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getSingleDependencyReport: {
+        parameters: {
+            query?: {
+                /** @description Effective date `YYYY-MM-DD` (defaults to release `data_as_of`) */
+                at?: components["parameters"]["EffectiveDate"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Single-dependency report */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SingleDependencyReportResponse"];
+                };
+            };
+            /** @description Invalid `at` date */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getSeasonalLossReport: {
+        parameters: {
+            query?: {
+                /** @description Calendar year (defaults from `at` or release `data_as_of`) */
+                year?: number;
+                /** @description Effective date `YYYY-MM-DD` (defaults to release `data_as_of`) */
+                at?: components["parameters"]["EffectiveDate"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Seasonal-loss report */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeasonalLossReportResponse"];
+                };
+            };
+            /** @description Invalid `year` or `at` */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getReachabilityPath: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                /** @description Effective date `YYYY-MM-DD` (defaults to release `data_as_of`) */
+                at?: components["parameters"]["EffectiveDate"];
+                capability?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reachability path result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReachabilityResponse"];
+                };
+            };
+            /** @description Missing endpoints or invalid date */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Place not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
