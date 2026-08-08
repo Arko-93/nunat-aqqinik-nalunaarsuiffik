@@ -52,7 +52,7 @@ export function OfflineStatus({ release, compact = false }: Props) {
       ? pack.terrainOffline
         ? t.downloadReady
         : t.downloadStubInstalled
-      : null;
+      : t.packNone;
 
   return (
     <div
@@ -64,7 +64,7 @@ export function OfflineStatus({ release, compact = false }: Props) {
         {online ? t.online : t.offline}
       </Badge>
       <Badge variant="outline">{t.offlineLocal}</Badge>
-      {packLabel ? <Badge variant="outline">{packLabel}</Badge> : null}
+      {!compact ? <Badge variant="outline">{packLabel}</Badge> : null}
       {!compact ? (
         <Text as="span" variant="secondary" size="xs">
           {t.releaseLabel} {release.releaseId} · {t.dataAsOf}{" "}

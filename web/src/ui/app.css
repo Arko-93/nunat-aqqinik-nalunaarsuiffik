@@ -206,16 +206,18 @@ body,
 
 .download-area {
   display: grid;
-  gap: 0.3rem;
-  max-width: 18rem;
-  padding: 0.5rem 0.6rem;
-  border-radius: 0.45rem;
-  background: rgba(247, 249, 250, 0.94);
+  gap: 0.35rem;
+  max-width: 17rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.4rem;
+  background: rgba(247, 249, 250, 0.92);
   border: 1px solid var(--line);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
 
-.download-area-hint {
+.download-area-hint,
+.download-area-status,
+.download-area-stub-hint {
   margin: 0;
 }
 
@@ -224,8 +226,8 @@ body,
   color: #8a2b1e;
 }
 
-.download-area-stub-hint {
-  margin: 0;
+.not-for-navigation {
+  opacity: 0.9;
 }
 
 .sr-only {

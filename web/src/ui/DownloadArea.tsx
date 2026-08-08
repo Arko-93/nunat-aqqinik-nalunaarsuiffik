@@ -79,7 +79,6 @@ export function DownloadArea({
         terrainOffline: isTerrainOfflineReady(manifest),
       });
       setRemote(manifest);
-      // The map switches its terrain sources to the pack (or back).
       notifyPackInstallStateChanged();
     } catch (cause) {
       setState({
@@ -94,7 +93,6 @@ export function DownloadArea({
     try {
       await deleteCorridorPack();
       setState({ status: "absent" });
-      // Map returns to remote terrain sources.
       notifyPackInstallStateChanged();
     } catch (cause) {
       setActionError(cause instanceof Error ? cause.message : String(cause));
@@ -124,13 +122,13 @@ export function DownloadArea({
       </p>
       {state.status === "installed" ? (
         <>
-          <Button type="button" size="sm" variant="secondary" disabled>
-            {state.terrainOffline ? t.downloadReady : t.downloadStubInstalled}
-          </Button>
-          <Text as="span" variant="secondary" size="xs">
-            {t.packVersion} {state.manifest.id}
-            {sizeLabel ? ` · ${sizeLabel}` : ""}
-          </Text>
+          <p className="download-area-status" role="status">
+            <Text as="span" variant="secondary" size="xs">
+              {state.terrainOffline ? t.downloadReady : t.downloadStubInstalled}
+              {" · "}
+              {t.packVersion} {state.manifest.id}
+            </Text>
+          </p>
           {updateAvailable ? (
             <Button type="button" size="sm" variant="primary" onClick={onDownload}>
               {t.downloadUpdate}
