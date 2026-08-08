@@ -26,6 +26,9 @@ export function AppShell({
 
   return (
     <div className={`app-shell map-first${railExpanded ? " rail-expanded" : ""}`}>
+      <a className="skip-link" href="#place-search">
+        {t.skipToSearch}
+      </a>
       <header className="shell-header shell-header-soft">
         <div className="shell-brand">
           <h1 className="shell-title shell-title-soft">{t.appTitle}</h1>
@@ -41,7 +44,7 @@ export function AppShell({
           {mapPanel}
           {mapChrome}
         </main>
-        <aside className="shell-rail" aria-label={t.placesList}>
+        <aside className="shell-rail" aria-label={t.placesList} id="place-search">
           {railPanel}
         </aside>
       </div>

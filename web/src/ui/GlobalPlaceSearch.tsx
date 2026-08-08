@@ -25,6 +25,7 @@ export function GlobalPlaceSearch({ query, onQueryChange }: Props) {
         spellCheck={false}
         placeholder={t.searchPlaceholder}
         onChange={(event) => onQueryChange(event.target.value)}
+        data-place-search=""
       />
     </div>
   );

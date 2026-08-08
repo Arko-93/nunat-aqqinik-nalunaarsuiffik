@@ -112,9 +112,10 @@ def verify_isolation_report() -> None:
 
 
 def verify_capability_gap_reports() -> None:
-    for name, capability in (
-        ("freight-gap-report.json", "freight"),
-        ("emergency-gap-report.json", "emergency"),
+    nuuk = "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80"
+    for name, capability, min_connected in (
+        ("freight-gap-report.json", "freight", 13),
+        ("emergency-gap-report.json", "emergency", 8),
     ):
         report_path = DIST_DIR / name
         with report_path.open(encoding="utf-8") as file:
@@ -122,10 +123,16 @@ def verify_capability_gap_reports() -> None:
         if report.get("capability") != capability:
             raise AssertionError(f"{name} capability must be {capability}")
         counts = report.get("counts") or {}
-        if counts.get("connected", -1) != 0:
-            raise AssertionError(f"{name} must have zero connected places")
-        if counts.get("places") != counts.get("isolated", -1):
-            raise AssertionError(f"{name} must isolate every active place")
+        if counts.get("connected", -1) < min_connected:
+            raise AssertionError(
+                f"{name} must connect at least {min_connected} places"
+            )
+        if nuuk not in report.get("connected_place_ids", []):
+            raise AssertionError(f"Nuuk must be {capability}-connected")
+        if counts.get("places") != counts.get("connected", -1) + counts.get(
+            "isolated", -1
+        ):
+            raise AssertionError(f"{name} counts do not add up")
 
 
 def verify_single_dependency_report() -> None:

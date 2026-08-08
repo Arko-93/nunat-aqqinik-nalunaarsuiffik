@@ -1,0 +1,955 @@
+{
+  "generatedFrom": "data/source",
+  "nodes": [
+    {
+      "placeId": "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722",
+      "officialName": "Qaqortoq",
+      "danishName": "Julianehåb",
+      "historicalName": null,
+      "longitude": -46.036,
+      "latitude": 60.718
+    },
+    {
+      "placeId": "plc_a0c38659-994b-4e7e-8ba6-9a8e1f86653f",
+      "officialName": "Narsaq",
+      "danishName": "Narssaq",
+      "historicalName": null,
+      "longitude": -46.05,
+      "latitude": 60.913
+    },
+    {
+      "placeId": "plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864",
+      "officialName": "Nanortalik",
+      "danishName": null,
+      "historicalName": null,
+      "longitude": -45.24,
+      "latitude": 60.141
+    },
+    {
+      "placeId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "officialName": "Nuuk",
+      "danishName": "Godthåb",
+      "historicalName": null,
+      "longitude": -51.733,
+      "latitude": 64.175
+    },
+    {
+      "placeId": "plc_2e957e7e-3814-4e34-9e07-262eceb32584",
+      "officialName": "Paamiut",
+      "danishName": "Frederikshåb",
+      "historicalName": null,
+      "longitude": -49.667,
+      "latitude": 61.994
+    },
+    {
+      "placeId": "plc_b5089ce8-becf-4195-b632-71175c2d0ada",
+      "officialName": "Maniitsoq",
+      "danishName": "Sukkertoppen",
+      "historicalName": null,
+      "longitude": -52.894,
+      "latitude": 65.413
+    },
+    {
+      "placeId": "plc_bc0c50c0-552d-4f4b-8c9f-c65fcc33bf3b",
+      "officialName": "Sisimiut",
+      "danishName": "Holsteinsborg",
+      "historicalName": null,
+      "longitude": -53.673,
+      "latitude": 66.939
+    },
+    {
+      "placeId": "plc_1c06718f-c482-4102-bd9d-9e01a1441459",
+      "officialName": "Kangerlussuaq",
+      "danishName": "Søndre Strømfjord",
+      "historicalName": null,
+      "longitude": -50.689,
+      "latitude": 67.008
+    },
+    {
+      "placeId": "plc_7fd60259-8b40-4dc0-947f-cdcdb16b9e42",
+      "officialName": "Ilulissat",
+      "danishName": "Jakobshavn",
+      "historicalName": null,
+      "longitude": -51.099,
+      "latitude": 69.22
+    },
+    {
+      "placeId": "plc_d82ad42c-d2b6-4236-ae32-16ace9a0ffbd",
+      "officialName": "Kulusuk",
+      "danishName": "Kap Dan",
+      "historicalName": null,
+      "longitude": -37.184,
+      "latitude": 65.575
+    },
+    {
+      "placeId": "plc_6bbbde6c-8ce0-4627-a72b-d1187126d4c6",
+      "officialName": "Aasiaat",
+      "danishName": "Egedesminde",
+      "historicalName": null,
+      "longitude": -52.876,
+      "latitude": 68.71
+    },
+    {
+      "placeId": "plc_e707fa48-b27a-4eac-baf2-e100c32288b7",
+      "officialName": "Qaanaaq",
+      "danishName": "Thule",
+      "historicalName": null,
+      "longitude": -69.232,
+      "latitude": 77.467
+    },
+    {
+      "placeId": "plc_d60fc5a9-ee06-4aed-96c9-b6231af88aa6",
+      "officialName": "Tasiilaq",
+      "danishName": "Ammassalik",
+      "historicalName": null,
+      "longitude": -37.637,
+      "latitude": 65.614
+    },
+    {
+      "placeId": "plc_4122e504-40d9-49a4-9e91-dbd13280ac75",
+      "officialName": "Uummannaq",
+      "danishName": null,
+      "historicalName": null,
+      "longitude": -52.131,
+      "latitude": 70.679
+    }
+  ],
+  "edges": [
+    {
+      "id": "con_daf7a1d3-fe77-44e7-b956-edec2ed228c9",
+      "fromPlaceId": "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722",
+      "toPlaceId": "plc_a0c38659-994b-4e7e-8ba6-9a8e1f86653f",
+      "fromName": "Qaqortoq",
+      "toName": "Narsaq",
+      "direction": "bidirectional",
+      "mode": "helicopter",
+      "services": [
+        {
+          "serviceId": "svc_d5101815-b3c1-4ca3-96cf-a0e84b9cdc54",
+          "operator": "Air Greenland",
+          "capabilities": [
+            "passenger"
+          ],
+          "frequencyBand": "multiple_daily",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-04-16",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_58f6b0b6-7a68-4b81-9c58-8ed742912d04",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Air Greenland",
+      "frequencyBand": "multiple_daily",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_dd920d1b-68ce-48e4-900b-ba1e838e79a5",
+      "fromPlaceId": "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722",
+      "toPlaceId": "plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864",
+      "fromName": "Qaqortoq",
+      "toName": "Nanortalik",
+      "direction": "bidirectional",
+      "mode": "helicopter",
+      "services": [
+        {
+          "serviceId": "svc_d332f42e-aa90-4e6c-b731-baf57cdd8425",
+          "operator": "Air Greenland",
+          "capabilities": [
+            "passenger"
+          ],
+          "frequencyBand": "multiple_daily",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-04-16",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_58f6b0b6-7a68-4b81-9c58-8ed742912d04",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Air Greenland",
+      "frequencyBand": "multiple_daily",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_f57d0f4a-6927-482c-bde5-bd72a97a1693",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722",
+      "fromName": "Nuuk",
+      "toName": "Qaqortoq",
+      "direction": "bidirectional",
+      "mode": "air",
+      "services": [
+        {
+          "serviceId": "svc_59dcab58-0d0c-4f62-81eb-dc7274fc3e2b",
+          "operator": "Air Greenland",
+          "capabilities": [
+            "passenger"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-04-16",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_sermitsiaq_south_greenland",
+              "record_id": null
+            }
+          ]
+        },
+        {
+          "serviceId": "svc_32ca7df1-96d0-4481-8f75-9418a2e14d2d",
+          "operator": "Air Greenland",
+          "capabilities": [
+            "emergency"
+          ],
+          "frequencyBand": "irregular",
+          "frequencyBasis": "unknown",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2024-11-28",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_greenland_healthcare_transfers",
+              "record_id": null
+            },
+            {
+              "source_id": "src_sermitsiaq_south_greenland",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Air Greenland",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_30b95450-8216-47ad-82cc-55f2704161be",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_2e957e7e-3814-4e34-9e07-262eceb32584",
+      "fromName": "Nuuk",
+      "toName": "Paamiut",
+      "direction": "bidirectional",
+      "mode": "air",
+      "services": [
+        {
+          "serviceId": "svc_e2c34613-3998-413c-8647-89546f4a1081",
+          "operator": "Air Greenland",
+          "capabilities": [
+            "passenger",
+            "emergency"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2024-11-28",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_air_greenland_routemap",
+              "record_id": null
+            },
+            {
+              "source_id": "src_greenland_healthcare_transfers",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Air Greenland",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_8616909f-9fc7-468f-8f86-afd167a36291",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_b5089ce8-becf-4195-b632-71175c2d0ada",
+      "fromName": "Nuuk",
+      "toName": "Maniitsoq",
+      "direction": "bidirectional",
+      "mode": "air",
+      "services": [
+        {
+          "serviceId": "svc_dffc90b0-c392-4270-a492-87c16c5b57f5",
+          "operator": "Air Greenland",
+          "capabilities": [
+            "passenger",
+            "emergency"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2024-11-28",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_air_greenland_routemap",
+              "record_id": null
+            },
+            {
+              "source_id": "src_greenland_healthcare_transfers",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Air Greenland",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_fd02e483-3f48-45fe-a227-9ab670b84161",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_bc0c50c0-552d-4f4b-8c9f-c65fcc33bf3b",
+      "fromName": "Nuuk",
+      "toName": "Sisimiut",
+      "direction": "bidirectional",
+      "mode": "air",
+      "services": [
+        {
+          "serviceId": "svc_57b63dcc-3060-419c-b084-4666eddcc72b",
+          "operator": "Air Greenland",
+          "capabilities": [
+            "passenger",
+            "emergency"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2024-11-28",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_air_greenland_routemap",
+              "record_id": null
+            },
+            {
+              "source_id": "src_greenland_healthcare_transfers",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Air Greenland",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_b02be20b-13d3-4f20-997c-9d18f10ae8e4",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_1c06718f-c482-4102-bd9d-9e01a1441459",
+      "fromName": "Nuuk",
+      "toName": "Kangerlussuaq",
+      "direction": "bidirectional",
+      "mode": "air",
+      "services": [
+        {
+          "serviceId": "svc_6bb3a113-3971-4280-8710-05e6637e21fb",
+          "operator": "Air Greenland",
+          "capabilities": [
+            "passenger",
+            "emergency"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2024-11-28",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_air_greenland_routemap",
+              "record_id": null
+            },
+            {
+              "source_id": "src_greenland_healthcare_transfers",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Air Greenland",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_a029db33-3b62-4f38-bf00-c1817a13155f",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_7fd60259-8b40-4dc0-947f-cdcdb16b9e42",
+      "fromName": "Nuuk",
+      "toName": "Ilulissat",
+      "direction": "bidirectional",
+      "mode": "air",
+      "services": [
+        {
+          "serviceId": "svc_326281a6-5b6f-46be-af36-9d4fe412fbbd",
+          "operator": "Air Greenland",
+          "capabilities": [
+            "passenger",
+            "emergency"
+          ],
+          "frequencyBand": "daily",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2024-11-28",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_air_greenland_routemap",
+              "record_id": null
+            },
+            {
+              "source_id": "src_greenland_healthcare_transfers",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Air Greenland",
+      "frequencyBand": "daily",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_ee29e986-6a03-420c-8cde-104817f1edd3",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_d82ad42c-d2b6-4236-ae32-16ace9a0ffbd",
+      "fromName": "Nuuk",
+      "toName": "Kulusuk",
+      "direction": "bidirectional",
+      "mode": "air",
+      "services": [
+        {
+          "serviceId": "svc_7ca21b7d-5eb0-414e-ad5f-35287b8b728c",
+          "operator": "Air Greenland",
+          "capabilities": [
+            "passenger",
+            "emergency"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2024-11-28",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_air_greenland_routemap",
+              "record_id": null
+            },
+            {
+              "source_id": "src_greenland_healthcare_transfers",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Air Greenland",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_31165d2b-ca87-4cc7-aac3-70228d82a7ad",
+      "fromPlaceId": "plc_7fd60259-8b40-4dc0-947f-cdcdb16b9e42",
+      "toPlaceId": "plc_6bbbde6c-8ce0-4627-a72b-d1187126d4c6",
+      "fromName": "Ilulissat",
+      "toName": "Aasiaat",
+      "direction": "bidirectional",
+      "mode": "air",
+      "services": [
+        {
+          "serviceId": "svc_f3dd635a-d3be-4e1c-a7ee-3d5ac97845d0",
+          "operator": "Air Greenland",
+          "capabilities": [
+            "passenger"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2024-11-28",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_air_greenland_routemap",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Air Greenland",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_64c7062b-47b1-421b-8b10-8299f9aad918",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_6bbbde6c-8ce0-4627-a72b-d1187126d4c6",
+      "fromName": "Nuuk",
+      "toName": "Aasiaat",
+      "direction": "bidirectional",
+      "mode": "sea",
+      "services": [
+        {
+          "serviceId": "svc_c5506a8a-bea5-4c69-a074-eace1f027446",
+          "operator": "Royal Arctic Line",
+          "capabilities": [
+            "freight"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-01-01",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_royal_arctic_line_ports",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Royal Arctic Line",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_5f4cf68f-e0d3-484a-a56c-34bd54e9fd3d",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_7fd60259-8b40-4dc0-947f-cdcdb16b9e42",
+      "fromName": "Nuuk",
+      "toName": "Ilulissat",
+      "direction": "bidirectional",
+      "mode": "sea",
+      "services": [
+        {
+          "serviceId": "svc_20d78769-29ef-4b5d-b196-f97d38486d3e",
+          "operator": "Royal Arctic Line",
+          "capabilities": [
+            "freight"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-01-01",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_royal_arctic_line_ports",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Royal Arctic Line",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_78d3b97c-2c21-4b15-a6c5-1f86311d948a",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_b5089ce8-becf-4195-b632-71175c2d0ada",
+      "fromName": "Nuuk",
+      "toName": "Maniitsoq",
+      "direction": "bidirectional",
+      "mode": "sea",
+      "services": [
+        {
+          "serviceId": "svc_6f135c42-85d1-4891-8232-f1aad2833d3a",
+          "operator": "Royal Arctic Line",
+          "capabilities": [
+            "freight"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-01-01",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_royal_arctic_line_ports",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Royal Arctic Line",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_1ce48241-2dc5-4736-b007-9fd344dd931b",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864",
+      "fromName": "Nuuk",
+      "toName": "Nanortalik",
+      "direction": "bidirectional",
+      "mode": "sea",
+      "services": [
+        {
+          "serviceId": "svc_200422af-097f-44c0-afe9-2d0b1be15792",
+          "operator": "Royal Arctic Line",
+          "capabilities": [
+            "freight"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-01-01",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_royal_arctic_line_ports",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Royal Arctic Line",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_8cef225c-c026-46a9-823d-f9fe76bdfb29",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_a0c38659-994b-4e7e-8ba6-9a8e1f86653f",
+      "fromName": "Nuuk",
+      "toName": "Narsaq",
+      "direction": "bidirectional",
+      "mode": "sea",
+      "services": [
+        {
+          "serviceId": "svc_34fcfb20-0be6-48b4-bdcb-4bed8ffc4800",
+          "operator": "Royal Arctic Line",
+          "capabilities": [
+            "freight"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-01-01",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_royal_arctic_line_ports",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Royal Arctic Line",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_13b056c3-c2a0-453c-9f88-256c1510404c",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_2e957e7e-3814-4e34-9e07-262eceb32584",
+      "fromName": "Nuuk",
+      "toName": "Paamiut",
+      "direction": "bidirectional",
+      "mode": "sea",
+      "services": [
+        {
+          "serviceId": "svc_42fe38e2-fe7f-4945-8b47-19c70827d9bb",
+          "operator": "Royal Arctic Line",
+          "capabilities": [
+            "freight"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-01-01",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_royal_arctic_line_ports",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Royal Arctic Line",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_bb28ee39-5161-42c6-96ec-f71612b92de5",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722",
+      "fromName": "Nuuk",
+      "toName": "Qaqortoq",
+      "direction": "bidirectional",
+      "mode": "sea",
+      "services": [
+        {
+          "serviceId": "svc_56d6dcc3-3a0f-4028-9e4c-bf9da8b74cce",
+          "operator": "Royal Arctic Line",
+          "capabilities": [
+            "freight"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-01-01",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_royal_arctic_line_ports",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Royal Arctic Line",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_1370fc07-a4db-4f41-9ac4-18daf93d3752",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_bc0c50c0-552d-4f4b-8c9f-c65fcc33bf3b",
+      "fromName": "Nuuk",
+      "toName": "Sisimiut",
+      "direction": "bidirectional",
+      "mode": "sea",
+      "services": [
+        {
+          "serviceId": "svc_c6adebe4-268f-4e83-b1af-987693d482b0",
+          "operator": "Royal Arctic Line",
+          "capabilities": [
+            "freight"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-01-01",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_royal_arctic_line_ports",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Royal Arctic Line",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_a2a3f1c7-616c-4910-b26b-3fdf2ded9056",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_d60fc5a9-ee06-4aed-96c9-b6231af88aa6",
+      "fromName": "Nuuk",
+      "toName": "Tasiilaq",
+      "direction": "bidirectional",
+      "mode": "sea",
+      "services": [
+        {
+          "serviceId": "svc_f5cc5793-5f76-48a6-9f1b-3c25612c28e7",
+          "operator": "Royal Arctic Line",
+          "capabilities": [
+            "freight"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-01-01",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_royal_arctic_line_ports",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Royal Arctic Line",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_446c8387-cb54-4d46-9811-7d2e49f9733b",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_4122e504-40d9-49a4-9e91-dbd13280ac75",
+      "fromName": "Nuuk",
+      "toName": "Uummannaq",
+      "direction": "bidirectional",
+      "mode": "sea",
+      "services": [
+        {
+          "serviceId": "svc_1b3df931-6964-4763-8f86-2c36c24203bb",
+          "operator": "Royal Arctic Line",
+          "capabilities": [
+            "freight"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-01-01",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_royal_arctic_line_ports",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Royal Arctic Line",
+      "frequencyBand": "multiple_weekly",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    }
+  ]
+}
