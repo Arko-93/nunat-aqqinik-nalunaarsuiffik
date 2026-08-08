@@ -116,7 +116,7 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 | 3 Locality spine | naming done / geometry pending | 73 confirmed; Grise Fiord excluded; Asiaq export waiting |
 | 4 Read API | scaffold complete | `api/` Hono + SQLite; 8 v1 endpoints; FTS5 search + LIKE fallback |
 | 5 Greenland-first UI | foundations complete | AppShell, PlaceList, PlaceDossier, MobilePlaceSheet, i18n kl/da/en |
-| 6 Date-aware reachability | partial | Multi-service export; date-aware `services[]` + seasonality months; connection filters; isolation / single-dependency / seasonal-loss reports; structural `/v1/reachability` path |
+| 6 Date-aware reachability | partial | Multi-service export; date-aware `services[]` + seasonality; filters; isolation / single-dependency / seasonal-loss / freight+emergency gap reports; `/v1/reachability` with `max_transfers`; South Greenland graph ×14 |
 | 7 Operational sources | pending | |
 
 ### Phase 5 notes (2026-08-01)
@@ -139,4 +139,5 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 8. **Phase 4 (2026-08-07):** FTS5 `place_names_fts` in `ndjson2db.py`; API search MATCH + LIKE fallback. OpenAPI 3.1 + typed client (`api/openapi/openapi.yaml`, `pnpm --dir api generate:client`).
 9. **Phase 5 (2026-08-07 polish):** Offline pack size + update check; OfflineStatus shows pack state; search results use plain lists; mobile sheet `aria-modal` + Escape/focus restore. Remaining: Native KL review; AccessPlanner (deferred — map-first); full screen-reader pass.
 10. **Phase 6 (2026-08-07):** API connections group `services[]` with date filter in JOIN; `GET /v1/reports/isolation`; dist `isolation-report.json`.
-11. **Phase 6 (2026-08-07 filters/reports):** connections accept `mode` / `capability` / `operator`; seasonality months applied on `at`; `GET /v1/reports/single-dependency` + `seasonal-loss`; structural `GET /v1/reachability?from=&to=&at=`; dist `single-dependency-report.json` + `seasonal-loss-report.json`. Remaining: max_transfers fan-out, freight/emergency gap reports, OpenAPI sync for new routes.
+11. **Phase 6 (2026-08-07 filters/reports):** connections accept `mode` / `capability` / `operator`; seasonality months applied on `at`; `GET /v1/reports/single-dependency` + `seasonal-loss`; structural `GET /v1/reachability?from=&to=&at=`; dist `single-dependency-report.json` + `seasonal-loss-report.json`.
+12. **Phase 6 (2026-08-07 hygiene/graph/gaps):** Nuuk↔Qaqortoq air + 11 seasonal Kujalleq settlement helis (Sermitsiaq + AG contract); `max_transfers` on `/v1/reachability`; `GET /v1/reports/capability-gap`; dist `freight-gap-report.json` + `emergency-gap-report.json`; release `2026.08.07.7`. Remaining: mint freight/emergency `svc_` when sourced; more regional edges.

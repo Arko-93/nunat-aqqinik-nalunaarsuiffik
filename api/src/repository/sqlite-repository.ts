@@ -424,14 +424,21 @@ export class SqliteRepository {
   }
 
   getPassengerIsolationReport(at: string): IsolationReport {
+    return this.getCapabilityIsolationReport(at, "passenger");
+  }
+
+  getCapabilityIsolationReport(
+    at: string,
+    capability: "passenger" | "freight" | "emergency",
+  ): IsolationReport {
     const placeIds = this.activePlaceIds();
-    const connected = this.passengerConnectedPlaceIds(at);
+    const connected = this.capabilityConnectedPlaceIds(at, capability);
     const connected_place_ids = placeIds.filter((id) => connected.has(id));
     const isolated_place_ids = placeIds.filter((id) => !connected.has(id));
 
     return {
       effective_date: at,
-      capability: "passenger",
+      capability,
       connected_place_ids,
       isolated_place_ids,
       counts: {
@@ -541,7 +548,7 @@ export class SqliteRepository {
 
     for (let month = 1; month <= 12; month += 1) {
       const at = `${year}-${String(month).padStart(2, "0")}-15`;
-      monthConnected.set(month, this.passengerConnectedPlaceIds(at));
+      monthConnected.set(month, this.capabilityConnectedPlaceIds(at, "passenger"));
     }
 
     const losses: SeasonalLossReport["losses"] = [];
@@ -575,13 +582,17 @@ export class SqliteRepository {
     toPlaceId: string;
     at: string;
     capability?: string;
+    maxTransfers?: number | null;
   }): ReachabilityResult {
     const capability = params.capability?.trim() || "passenger";
+    const maxTransfers =
+      params.maxTransfers === undefined ? null : params.maxTransfers;
     const base = {
       from_place_id: params.fromPlaceId,
       to_place_id: params.toPlaceId,
       effective_date: params.at,
       capability,
+      max_transfers: maxTransfers,
       reachable: false as boolean,
       hops: null as number | null,
       path: [] as string[],
@@ -660,6 +671,10 @@ export class SqliteRepository {
         if (visited.has(hop.to)) continue;
         const nextPath = [...current.path, hop.to];
         const nextConnections = [...current.connections, hop.connectionId];
+        const transfers = nextConnections.length - 1;
+        if (maxTransfers !== null && transfers > maxTransfers) {
+          continue;
+        }
         if (hop.to === params.toPlaceId) {
           return {
             ...base,
@@ -696,7 +711,10 @@ export class SqliteRepository {
     ).map((row) => row.id);
   }
 
-  private passengerConnectedPlaceIds(at: string): Set<string> {
+  private capabilityConnectedPlaceIds(
+    at: string,
+    capability: string,
+  ): Set<string> {
     const connectedRows = this.db
       .prepare(
         `
@@ -707,19 +725,27 @@ export class SqliteRepository {
           JOIN connection_services cs ON cs.connection_id = c.id
           WHERE c.retired_at IS NULL
             AND ${SERVICE_ACTIVE_ON_AT}
-            AND ${PASSENGER_CAPABILITY}
+            AND EXISTS (
+              SELECT 1
+              FROM json_each(cs.capabilities_json) AS cap
+              WHERE cap.value = @capability
+            )
           UNION
           SELECT c.destination_place_id AS endpoint
           FROM connections c
           JOIN connection_services cs ON cs.connection_id = c.id
           WHERE c.retired_at IS NULL
             AND ${SERVICE_ACTIVE_ON_AT}
-            AND ${PASSENGER_CAPABILITY}
+            AND EXISTS (
+              SELECT 1
+              FROM json_each(cs.capabilities_json) AS cap
+              WHERE cap.value = @capability
+            )
         )
         ORDER BY place_id
       `,
       )
-      .all({ at }) as Array<{ place_id: string }>;
+      .all({ at, capability }) as Array<{ place_id: string }>;
 
     return new Set(connectedRows.map((row) => row.place_id));
   }

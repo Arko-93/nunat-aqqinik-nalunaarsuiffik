@@ -35,6 +35,8 @@ RELEASE_ARTIFACTS = [
     "reachability.json",
     "reachability.csv",
     "isolation-report.json",
+    "freight-gap-report.json",
+    "emergency-gap-report.json",
     "single-dependency-report.json",
     "seasonal-loss-report.json",
     "decision-geography.db",

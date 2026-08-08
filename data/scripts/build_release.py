@@ -38,6 +38,8 @@ def ensure_dist_built(source_dir: Path, dist_dir: Path) -> None:
         "nunat-aqqinik-nalunaarsuiffik.ndjson",
         "reachability.ndjson",
         "isolation-report.json",
+        "freight-gap-report.json",
+        "emergency-gap-report.json",
         "single-dependency-report.json",
         "seasonal-loss-report.json",
         "decision-geography.db",

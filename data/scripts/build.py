@@ -363,37 +363,55 @@ def build():
         if record.get(field)
     ]
     isolation_at = max(provisional_dates) if provisional_dates else "1970-01-01"
-    connected = set()
-    for connection in connections:
-        if connection.get("retired_at") is not None:
-            continue
-        passenger_ok = any(
-            service_valid_on(service, isolation_at)
-            and "passenger" in service.get("capabilities", [])
-            for service in svc_by_conn.get(connection["id"], [])
-        )
-        if not passenger_ok:
-            continue
-        connected.add(connection["origin_place_id"])
-        connected.add(connection["destination_place_id"])
     active_place_ids = sorted(
         place["id"] for place in places if place.get("status") == "active"
     )
-    connected_place_ids = [pid for pid in active_place_ids if pid in connected]
-    isolated_place_ids = [pid for pid in active_place_ids if pid not in connected]
-    isolation_report = {
-        "effective_date": isolation_at,
-        "capability": "passenger",
-        "connected_place_ids": connected_place_ids,
-        "isolated_place_ids": isolated_place_ids,
-        "counts": {
-            "places": len(active_place_ids),
-            "connected": len(connected_place_ids),
-            "isolated": len(isolated_place_ids),
-        },
-    }
+
+    def capability_isolation_report(capability: str) -> dict:
+        connected: set[str] = set()
+        for connection in connections:
+            if connection.get("retired_at") is not None:
+                continue
+            capability_ok = any(
+                service_valid_on(service, isolation_at)
+                and capability in service.get("capabilities", [])
+                for service in svc_by_conn.get(connection["id"], [])
+            )
+            if not capability_ok:
+                continue
+            connected.add(connection["origin_place_id"])
+            connected.add(connection["destination_place_id"])
+        connected_place_ids = [pid for pid in active_place_ids if pid in connected]
+        isolated_place_ids = [
+            pid for pid in active_place_ids if pid not in connected
+        ]
+        return {
+            "effective_date": isolation_at,
+            "capability": capability,
+            "connected_place_ids": connected_place_ids,
+            "isolated_place_ids": isolated_place_ids,
+            "counts": {
+                "places": len(active_place_ids),
+                "connected": len(connected_place_ids),
+                "isolated": len(isolated_place_ids),
+            },
+        }
+
+    isolation_report = capability_isolation_report("passenger")
     with (DIST_DIR / "isolation-report.json").open("w", encoding="utf-8") as file:
         json.dump(isolation_report, file, indent=2, ensure_ascii=False)
+        file.write("\n")
+
+    freight_gap_report = capability_isolation_report("freight")
+    with (DIST_DIR / "freight-gap-report.json").open("w", encoding="utf-8") as file:
+        json.dump(freight_gap_report, file, indent=2, ensure_ascii=False)
+        file.write("\n")
+
+    emergency_gap_report = capability_isolation_report("emergency")
+    with (DIST_DIR / "emergency-gap-report.json").open(
+        "w", encoding="utf-8"
+    ) as file:
+        json.dump(emergency_gap_report, file, indent=2, ensure_ascii=False)
         file.write("\n")
 
     # Single-dependency: places with passenger access via one connection/mode/operator.
@@ -543,6 +561,8 @@ def build():
         f"{RCH}.json",
         f"{RCH}.csv",
         "isolation-report.json",
+        "freight-gap-report.json",
+        "emergency-gap-report.json",
         "single-dependency-report.json",
         "seasonal-loss-report.json",
     ]
@@ -601,6 +621,8 @@ def build():
             f"{RCH}.json": r_count,
             f"{RCH}.csv": r_count,
             "isolation-report.json": 1,
+            "freight-gap-report.json": 1,
+            "emergency-gap-report.json": 1,
             "single-dependency-report.json": 1,
             "seasonal-loss-report.json": 1,
         },

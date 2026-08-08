@@ -271,6 +271,34 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /v1/reports/capability-gap:
+    get:
+      operationId: getCapabilityGapReport
+      tags: [reports]
+      summary: Isolation report for a named capability (freight/emergency gaps)
+      parameters:
+        - $ref: "#/components/parameters/EffectiveDate"
+        - name: capability
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [passenger, freight, emergency]
+          description: Capability to score isolation against
+      responses:
+        "200":
+          description: Capability gap / isolation report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IsolationReportResponse"
+        "400":
+          description: Invalid `at` or `capability`
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /v1/reports/single-dependency:
     get:
       operationId: getSingleDependencyReport
@@ -346,6 +374,14 @@ paths:
           schema:
             type: string
             default: passenger
+        - name: max_transfers
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 32
+          description: Maximum intermediate transfers (0 = direct only)
       responses:
         "200":
           description: Reachability path result
@@ -830,7 +866,7 @@ components:
           format: date
         capability:
           type: string
-          const: passenger
+          enum: [passenger, freight, emergency]
         connected_place_ids:
           type: array
           items:
@@ -990,6 +1026,7 @@ components:
         - to_place_id
         - effective_date
         - capability
+        - max_transfers
         - reachable
         - hops
         - path
@@ -1004,6 +1041,9 @@ components:
           format: date
         capability:
           type: string
+        max_transfers:
+          type: ["integer", "null"]
+          description: Requested transfer cap, or null when unbounded
         reachable:
           type: boolean
         hops:

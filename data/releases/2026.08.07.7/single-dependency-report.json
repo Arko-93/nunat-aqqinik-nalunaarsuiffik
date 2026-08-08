@@ -1,0 +1,187 @@
+{
+  "effective_date": "2026-08-07",
+  "capability": "passenger",
+  "single_connection": [
+    {
+      "place_id": "plc_29708833-3e06-4bd0-bfe8-a00365173fb6",
+      "connection_id": "con_5f49d9f2-5eff-413e-a0bc-0cad7fee0409"
+    },
+    {
+      "place_id": "plc_38612f8a-871a-46bb-a120-0f562ae4ea07",
+      "connection_id": "con_1d327f35-e8fd-4c4f-bfe7-799b3c667f59"
+    },
+    {
+      "place_id": "plc_46435473-f1e7-415d-a224-3126f7a77717",
+      "connection_id": "con_4034d9bf-9e6d-4266-99ea-6e87a13c4e4e"
+    },
+    {
+      "place_id": "plc_57fb8ce8-04c3-416b-996b-b6dd668cf5f3",
+      "connection_id": "con_8b77e663-a2ad-43dc-ba01-be347913ae00"
+    },
+    {
+      "place_id": "plc_6089a6eb-abe8-4c14-8efb-c062291e96c7",
+      "connection_id": "con_ccdc3f1d-91ca-4f65-ab73-b06fa3307586"
+    },
+    {
+      "place_id": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "connection_id": "con_f57d0f4a-6927-482c-bde5-bd72a97a1693"
+    },
+    {
+      "place_id": "plc_6e0ec513-b168-4343-bc14-aefb772c921c",
+      "connection_id": "con_979b4ecd-e3aa-44fb-b55d-4214932a1e19"
+    },
+    {
+      "place_id": "plc_711c3873-56c2-4a0b-be12-85183b14c6a6",
+      "connection_id": "con_6aad5bff-a87c-4315-a5ea-b7b9cb6ec536"
+    },
+    {
+      "place_id": "plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864",
+      "connection_id": "con_dd920d1b-68ce-48e4-900b-ba1e838e79a5"
+    },
+    {
+      "place_id": "plc_94003269-518a-4d54-8690-67cdfb0ddb8f",
+      "connection_id": "con_300f9d3b-5c83-4ad4-bb2b-52dd699b932d"
+    },
+    {
+      "place_id": "plc_a0c38659-994b-4e7e-8ba6-9a8e1f86653f",
+      "connection_id": "con_daf7a1d3-fe77-44e7-b956-edec2ed228c9"
+    },
+    {
+      "place_id": "plc_a6d4a20e-0d91-4061-8bf1-eda61dac4e03",
+      "connection_id": "con_64ce39a9-8278-40ec-bdbd-6872cce04534"
+    },
+    {
+      "place_id": "plc_b67e9866-fae8-419d-9664-c88ff974cb3f",
+      "connection_id": "con_b1e26040-2477-4570-8132-1102f6bbc32d"
+    },
+    {
+      "place_id": "plc_e90deab9-bbae-4b3a-b5dd-57587a92f135",
+      "connection_id": "con_66d2f4eb-7b5f-437e-9de5-cb2e4c6737d3"
+    }
+  ],
+  "single_mode": [
+    {
+      "place_id": "plc_29708833-3e06-4bd0-bfe8-a00365173fb6",
+      "mode": "helicopter"
+    },
+    {
+      "place_id": "plc_38612f8a-871a-46bb-a120-0f562ae4ea07",
+      "mode": "helicopter"
+    },
+    {
+      "place_id": "plc_46435473-f1e7-415d-a224-3126f7a77717",
+      "mode": "helicopter"
+    },
+    {
+      "place_id": "plc_57fb8ce8-04c3-416b-996b-b6dd668cf5f3",
+      "mode": "helicopter"
+    },
+    {
+      "place_id": "plc_6089a6eb-abe8-4c14-8efb-c062291e96c7",
+      "mode": "helicopter"
+    },
+    {
+      "place_id": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "mode": "air"
+    },
+    {
+      "place_id": "plc_6e0ec513-b168-4343-bc14-aefb772c921c",
+      "mode": "helicopter"
+    },
+    {
+      "place_id": "plc_711c3873-56c2-4a0b-be12-85183b14c6a6",
+      "mode": "helicopter"
+    },
+    {
+      "place_id": "plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864",
+      "mode": "helicopter"
+    },
+    {
+      "place_id": "plc_94003269-518a-4d54-8690-67cdfb0ddb8f",
+      "mode": "helicopter"
+    },
+    {
+      "place_id": "plc_a0c38659-994b-4e7e-8ba6-9a8e1f86653f",
+      "mode": "helicopter"
+    },
+    {
+      "place_id": "plc_a6d4a20e-0d91-4061-8bf1-eda61dac4e03",
+      "mode": "helicopter"
+    },
+    {
+      "place_id": "plc_b67e9866-fae8-419d-9664-c88ff974cb3f",
+      "mode": "helicopter"
+    },
+    {
+      "place_id": "plc_e90deab9-bbae-4b3a-b5dd-57587a92f135",
+      "mode": "helicopter"
+    }
+  ],
+  "single_operator": [
+    {
+      "place_id": "plc_29708833-3e06-4bd0-bfe8-a00365173fb6",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_38612f8a-871a-46bb-a120-0f562ae4ea07",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_46435473-f1e7-415d-a224-3126f7a77717",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_57fb8ce8-04c3-416b-996b-b6dd668cf5f3",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_6089a6eb-abe8-4c14-8efb-c062291e96c7",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_6e0ec513-b168-4343-bc14-aefb772c921c",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_711c3873-56c2-4a0b-be12-85183b14c6a6",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_94003269-518a-4d54-8690-67cdfb0ddb8f",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_a0c38659-994b-4e7e-8ba6-9a8e1f86653f",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_a6d4a20e-0d91-4061-8bf1-eda61dac4e03",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_b67e9866-fae8-419d-9664-c88ff974cb3f",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_e90deab9-bbae-4b3a-b5dd-57587a92f135",
+      "operator": "Air Greenland"
+    },
+    {
+      "place_id": "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722",
+      "operator": "Air Greenland"
+    }
+  ],
+  "counts": {
+    "single_connection": 14,
+    "single_mode": 14,
+    "single_operator": 15
+  }
+}
