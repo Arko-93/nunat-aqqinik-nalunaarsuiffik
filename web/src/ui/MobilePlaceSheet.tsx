@@ -5,6 +5,7 @@ import type { Placename } from "../domain/placename.ts";
 import type { SearchHit } from "../domain/search.ts";
 import { useI18n } from "../i18n/I18nContext.tsx";
 import type { LoadedRelease } from "../services/release.ts";
+import { trapFocus } from "./focus-trap.ts";
 import { PlaceDossier } from "./PlaceDossier.tsx";
 import { PlaceResultCard } from "./PlaceResultCard.tsx";
 
@@ -53,7 +54,10 @@ export function MobilePlaceSheet({
       if (event.key === "Escape") {
         event.preventDefault();
         onClose();
+        return;
       }
+      const root = rootRef.current;
+      if (root) trapFocus(root, event);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => {

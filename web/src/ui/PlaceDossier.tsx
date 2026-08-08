@@ -1,14 +1,14 @@
 import { Badge } from "@cloudflare/kumo/components/badge";
 import { Button } from "@cloudflare/kumo/components/button";
-import { Tabs } from "@cloudflare/kumo/components/tabs";
 import { Text } from "@cloudflare/kumo/components/text";
-import { useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   responsibilityLabel,
   type Placename,
 } from "../domain/placename.ts";
 import { useI18n } from "../i18n/I18nContext.tsx";
 import type { LoadedRelease } from "../services/release.ts";
+import { DossierTabs } from "./DossierTabs.tsx";
 import { displayTypeLabel } from "./map-selection.ts";
 import { PlaceDossierSources } from "./PlaceDossierSources.tsx";
 
@@ -22,6 +22,8 @@ type Props = {
 
 export function PlaceDossier({ place, release, onClose }: Props) {
   const { t } = useI18n();
+  const titleId = useId();
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const areaLabel = responsibilityLabel(
     place.municipalityCode,
     place.municipalityName,
@@ -41,6 +43,11 @@ export function PlaceDossier({ place, release, onClose }: Props) {
     ? tab
     : tabs[0]!.value;
 
+  // Move focus into the dossier when the selected place changes (rail open).
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, [place.featureId]);
+
   const identityBadge =
     place.identityStatus === "canonical"
       ? t.identityCanonical
@@ -49,7 +56,7 @@ export function PlaceDossier({ place, release, onClose }: Props) {
         : t.identityUpstream;
 
   return (
-    <article className="place-dossier" aria-live="polite">
+    <article className="place-dossier" aria-labelledby={titleId}>
       <header className="place-dossier-header">
         <div className="place-panel-meta">
           <Badge variant="secondary">{typeLabel}</Badge>
@@ -57,9 +64,16 @@ export function PlaceDossier({ place, release, onClose }: Props) {
           <Badge variant="outline">{identityBadge}</Badge>
         </div>
         <div className="place-dossier-title-row">
-          <Text as="h2" variant="heading2">
-            {place.officialName}
-          </Text>
+          <h2
+            ref={headingRef}
+            id={titleId}
+            className="place-dossier-title"
+            tabIndex={-1}
+          >
+            <Text as="span" variant="heading2">
+              {place.officialName}
+            </Text>
+          </h2>
           {onClose ? (
             <Button
               type="button"
@@ -77,67 +91,55 @@ export function PlaceDossier({ place, release, onClose }: Props) {
         </Text>
       </header>
 
-      <Tabs
-        variant="segmented"
-        size="sm"
-        value={activeTab}
-        onValueChange={(value) => {
-          if (value === "overview" || value === "sources") {
-            setTab(value);
-          }
-        }}
-        tabs={tabs}
-      />
-
-      {activeTab === "overview" ? (
-        <dl className="names">
-          <div>
-            <dt>{t.officialName}</dt>
-            <dd>{place.officialName}</dd>
-          </div>
-          {place.danishName && place.danishName !== place.officialName ? (
+      <DossierTabs tabs={tabs} value={activeTab} onValueChange={setTab}>
+        {activeTab === "overview" ? (
+          <dl className="names">
             <div>
-              <dt>{t.danishName}</dt>
-              <dd>{place.danishName}</dd>
+              <dt>{t.officialName}</dt>
+              <dd>{place.officialName}</dd>
             </div>
-          ) : null}
-          {place.oldOfficialName &&
-          place.oldOfficialName !== place.officialName ? (
+            {place.danishName && place.danishName !== place.officialName ? (
+              <div>
+                <dt>{t.danishName}</dt>
+                <dd>{place.danishName}</dd>
+              </div>
+            ) : null}
+            {place.oldOfficialName &&
+            place.oldOfficialName !== place.officialName ? (
+              <div>
+                <dt>{t.historicalName}</dt>
+                <dd>{place.oldOfficialName}</dd>
+              </div>
+            ) : null}
             <div>
-              <dt>{t.historicalName}</dt>
-              <dd>{place.oldOfficialName}</dd>
-            </div>
-          ) : null}
-          <div>
-            <dt>{t.coordinates}</dt>
-            <dd>
-              {place.latitude.toFixed(4)}, {place.longitude.toFixed(4)}
-            </dd>
-          </div>
-          <div>
-            <dt>{t.featureId}</dt>
-            <dd>
-              <code>{place.featureId}</code>
-            </dd>
-          </div>
-          {place.placeId ? (
-            <div>
-              <dt>{t.placeId}</dt>
+              <dt>{t.coordinates}</dt>
               <dd>
-                <code>{place.placeId}</code>
+                {place.latitude.toFixed(4)}, {place.longitude.toFixed(4)}
               </dd>
             </div>
-          ) : null}
-        </dl>
-      ) : null}
-
-      {activeTab === "sources" ? (
-        <PlaceDossierSources
-          place={place}
-          release={release}
-          identityBadge={identityBadge}
-        />
-      ) : null}
+            <div>
+              <dt>{t.featureId}</dt>
+              <dd>
+                <code>{place.featureId}</code>
+              </dd>
+            </div>
+            {place.placeId ? (
+              <div>
+                <dt>{t.placeId}</dt>
+                <dd>
+                  <code>{place.placeId}</code>
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        ) : (
+          <PlaceDossierSources
+            place={place}
+            release={release}
+            identityBadge={identityBadge}
+          />
+        )}
+      </DossierTabs>
     </article>
   );
 }
