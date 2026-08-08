@@ -12,13 +12,14 @@ export const OCEAN_BREAKS_M = [5, 10, 20, 50, 100, 200, 500, 1000] as const;
 /**
  * Contour / fill thinning (dogfood UX):
  * Overview (below OCEAN_CONTOUR_DETAIL_MIN_ZOOM): Hybrid D fills + DEM
- * hillshade + deep majors (100/200/500/1000 m).
+ * hillshade + majors (50/100/200/500/1000 m).
  * Detail (at/above that zoom): full Hybrid D contour ladder including
  * shallow 5/10/20/50 m (tiles have no 1–2 m — Hybrid D starts at 5 m).
  * Hide depare fills and fade DEM hillshade — open-grid cell edges read as
  * square waves when overzoomed; the contour lines stay useful.
  */
-export const OCEAN_CONTOUR_OVERVIEW_BREAKS_M = [100, 200, 500, 1000] as const;
+/** Overview majors include 50 m so mid-depth structure reads before z9. */
+export const OCEAN_CONTOUR_OVERVIEW_BREAKS_M = [50, 100, 200, 500, 1000] as const;
 /** Full Hybrid D ladder at detail — shallow through deep. */
 export const OCEAN_CONTOUR_DETAIL_BREAKS_M = OCEAN_BREAKS_M;
 export const OCEAN_CONTOUR_DETAIL_MIN_ZOOM = 9;
@@ -37,7 +38,8 @@ export const OCEAN_CONTOUR_SHALLOW_LABEL_MIN_ZOOM = 11;
 
 export type OceanContourLabelRank = "index" | "intermediate" | "shallow";
 
-export const LAND_BREAKS_M = [500, 1000, 2000] as const;
+/** Peaks-only breaks — denser steps so high massifs show scale, not one stamp. */
+export const LAND_BREAKS_M = [500, 750, 1000, 1250, 1500, 2000, 2500] as const;
 
 export const METER_BAND_POLICY = {
   key: "D" as const,
@@ -121,23 +123,28 @@ export function oceanContourLineColorExpression(): ExpressionSpecification {
 }
 
 export function oceanBandColor(depthM: number): string {
-  if (depthM <= 10) return "#b9e0f0";
-  if (depthM <= 20) return "#7eb8d4";
-  if (depthM <= 50) return "#4a8fb8";
-  if (depthM <= 100) return "#2f6f94";
-  if (depthM <= 200) return "#1d5273";
-  if (depthM <= 500) return "#143a54";
-  return "#0c2438";
+  // Slightly darker shallow fills so overview depth reads without labels.
+  if (depthM <= 10) return "#8ec4dc";
+  if (depthM <= 20) return "#5fa3c4";
+  if (depthM <= 50) return "#3d7fa8";
+  if (depthM <= 100) return "#2a658a";
+  if (depthM <= 200) return "#1a4d6e";
+  if (depthM <= 500) return "#123a54";
+  return "#0a2034";
 }
 
 export function landPeakBandColor(elevM: number): string | undefined {
   // Peaks-only policy (LAND_BREAKS_M): elevations below 500 m are NOT a
   // band — the color-relief bake leaves them transparent. Intervals are
-  // half-open, matching the build: [500, 1000) / [1000, 2000) / [2000, ∞).
+  // half-open, matching the build.
   if (elevM < 500) return undefined;
+  if (elevM < 750) return "#9a8a6c";
   if (elevM < 1000) return "#8a7a5c";
-  if (elevM < 2000) return "#6b5e4a";
-  return "#4a463f";
+  if (elevM < 1250) return "#7a6c54";
+  if (elevM < 1500) return "#6b5e4a";
+  if (elevM < 2000) return "#5c5242";
+  if (elevM < 2500) return "#4a463f";
+  return "#3a3832";
 }
 
 /**

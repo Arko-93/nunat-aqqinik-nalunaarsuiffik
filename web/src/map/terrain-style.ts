@@ -126,7 +126,7 @@ export type TerrainStyleMeta = {
   "nunat:ocean-fallback": "gebco-2026";
   "nunat:land-source": "mapterhorn-terrarium";
   /** Discrete peak bands at 500/1000/2000 m (elev < 500 m transparent). */
-  "nunat:land-peak-bands": "500-1000-2000";
+  "nunat:land-peak-bands": "500-750-1000-1250-1500-2000-2500";
   /** Product policy: land meter bands paint high peaks only, never a full wash. */
   "nunat:land-peaks-only": true;
   /**
@@ -290,6 +290,66 @@ function softenBasemapWater(layers: LayerSpecification[]): void {
     paint["fill-color"] = "#9eb8d8";
     (layer as { paint?: Record<string, unknown> }).paint = paint;
   }
+}
+
+/** Liberty water fill (not waterway lines, not terrain-*). */
+function isBasemapWaterFillLayer(layer: LayerSpecification): boolean {
+  if (layer.type !== "fill") return false;
+  if (layer.id.startsWith("terrain-")) return false;
+  const id = layer.id.toLowerCase();
+  // Exact `water` or ids that are water bodies — not waterway_* lines.
+  return id === "water" || id.includes("water_fill") || id.endsWith("_water");
+}
+
+/**
+ * OpenFreeMap Liberty places `water` above many landcover fills. Our ocean
+ * stack + coastline mask insert before the first land fill, so Liberty water
+ * can remain *above* the mask and wash islands with translucent blue.
+ * Pull every basemap water fill to sit just under the ocean hillshade.
+ */
+export function relocateBasemapWaterUnderOcean(
+  layers: LayerSpecification[],
+): void {
+  const waterLayers = layers.filter(isBasemapWaterFillLayer);
+  if (waterLayers.length === 0) return;
+  const without = layers.filter((layer) => !isBasemapWaterFillLayer(layer));
+  const oceanIdx = without.findIndex(
+    (layer) => layer.id === TERRAIN_LAYER_IDS.oceanHillshade,
+  );
+  const insertAt = oceanIdx >= 0 ? oceanIdx : 1;
+  without.splice(insertAt, 0, ...waterLayers);
+  layers.length = 0;
+  layers.push(...without);
+}
+
+/**
+ * Contract: no basemap water fill may sit above the coastline mask.
+ */
+export function assertWaterUnderMask(
+  layerIds: ReadonlyArray<string>,
+): { ok: true } | { ok: false; reason: string } {
+  const maskIdx = layerIds.indexOf(TERRAIN_LAYER_IDS.coastlineMask);
+  if (maskIdx < 0) {
+    return {
+      ok: false,
+      reason: `${TERRAIN_LAYER_IDS.coastlineMask} is missing`,
+    };
+  }
+  for (let i = 0; i < layerIds.length; i++) {
+    const id = layerIds[i]!;
+    if (id.startsWith("terrain-")) continue;
+    const lower = id.toLowerCase();
+    if (lower !== "water" && !lower.includes("water_fill") && !lower.endsWith("_water")) {
+      continue;
+    }
+    if (i >= maskIdx) {
+      return {
+        ok: false,
+        reason: `${id} sits above the coastline mask (index ${i} >= ${maskIdx})`,
+      };
+    }
+  }
+  return { ok: true };
 }
 
 /**
@@ -518,6 +578,7 @@ export function composeTerrainStyle(
 
   const layers = suppressCompetingGeographyLabels(style.layers ?? []);
   softenBasemapWater(layers);
+  // Relocate after ocean splice — see relocateBasemapWaterUnderOcean.
 
   const beforeId = oceanInsertBeforeId(layers);
   const beforeIndex = beforeId
@@ -564,7 +625,7 @@ export function composeTerrainStyle(
     maxzoom: OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
     paint: {
       "fill-color": oceanFillColorExpression(),
-      "fill-opacity": 0.48,
+      "fill-opacity": 0.58,
       "fill-outline-color": "rgba(0,0,0,0)",
     },
   };
@@ -657,9 +718,9 @@ export function composeTerrainStyle(
         ["linear"],
         ["zoom"],
         6,
-        300,
+        220,
         OCEAN_CONTOUR_DETAIL_MIN_ZOOM,
-        240,
+        200,
         OCEAN_CONTOUR_SHALLOW_LABEL_MIN_ZOOM,
         180,
       ],
@@ -669,7 +730,7 @@ export function composeTerrainStyle(
       "text-color": "#3d6f88",
       "text-halo-color": "rgba(255,255,255,0.85)",
       "text-halo-width": 1.2,
-      "text-opacity": 0.75,
+      "text-opacity": 0.85,
     },
   };
 
@@ -698,6 +759,9 @@ export function composeTerrainStyle(
     oceanContourLabels,
     coastlineMask,
   );
+  // Liberty `water` often sits after landcover; pull it under the ocean stack
+  // so translucent basemap water cannot wash islands above the mask.
+  relocateBasemapWaterUnderOcean(layers);
 
   const landHillshade: LayerSpecification = {
     id: TERRAIN_LAYER_IDS.landHillshade,
@@ -723,9 +787,10 @@ export function composeTerrainStyle(
     source: "land-peaks",
     paint: {
       // Discrete bands: nearest keeps band edges crisp (linear would
-      // blur the 500/1000/2000 m boundaries into fringes).
+      // blur band boundaries into fringes). Opacity < 1 lets hillshade
+      // form read through high-peak tints.
       "raster-resampling": "nearest",
-      "raster-opacity": 1,
+      "raster-opacity": 0.72,
     },
   };
   const landCoverIdx = layers.findIndex(isBasemapLandFillLayer);
@@ -743,7 +808,7 @@ export function composeTerrainStyle(
     "nunat:ocean-source": "ibcao-v5.2",
     "nunat:ocean-fallback": "gebco-2026",
     "nunat:land-source": "mapterhorn-terrarium",
-    "nunat:land-peak-bands": "500-1000-2000",
+    "nunat:land-peak-bands": "500-750-1000-1250-1500-2000-2500",
     "nunat:land-peaks-only": true,
     "nunat:tile-gap-labels": "visible",
     "nunat:ocean-under-land": true,

@@ -1,5 +1,5 @@
 {
-  "id": "land-peaks_2026-08-07",
+  "id": "land-peaks_2026-08-08",
   "slug": "land-peaks",
   "title": {
     "kl": "Nunap qaammartaasut (land peak bands)",
@@ -12,16 +12,16 @@
     -10.0,
     84.0
   ],
-  "bytes": 11646263,
-  "createdAt": "2026-08-07T00:00:00Z",
+  "bytes": 21742598,
+  "createdAt": "2026-08-08T00:00:00Z",
   "kind": "full",
   "files": [
     {
       "path": "land-peaks.pmtiles",
-      "bytes": 11646263,
-      "sha256": "dabf81fd4a0cec3d5d7f9662d4af5da723aab16ffaa1900afd8344d99022d911"
+      "bytes": 21742598,
+      "sha256": "9edee6f79192ddb83e1014bddf34531aa1636db106dd1ada3057d7ed00370f9e"
     }
   ],
   "notForNavigation": true,
-  "notes": "Peaks-only color relief (transparent below 500 m, bands 500/1000/2000 m), z0-z10 256 px webp from the Mapterhorn DEM (CC BY 4.0); z11+ renders overzoomed."
+  "notes": "Peaks-only color relief (transparent below 500 m, bands 500/750/1000/1250/1500/2000/2500 m), z0-z10 256 px webp from the Mapterhorn DEM (CC BY 4.0); z11+ renders overzoomed."
 }

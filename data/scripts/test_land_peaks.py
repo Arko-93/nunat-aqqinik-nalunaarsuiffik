@@ -84,16 +84,16 @@ def main() -> int:
     rgba = decode_rgba(result)
     assert rgba.shape == (out_px, out_px, 4), f"unexpected output shape {rgba.shape}"
     assert_quadrant(rgba, out_px // 4, out_px // 4, (0, 0, 0, 0))  # 100 m -> transparent
-    assert_quadrant(rgba, out_px // 4, 3 * out_px // 4, (138, 122, 92, 255))  # 600 m -> band1
-    assert_quadrant(rgba, 3 * out_px // 4, out_px // 4, (107, 94, 74, 255))  # 1500 m -> band2
-    assert_quadrant(rgba, 3 * out_px // 4, 3 * out_px // 4, (74, 70, 63, 255))  # 2500 m -> band3
-    # Boundaries: exactly 500 and 2000 belong to [500,1000) and [2000,inf).
+    assert_quadrant(rgba, out_px // 4, 3 * out_px // 4, (154, 138, 108, 255))  # 600 -> [500,750)
+    assert_quadrant(rgba, 3 * out_px // 4, out_px // 4, (92, 82, 66, 255))  # 1500 -> [1500,2000)
+    assert_quadrant(rgba, 3 * out_px // 4, 3 * out_px // 4, (58, 56, 50, 255))  # 2500 -> >=2500
+    # Boundaries: 500 -> [500,750); 2000 -> [2000,2500); 1999 -> [1500,2000).
     edge = terrarium_tile_512([499.0, 500.0, 1999.0, 2000.0])
     edge_rgba = decode_rgba(build.peaks_webp(edge))
     assert_quadrant(edge_rgba, out_px // 4, out_px // 4, (0, 0, 0, 0))  # 499 -> transparent
-    assert_quadrant(edge_rgba, out_px // 4, 3 * out_px // 4, (138, 122, 92, 255))  # 500 -> band1
-    assert_quadrant(edge_rgba, 3 * out_px // 4, out_px // 4, (107, 94, 74, 255))  # 1999 -> band2
-    assert_quadrant(edge_rgba, 3 * out_px // 4, 3 * out_px // 4, (74, 70, 63, 255))  # 2000 -> band3
+    assert_quadrant(edge_rgba, out_px // 4, 3 * out_px // 4, (154, 138, 108, 255))  # 500
+    assert_quadrant(edge_rgba, 3 * out_px // 4, out_px // 4, (92, 82, 66, 255))  # 1999
+    assert_quadrant(edge_rgba, 3 * out_px // 4, 3 * out_px // 4, (74, 70, 63, 255))  # 2000
 
     # All-below-500 tile: omitted entirely (returns None).
     low = terrarium_tile_512([10.0, 100.0, 300.0, 499.0])

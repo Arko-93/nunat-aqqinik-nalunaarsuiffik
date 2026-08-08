@@ -1,16 +1,16 @@
 # QA — Land peak color bands (#24)
 
-Discrete peak color bands at 500 / 1000 / 2000 m on high land only.
-Not a hypsometric land wash: elevation below 500 m is transparent, so
-coastal lowland keeps the hillshade + basemap look.
+Discrete peak color bands at 500 / 750 / 1000 / 1250 / 1500 / 2000 / 2500 m
+on high land only. Not a hypsometric land wash: elevation below 500 m is
+transparent, so coastal lowland keeps the hillshade + basemap look.
+`raster-opacity: 0.72` lets hillshade form read through the tints.
 
 ## What shipped
 
-- `web/src/map/meter-bands.ts`: `LAND_BREAKS_M = [500, 1000, 2000]` and
-  `landPeakBandColor()` were already the product policy; `landPeaksOnly`
-  is now live (was "not shipped yet").
+- `web/src/map/meter-bands.ts`: `LAND_BREAKS_M = [500, 750, 1000, 1250, 1500, 2000, 2500]`
+  and `landPeakBandColor()`; `landPeaksOnly` live.
 - `web/src/map/terrain-style.ts`:
-  - meta `nunat:land-peak-bands: "500-1000-2000"` (was `"deferred"`),
+  - meta `nunat:land-peak-bands: "500-750-1000-1250-1500-2000-2500"`,
     `nunat:land-peaks-only: true`, `nunat:land-breaks-m`,
     `nunat:land-peak-fill: discrete-color-relief-mapterhorn`,
     `nunat:land-peak-resampling: nearest`;
@@ -18,69 +18,38 @@ coastal lowland keeps the hillshade + basemap look.
   - source `land-peaks` (raster, 256 px, maxzoom 10) — online:
     `pmtiles:///packages/land-peaks/land-peaks.pmtiles/{z}/{x}/{y}`,
     offline: pack `land-peaks.pmtiles` (same logical path);
-  - layer order: `ocean* → coastline mask → land hillshade → peak bands
+  - layer paint: `raster-opacity: 0.72`;
+  - layer order: `basemap water → ocean* → coastline mask → land hillshade → peak bands
     → basemap land fills → roads → labels`.
+- Liberty `water` is relocated under the ocean stack so translucent basemap
+  water cannot wash islands above the mask (`assertWaterUnderMask`).
 - `web/scripts/build-land-peaks.py`: builds the full-Greenland
   `packages/land-peaks/land-peaks.pmtiles` from the same Mapterhorn
   Terrarium DEM tiles the hillshade serves. Peaks-only pyramid: only
-  z7 parents that contain ≥500 m keep their children, so ocean and
-  coastal-lowland subtrees are never fetched; tiles with every pixel
-  below 500 m are omitted from the archive. Lossless RGBA webp keeps
-  the discrete band edges exact.
-- `web/scripts/build-corridor-pack.py`: the corridor pack now carries
-  `land-peaks.pmtiles` (same colorizer — imported from
-  build-land-peaks.py, so the two can never disagree).
-- `TERRAIN_OFFLINE_FILES` requires `land-peaks.pmtiles` for
-  kind=full offline terrain.
+  z7 parents that contain ≥500 m keep their children; tiles with every pixel
+  below 500 m are omitted. Lossless RGBA webp keeps discrete band edges exact.
+- `web/scripts/build-corridor-pack.py`: corridor pack carries
+  `land-peaks.pmtiles` (same colorizer imported from build-land-peaks.py).
 - Fetch/publish: `make web-fetch-land-peaks` / `make web-publish-land-peaks`.
 
 ## Why a color-relief raster (not a MapLibre trick)
 
-MapLibre hillshade cannot color by elevation, and there is no
-client-side DEM colorization. The bands are a pre-baked peaks-only
-color-relief raster from the same DEM as the hillshade, so the band
-edges and the relief cannot drift. It sits above the opaque hillshade
-(a raster under it would be invisible); sub-500 m land keeps full
-hillshade relief. `raster-resampling: nearest` keeps band edges crisp
-(linear would blur the 500/1000/2000 m boundaries into fringes).
-z0–z10 at 256 px; z11+ renders overzoomed (same policy as land-relief).
+MapLibre hillshade cannot color by elevation. The bands are a pre-baked
+peaks-only color-relief raster from the same DEM as the hillshade. It sits
+above the opaque hillshade; sub-500 m land keeps full hillshade relief.
+`raster-resampling: nearest` keeps band edges crisp. Opacity 0.72 keeps
+ridge form visible inside high bands.
 
 ## Evidence
 
-- Style contract: `terrain-style.test.ts` — meta flipped to
-  `500-1000-2000`, layer/source present with explicit `{z}/{x}/{y}`
-  URLs and maxzoom 10, order above mask + hillshade and below basemap
-  labels, offline pack path served.
-- Offline contract: `corridor-pack.test.ts` / `manifest.test.ts` —
-  kind=full requires `land-peaks.pmtiles`; OPFS install reads it.
-- Peaks-only policy enforced in the bake: `BAND_COLORS` starts at
-  LAND_BREAKS_M[0] — elevations below 500 m stay transparent even inside
-  mixed tiles (regression-tested by data/scripts/test_land_peaks.py:
-  synthetic 100/600/1500/2500 m quadrants -> transparent/band1/band2/
-  band3; boundary 499/500/1999/2000 m; all-below-500 tile omitted).
-- Pack build: `land-peaks.pmtiles` (973 tiles, 0.4 MB) in the corridor
-  pack manifest with sha256; 454 mixed tiles, all with clean
-  band/transparent separation.
-- Full-country archive: `packages/land-peaks/land-peaks.pmtiles`
-  11.6 MB, 35,572 tiles (z0–z10: 1/1/2/6/20/55/162/523/1861/6925/26016);
-  11,344 mixed tiles at z9–z10, all with clean separation; ice cap
-  present, Qaarsut + Nuuk coastal tiles absent.
-- Browser dogfood (Qaarsut→Kullorsuaq, production build): style meta
-  `nunat:land-peak-bands: 500-1000-2000` + `terrain-land-peak-bands`
-  live in the map; land-peaks.pmtiles range requests confirmed in the
-  network log; one capture caught the 2000+ band (#4a463f) dominant
-  over the peak area. Label-over-band ordering is enforced by the style
-  contract test (peaks below the first basemap symbol layer; NunaGIS
-  markers are added on top on style load). Full visual pass was limited
-  by the harness Chrome window staying backgrounded (rAF frozen), not
-  by a feature failure.
-- Releases (fixed bake): web-land-peaks-land-peaks_2026-08-07,
-  web-corridor-pack-corridor_qaarsut_kullorsuaq_2026-08-07 (the
-  2026-08-06 tags still carry the pre-fix lowland-wash archive).
+- Style contract: `terrain-style.test.ts` — meta, opacity 0.72, water under mask,
+  order above mask + hillshade and below basemap labels.
+- Peaks-only bake: `data/scripts/test_land_peaks.py` — synthetic quadrants and
+  band boundaries for the 7-step ramp.
+- Browser dogfood: Naajaat (no Liberty water wash on islands); Qaqqarsuaq
+  (multiple brown steps + visible hillshade through tint).
 
-## Remaining gaps
+## Remaining
 
-- Asiaq shoreline swap (#25) also re-anchors the DEM-dependent layers
-  (mask, bathymetry clip, peak bands) to the authoritative shoreline.
-- z10 source overzooms to z13 (200 m blocks); a z11+ peaks pyramid
-  would need Mapterhorn native tiles beyond the current pack budget.
+- z10→z13 overzoom blockiness on steep ridges.
+- Asiaq shoreline (#25) may re-anchor mask/clip; peaks stay Mapterhorn until then.

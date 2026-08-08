@@ -12,6 +12,7 @@ import {
 import {
   assertMaskAboveOcean,
   assertOceanUnderLand,
+  assertWaterUnderMask,
   COASTLINE_MASK_ATTRIBUTION,
   COASTLINE_MASK_PMTILES_URL,
   LAND_DEM_ATTRIBUTION,
@@ -55,18 +56,20 @@ const libertyStub = {
       paint: { "background-color": "#f8f4f0" },
     },
     {
-      id: "water",
-      type: "fill",
-      source: "openmaptiles",
-      "source-layer": "water",
-      paint: { "fill-color": "#9ebdff", "fill-opacity": 1 },
-    },
-    {
       id: "landcover",
       type: "fill",
       source: "openmaptiles",
       "source-layer": "landcover",
       paint: { "fill-color": "#d8e8c8", "fill-opacity": 0.6 },
+    },
+    // Real Liberty places `water` after landcover fills — above our mask
+    // unless compose relocates it. Keep this order so the regression sticks.
+    {
+      id: "water",
+      type: "fill",
+      source: "openmaptiles",
+      "source-layer": "water",
+      paint: { "fill-color": "#9ebdff", "fill-opacity": 1 },
     },
     {
       id: "label_other",
@@ -116,7 +119,9 @@ describe("composeTerrainStyle (hybrid D)", () => {
     expect(meta["nunat:basemap"]).toBe("terrain-first");
     expect(meta["nunat:safety"]).toBe("not-for-navigation");
     expect(meta["nunat:meter-bands"]).toBe(METER_BAND_POLICY.key);
-    expect(meta["nunat:land-peak-bands"]).toBe("500-1000-2000");
+    expect(meta["nunat:land-peak-bands"]).toBe(
+      "500-750-1000-1250-1500-2000-2500",
+    );
     expect(meta["nunat:land-peaks-only"]).toBe(true);
     expect(meta["nunat:tile-gap-labels"]).toBe("visible");
     expect(meta["nunat:ocean-under-land"]).toBe(true);
@@ -330,12 +335,13 @@ describe("composeTerrainStyle (hybrid D)", () => {
       | {
           type?: string;
           source?: string;
-          paint?: { "raster-resampling"?: string };
+          paint?: { "raster-resampling"?: string; "raster-opacity"?: number };
         }
       | undefined;
     expect(layer?.type).toBe("raster");
     expect(layer?.source).toBe("land-peaks");
     expect(layer?.paint?.["raster-resampling"]).toBe("nearest");
+    expect(layer?.paint?.["raster-opacity"]).toBe(0.72);
 
     // Order: above the coastline mask + opaque land hillshade (a raster
     // under the hillshade would be invisible), below the basemap land
@@ -610,6 +616,18 @@ describe("composeTerrainStyle (hybrid D)", () => {
         "fill-opacity"
       ],
     ).toBe(0.28);
+  });
+
+  it("relocates Liberty water under the coastline mask", () => {
+    const style = composeTerrainStyle(libertyStub);
+    const ids = (style.layers ?? []).map((layer) => layer.id);
+    expect(assertWaterUnderMask(ids)).toEqual({ ok: true });
+    const waterIdx = ids.indexOf("water");
+    const maskIdx = ids.indexOf(TERRAIN_LAYER_IDS.coastlineMask);
+    const oceanIdx = ids.indexOf(TERRAIN_LAYER_IDS.oceanHillshade);
+    expect(waterIdx).toBeGreaterThanOrEqual(0);
+    expect(waterIdx).toBeLessThan(oceanIdx);
+    expect(waterIdx).toBeLessThan(maskIdx);
   });
 
   it("inserts ocean before the first land fill", () => {
