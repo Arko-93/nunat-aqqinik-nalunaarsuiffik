@@ -112,26 +112,34 @@ export function MobilePlaceSheet({
       {sheet !== "collapsed" ? (
         <div className="mobile-place-sheet-body">
           {queryActive ? (
-            searchHits.length === 0 ? (
-              <p className="place-list-empty">
-                <Text as="span" variant="secondary" size="sm">
-                  {t.searchEmpty}
-                </Text>
-              </p>
-            ) : (
-              <ul className="place-list-items" aria-label={t.results}>
-                {searchHits.map((hit) => (
-                  <li key={hit.place.featureId}>
-                    <PlaceResultCard
-                      place={hit.place}
-                      matchedField={hit.matchedField}
-                      selected={place?.recordId === hit.place.recordId}
-                      onSelect={onSelect}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )
+            <div
+              className="place-list-results"
+              role="region"
+              aria-live="polite"
+              aria-atomic="true"
+              aria-label={t.results}
+            >
+              {searchHits.length === 0 ? (
+                <p className="place-list-empty">
+                  <Text as="span" variant="secondary" size="sm">
+                    {t.searchEmpty}
+                  </Text>
+                </p>
+              ) : (
+                <ul className="place-list-items" aria-label={t.results}>
+                  {searchHits.map((hit) => (
+                    <li key={hit.place.featureId}>
+                      <PlaceResultCard
+                        place={hit.place}
+                        matchedField={hit.matchedField}
+                        selected={place?.recordId === hit.place.recordId}
+                        onSelect={onSelect}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           ) : place ? (
             <PlaceDossier place={place} release={release} />
           ) : null}

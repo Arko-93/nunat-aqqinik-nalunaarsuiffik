@@ -1,0 +1,7 @@
+{
+  "release_id": "2026.08.07.8",
+  "selected_at": "2026-08-08T00:19:10Z",
+  "data_as_of": "2026-08-07",
+  "manifest_path": "releases/2026.08.07.8/manifest.json",
+  "notes": "Production web/API builds must mount this release directory only. Do not read live upstream or mutable dist/ directly in production."
+}

@@ -14,6 +14,8 @@ export type Messages = {
   searchPlaceholder: string;
   searchEmpty: string;
   searchIdleHint: string;
+  /** Skip link target: jump focus to the place search field. */
+  skipToSearch: string;
   language: string;
   placesList: string;
   results: string;
@@ -85,6 +87,7 @@ const en: Messages = {
   searchPlaceholder: "Name in Kalaallisut, Danish, or an older spelling…",
   searchEmpty: "No matching places",
   searchIdleHint: "Type a name, or browse the map.",
+  skipToSearch: "Skip to place search",
   language: "Language",
   placesList: "Find",
   results: "Matches",
@@ -157,6 +160,7 @@ const da: Messages = {
   searchPlaceholder: "Navn på kalaallisut, dansk eller ældre stavemåde…",
   searchEmpty: "Ingen matchende steder",
   searchIdleHint: "Skriv et navn, eller browse kortet.",
+  skipToSearch: "Spring til stedssøgning",
   language: "Sprog",
   placesList: "Find",
   results: "Fund",
@@ -229,6 +233,7 @@ const kl: Messages = {
   searchPlaceholder: "Ateq kalaallisut, qallunaatut imaluunniit itoqqortoq…",
   searchEmpty: "Nunaasuut nassaarineqanngillat",
   searchIdleHint: "Ateq allaguk, imaluunniit kortimi ujarlerit.",
+  skipToSearch: "Nunaasunik ujaasiffimmukarit",
   language: "Oqaatsit",
   placesList: "Nassaarit",
   results: "Nassaarineqartut",
@@ -236,7 +241,7 @@ const kl: Messages = {
   viewMap: "Kort",
   overview: "Takussutissat",
   sources: "Kingumut",
-  officialName: "Official",
+  officialName: "Ateq aqqi",
   danishName: "Qallunaatut",
   historicalName: "Itoqqortoq",
   placeId: "Nuna ID",
@@ -253,7 +258,7 @@ const kl: Messages = {
   offlineLocal: "Saqqummersitap kopi lokalit",
   online: "Internetikkut",
   offline: "Internetikkut atorsinnaanngitsoq",
-  loading: "Nunat loadereqarput…",
+  loading: "Nunat utertinneqarput…",
   shownCount: "nassaarineqartut",
   closePlace: "Nuna matu",
   expandSheet: "Nunaasuup paasisassai annertusiguk",
@@ -261,7 +266,7 @@ const kl: Messages = {
   selectPlaceHint: "Nunaasuq toqqaruk aqqinik kingumullu takusinnaajumallugit.",
   dossierPurpose:
     "Panelip akissutai: nunaasuq qanoq ateqarpa, aamma paasissutissat sumit piggerpat?",
-  featureId: "Feature ID",
+  featureId: "Feature-id",
   pendingReviewNote: "UI oqaatsit misileraaneq — kalaallisut nunaqavissunit nalilersorneqassapput.",
   downloadArea: "Download-eqareaq",
   downloadAreaHint: "Qaarsut→Kullorsuaq offline-korridori",
@@ -292,10 +297,10 @@ const kl: Messages = {
   typeLabelIslandGroup: "Øgruppe",
   provenanceSource: "Kingumut",
   provenanceGeometry: "Sumiiffik",
-  provenanceMidpoint: "NunaGIS midpoint",
+  provenanceMidpoint: "NunaGIS qeqqata sumiiffia",
   provenanceType: "Type",
   provenanceGlobalId: "GlobalID",
-  provenanceLayer: "Source layer",
+  provenanceLayer: "Kingumut-lag",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { kl, da, en };

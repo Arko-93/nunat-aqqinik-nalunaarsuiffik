@@ -6,6 +6,7 @@ const NUUK_ID = "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80";
 const QAQORTOQ_ID = "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722";
 const NARSAQ_ID = "plc_a0c38659-994b-4e7e-8ba6-9a8e1f86653f";
 const NANORTALIK_ID = "plc_8bfd9c7b-25f3-4363-9c8c-27f1ce551864";
+const ILULISSAT_ID = "plc_7fd60259-8b40-4dc0-947f-cdcdb16b9e42";
 const UNKNOWN_ID = "plc_00000000-0000-4000-8000-000000000000";
 
 describe("buildFtsMatchQuery", () => {
@@ -117,8 +118,9 @@ describe("Decision Geography read API", () => {
     expect(body.place_id).toBe(QAQORTOQ_ID);
     expect(body.effective_date).toBe("2026-08-01");
     // Structural edges always listed; August is off-season for settlement helis.
-    expect(body.connections.length).toBe(14);
+    expect(body.connections.length).toBe(15);
     expect(body.connections.some((c) => c.mode === "air")).toBe(true);
+    expect(body.connections.some((c) => c.mode === "sea")).toBe(true);
     expect(body.connections.filter((c) => c.mode === "helicopter")).toHaveLength(
       13,
     );
@@ -130,12 +132,13 @@ describe("Decision Geography read API", () => {
       ),
     ).toBe(true);
     const active = body.connections.filter((c) => c.services.length >= 1);
-    expect(active.length).toBe(3);
+    // 2 year-round helis + Nuuk air (+ emergency) + RAL sea freight.
+    expect(active.length).toBe(4);
   });
 
-  it("keeps structural edges before service valid_from with empty services", async () => {
+  it("keeps South Greenland heli edges before local valid_from with empty services", async () => {
     const response = await app.request(
-      `/v1/places/${QAQORTOQ_ID}/connections?at=2026-04-15`,
+      `/v1/places/${QAQORTOQ_ID}/connections?at=2026-04-15&mode=helicopter`,
     );
     expect(response.status).toBe(200);
 
@@ -146,7 +149,7 @@ describe("Decision Geography read API", () => {
       }>;
     };
 
-    expect(body.connections.length).toBe(14);
+    expect(body.connections.length).toBe(13);
     expect(body.connections.every((c) => c.services.length === 0)).toBe(true);
   });
 
@@ -169,14 +172,12 @@ describe("Decision Geography read API", () => {
       true,
     );
 
-    const wrongMode = await app.request(
+    const bySea = await app.request(
       `/v1/places/${QAQORTOQ_ID}/connections?at=2026-08-01&mode=sea`,
     );
-    expect(wrongMode.status).toBe(200);
-    const wrongModeBody = (await wrongMode.json()) as {
-      connections: unknown[];
-    };
-    expect(wrongModeBody.connections).toHaveLength(0);
+    expect(bySea.status).toBe(200);
+    const seaBody = (await bySea.json()) as { connections: unknown[] };
+    expect(seaBody.connections).toHaveLength(1);
 
     const byCapability = await app.request(
       `/v1/places/${QAQORTOQ_ID}/connections?at=2026-08-01&capability=passenger`,
@@ -197,7 +198,7 @@ describe("Decision Geography read API", () => {
     );
     expect(freight.status).toBe(200);
     const freightBody = (await freight.json()) as { connections: unknown[] };
-    expect(freightBody.connections).toHaveLength(0);
+    expect(freightBody.connections).toHaveLength(1);
 
     const byOperator = await app.request(
       `/v1/places/${QAQORTOQ_ID}/connections?at=2026-08-01&operator=Air%20Greenland`,
@@ -206,7 +207,7 @@ describe("Decision Geography read API", () => {
     const opBody = (await byOperator.json()) as {
       connections: Array<{ services: Array<{ operator: string | null }> }>;
     };
-    expect(opBody.connections.length).toBe(3);
+    expect(opBody.connections.length).toBeGreaterThanOrEqual(3);
     expect(
       opBody.connections.every((c) =>
         c.services.every((s) => s.operator === "Air Greenland"),
@@ -231,9 +232,10 @@ describe("Decision Geography read API", () => {
         isolated_place_ids: string[];
       };
     };
-    expect(beforeBody.report.counts.connected).toBe(0);
+    // Domestic AG air (valid_from 2024-11-28) connects Nuuk hub before South heli contract.
+    expect(beforeBody.report.counts.connected).toBeGreaterThanOrEqual(10);
+    expect(beforeBody.report.connected_place_ids).toContain(NUUK_ID);
     expect(beforeBody.report.isolated_place_ids).toContain(QAQORTOQ_ID);
-    expect(beforeBody.report.isolated_place_ids).toContain(NUUK_ID);
 
     const after = await app.request("/v1/reports/isolation?at=2026-08-01");
     expect(after.status).toBe(200);
@@ -244,30 +246,46 @@ describe("Decision Geography read API", () => {
         isolated_place_ids: string[];
       };
     };
-    expect(afterBody.report.counts.connected).toBeGreaterThanOrEqual(4);
+    expect(afterBody.report.counts.connected).toBeGreaterThanOrEqual(14);
     expect(afterBody.report.connected_place_ids).toContain(QAQORTOQ_ID);
     expect(afterBody.report.connected_place_ids).toContain(NUUK_ID);
+    expect(afterBody.report.connected_place_ids).toContain(ILULISSAT_ID);
     expect(afterBody.report.isolated_place_ids).not.toContain(QAQORTOQ_ID);
   });
 
-  it("reports freight and emergency capability gaps", async () => {
-    for (const capability of ["freight", "emergency"] as const) {
-      const response = await app.request(
-        `/v1/reports/capability-gap?at=2026-08-01&capability=${capability}`,
-      );
-      expect(response.status).toBe(200);
-      const body = (await response.json()) as {
-        report: {
-          capability: string;
-          counts: { places: number; connected: number; isolated: number };
-          connected_place_ids: string[];
-        };
+  it("reports freight and emergency capability coverage", async () => {
+    const freight = await app.request(
+      "/v1/reports/capability-gap?at=2026-08-01&capability=freight",
+    );
+    expect(freight.status).toBe(200);
+    const freightBody = (await freight.json()) as {
+      report: {
+        capability: string;
+        counts: { places: number; connected: number; isolated: number };
+        connected_place_ids: string[];
       };
-      expect(body.report.capability).toBe(capability);
-      expect(body.report.counts.connected).toBe(0);
-      expect(body.report.connected_place_ids).toHaveLength(0);
-      expect(body.report.counts.isolated).toBe(body.report.counts.places);
-    }
+    };
+    expect(freightBody.report.capability).toBe("freight");
+    expect(freightBody.report.counts.connected).toBe(13);
+    expect(freightBody.report.connected_place_ids).toContain(NUUK_ID);
+    expect(freightBody.report.connected_place_ids).toContain(QAQORTOQ_ID);
+
+    const emergency = await app.request(
+      "/v1/reports/capability-gap?at=2026-08-01&capability=emergency",
+    );
+    expect(emergency.status).toBe(200);
+    const emergencyBody = (await emergency.json()) as {
+      report: {
+        capability: string;
+        counts: { connected: number };
+        connected_place_ids: string[];
+      };
+    };
+    expect(emergencyBody.report.capability).toBe("emergency");
+    // Nuuk + 7 direct air peers (Paamiut, Maniitsoq, Sisimiut, Kangerlussuaq, Ilulissat, Kulusuk, Qaqortoq).
+    expect(emergencyBody.report.counts.connected).toBe(8);
+    expect(emergencyBody.report.connected_place_ids).toContain(NUUK_ID);
+    expect(emergencyBody.report.connected_place_ids).toContain(ILULISSAT_ID);
   });
 
   it("reports single-dependency places for an effective date", async () => {
@@ -334,13 +352,13 @@ describe("Decision Geography read API", () => {
 
     expect(body.report.year).toBe(2026);
     expect(body.report.capability).toBe("passenger");
-    // Year-round hubs: valid_from gap Jan–Apr. Settlements: seasonal months only.
-    expect(body.report.counts.places_with_seasonal_loss).toBe(15);
+    // South contract valid_from gap + seasonal settlements; Nuuk hub is year-round from 2024.
+    expect(body.report.counts.places_with_seasonal_loss).toBe(14);
     const qaq = body.report.losses.find((r) => r.place_id === QAQORTOQ_ID);
     expect(qaq).toBeDefined();
     expect(qaq!.isolated_months).toEqual([1, 2, 3, 4]);
     expect(qaq!.connected_months).toEqual([5, 6, 7, 8, 9, 10, 11, 12]);
-    expect(body.report.losses.some((r) => r.place_id === NUUK_ID)).toBe(true);
+    expect(body.report.losses.some((r) => r.place_id === NUUK_ID)).toBe(false);
   });
 
   it("finds a structural passenger path between places", async () => {
@@ -405,6 +423,17 @@ describe("Decision Geography read API", () => {
     expect(nuukBody.reachable).toBe(true);
     expect(nuukBody.hops).toBe(1);
     expect(nuukBody.path).toEqual([NUUK_ID, QAQORTOQ_ID]);
+
+    const north = await app.request(
+      `/v1/reachability?from=${NUUK_ID}&to=${ILULISSAT_ID}&at=2026-08-01`,
+    );
+    expect(north.status).toBe(200);
+    const northBody = (await north.json()) as {
+      reachable: boolean;
+      hops: number | null;
+    };
+    expect(northBody.reachable).toBe(true);
+    expect(northBody.hops).toBe(1);
 
     const beforeService = await app.request(
       `/v1/reachability?from=${QAQORTOQ_ID}&to=${NANORTALIK_ID}&at=2026-04-15`,

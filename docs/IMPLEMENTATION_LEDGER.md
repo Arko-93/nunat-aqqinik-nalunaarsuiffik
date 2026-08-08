@@ -116,7 +116,7 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 | 3 Locality spine | naming done / geometry pending | 73 confirmed; Grise Fiord excluded; Asiaq export waiting |
 | 4 Read API | scaffold complete | `api/` Hono + SQLite; 8 v1 endpoints; FTS5 search + LIKE fallback |
 | 5 Greenland-first UI | foundations complete | AppShell, PlaceList, PlaceDossier, MobilePlaceSheet, i18n kl/da/en |
-| 6 Date-aware reachability | partial | Multi-service export; date-aware `services[]` + seasonality; filters; isolation / single-dependency / seasonal-loss / freight+emergency gap reports; `/v1/reachability` with `max_transfers`; South Greenland graph ×14 |
+| 6 Date-aware reachability | partial | Multi-service export; date-aware `services[]` + seasonality; filters; isolation / single-dependency / seasonal-loss / freight+emergency gap reports; `/v1/reachability` with `max_transfers`; graph ×36 (AG air hubs + South heli + RAL sea freight); Nuuk emergency air |
 | 7 Operational sources | pending | |
 
 ### Phase 5 notes (2026-08-01)
@@ -137,7 +137,9 @@ Package: `api/` — Hono server reading `data/releases/CURRENT` → `decision-ge
 6. **Phase 3 (next):** Asiaq geometry export.
 7. **Phase 2 (2026-08-07):** gazetteer midpoints packaged into release `2026.08.07.4` (`placenames.geojson`); App loads `${base}/placenames.geojson`; no live fetch in `map-fetch` / `map-omarchy`.
 8. **Phase 4 (2026-08-07):** FTS5 `place_names_fts` in `ndjson2db.py`; API search MATCH + LIKE fallback. OpenAPI 3.1 + typed client (`api/openapi/openapi.yaml`, `pnpm --dir api generate:client`).
-9. **Phase 5 (2026-08-07 polish):** Offline pack size + update check; OfflineStatus shows pack state; search results use plain lists; mobile sheet `aria-modal` + Escape/focus restore. Remaining: Native KL review; AccessPlanner (deferred — map-first); full screen-reader pass.
+9. **Phase 5 (2026-08-07 polish):** Offline pack size + update check; OfflineStatus shows pack state; search results use plain lists; mobile sheet `aria-modal` + Escape/focus restore.
 10. **Phase 6 (2026-08-07):** API connections group `services[]` with date filter in JOIN; `GET /v1/reports/isolation`; dist `isolation-report.json`.
 11. **Phase 6 (2026-08-07 filters/reports):** connections accept `mode` / `capability` / `operator`; seasonality months applied on `at`; `GET /v1/reports/single-dependency` + `seasonal-loss`; structural `GET /v1/reachability?from=&to=&at=`; dist `single-dependency-report.json` + `seasonal-loss-report.json`.
-12. **Phase 6 (2026-08-07 hygiene/graph/gaps):** Nuuk↔Qaqortoq air + 11 seasonal Kujalleq settlement helis (Sermitsiaq + AG contract); `max_transfers` on `/v1/reachability`; `GET /v1/reports/capability-gap`; dist `freight-gap-report.json` + `emergency-gap-report.json`; release `2026.08.07.7`. Remaining: mint freight/emergency `svc_` when sourced; more regional edges.
+12. **Phase 6 (2026-08-07 hygiene/graph/gaps):** Nuuk↔Qaqortoq air + 11 seasonal Kujalleq settlement helis (Sermitsiaq + AG contract); `max_transfers` on `/v1/reachability`; `GET /v1/reports/capability-gap`; dist `freight-gap-report.json` + `emergency-gap-report.json`; release `2026.08.07.7`.
+13. **Phase 6 (2026-08-07 regional/freight/emergency):** AG routemap domestic air (Nuuk/Ilulissat hubs + Kulusuk + North chain); RAL Nuuk-hub sea freight ×12 terminals; emergency capability on Nuuk-centered AG air; release `2026.08.07.8`. Remaining: settlement freight feeders; SAR/settlement emergency.
+14. **Phase 5 (2026-08-07 a11y/KL draft):** skip-to-search; `aria-live` search results; KL English leftovers cleaned (draft). Remaining: native KL review; AccessPlanner (deferred); deeper screen-reader pass.

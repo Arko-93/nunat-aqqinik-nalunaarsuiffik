@@ -36,7 +36,13 @@ export function PlaceList({
       </div>
 
       {queryActive ? (
-        <>
+        <div
+          className="place-list-results"
+          role="region"
+          aria-live="polite"
+          aria-atomic="true"
+          aria-label={t.results}
+        >
           <header className="place-list-header">
             <Text as="h2" variant="heading3">
               {t.results}
@@ -65,7 +71,7 @@ export function PlaceList({
               ))}
             </ul>
           )}
-        </>
+        </div>
       ) : null}
     </section>
   );
