@@ -81,7 +81,7 @@ export type ConnectionEdge = {
 
 export type IsolationReport = {
   effective_date: string;
-  capability: "passenger";
+  capability: "passenger" | "freight" | "emergency";
   connected_place_ids: string[];
   isolated_place_ids: string[];
   counts: {
@@ -130,6 +130,7 @@ export type ReachabilityResult = {
   to_place_id: string;
   effective_date: string;
   capability: string;
+  max_transfers: number | null;
   reachable: boolean;
   hops: number | null;
   path: string[];

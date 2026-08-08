@@ -46,9 +46,10 @@ The server listens on `http://127.0.0.1:8787` by default.
 | GET | `/v1/places/{place_id}/identifiers` | External identifiers |
 | GET | `/v1/places/{place_id}/connections?at=YYYY-MM-DD` | Structural connections + services valid on `at`; optional `mode`, `capability`, `operator` filters |
 | GET | `/v1/reports/isolation?at=YYYY-MM-DD` | Passenger isolation report for effective date |
+| GET | `/v1/reports/capability-gap?capability=&at=` | Isolation for `passenger` / `freight` / `emergency` |
 | GET | `/v1/reports/single-dependency?at=YYYY-MM-DD` | Places with one passenger connection, mode, or operator |
 | GET | `/v1/reports/seasonal-loss?year=YYYY` | Places connected in some months and isolated in others |
-| GET | `/v1/reachability?from=&to=&at=` | Structural BFS path (default capability `passenger`) |
+| GET | `/v1/reachability?from=&to=&at=` | Structural BFS path; optional `max_transfers`, `capability` |
 | POST | `/v1/places/resolve` | Identifier/name resolution (candidates only) |
 
 Every factual response includes `release_id`, `data_as_of`, and `freshness` where available.

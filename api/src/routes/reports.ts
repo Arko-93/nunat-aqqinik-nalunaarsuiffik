@@ -51,6 +51,47 @@ export const createReportRoutes = () => {
     );
   });
 
+  app.get("/capability-gap", (c) => {
+    const ctx = c.get("ctx");
+    const at = c.req.query("at");
+    const capabilityRaw = c.req.query("capability");
+    if (at !== undefined && !isIsoDate(at)) {
+      return c.json(
+        withReleaseMeta(ctx, {
+          error: "invalid_effective_date",
+          message: "Query parameter 'at' must be YYYY-MM-DD.",
+        }),
+        400,
+      );
+    }
+    if (
+      capabilityRaw !== "freight" &&
+      capabilityRaw !== "emergency" &&
+      capabilityRaw !== "passenger"
+    ) {
+      return c.json(
+        withReleaseMeta(ctx, {
+          error: "invalid_capability",
+          message:
+            "Query parameter 'capability' must be passenger, freight, or emergency.",
+        }),
+        400,
+      );
+    }
+
+    const effective = effectiveDate(ctx, at);
+    const report = ctx.repository.getCapabilityIsolationReport(
+      effective,
+      capabilityRaw,
+    );
+
+    return c.json(
+      withReleaseMeta(ctx, {
+        report,
+      }),
+    );
+  });
+
   app.get("/seasonal-loss", (c) => {
     const ctx = c.get("ctx");
     const yearRaw = c.req.query("year");

@@ -11,6 +11,7 @@ export const createReachabilityRoutes = () => {
     const toPlaceId = c.req.query("to");
     const at = c.req.query("at");
     const capability = c.req.query("capability") ?? "passenger";
+    const maxTransfersRaw = c.req.query("max_transfers");
 
     if (!fromPlaceId || !toPlaceId) {
       return c.json(
@@ -30,6 +31,25 @@ export const createReachabilityRoutes = () => {
         }),
         400,
       );
+    }
+
+    let maxTransfers: number | null = null;
+    if (maxTransfersRaw !== undefined) {
+      maxTransfers = Number(maxTransfersRaw);
+      if (
+        !Number.isInteger(maxTransfers) ||
+        maxTransfers < 0 ||
+        maxTransfers > 32
+      ) {
+        return c.json(
+          withReleaseMeta(ctx, {
+            error: "invalid_max_transfers",
+            message:
+              "Query parameter 'max_transfers' must be an integer from 0 to 32.",
+          }),
+          400,
+        );
+      }
     }
 
     const fromPlace = ctx.repository.getPlaceById(fromPlaceId);
@@ -60,6 +80,7 @@ export const createReachabilityRoutes = () => {
       toPlaceId,
       at: effective,
       capability,
+      maxTransfers,
     });
 
     return c.json(withReleaseMeta(ctx, result));

@@ -101,14 +101,31 @@ def verify_isolation_report() -> None:
 
     nuuk = "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80"
     qaqortoq = "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722"
-    if nuuk not in report.get("isolated_place_ids", []):
-        raise AssertionError("Nuuk must be passenger-isolated in current graph")
+    if nuuk not in report.get("connected_place_ids", []):
+        raise AssertionError("Nuuk must be passenger-connected via Nuuk–Qaqortoq air")
     if qaqortoq not in report.get("connected_place_ids", []):
         raise AssertionError("Qaqortoq must be passenger-connected in current graph")
 
     counts = report.get("counts") or {}
     if counts.get("places") != counts.get("connected", -1) + counts.get("isolated", -1):
         raise AssertionError("isolation-report counts do not add up")
+
+
+def verify_capability_gap_reports() -> None:
+    for name, capability in (
+        ("freight-gap-report.json", "freight"),
+        ("emergency-gap-report.json", "emergency"),
+    ):
+        report_path = DIST_DIR / name
+        with report_path.open(encoding="utf-8") as file:
+            report = json.load(file)
+        if report.get("capability") != capability:
+            raise AssertionError(f"{name} capability must be {capability}")
+        counts = report.get("counts") or {}
+        if counts.get("connected", -1) != 0:
+            raise AssertionError(f"{name} must have zero connected places")
+        if counts.get("places") != counts.get("isolated", -1):
+            raise AssertionError(f"{name} must isolate every active place")
 
 
 def verify_single_dependency_report() -> None:
@@ -130,8 +147,8 @@ def verify_single_dependency_report() -> None:
         raise AssertionError("Qaqortoq must not be single-connection dependent")
 
     single_mode_ids = {row["place_id"] for row in report.get("single_mode", [])}
-    if qaqortoq not in single_mode_ids:
-        raise AssertionError("Qaqortoq must be single-mode dependent")
+    if qaqortoq in single_mode_ids:
+        raise AssertionError("Qaqortoq must not be single-mode (air + helicopter)")
 
 
 def verify_seasonal_loss_report() -> None:
@@ -238,6 +255,7 @@ def main() -> None:
     verify_manifest()
     verify_database()
     verify_isolation_report()
+    verify_capability_gap_reports()
     verify_single_dependency_report()
     verify_seasonal_loss_report()
     verify_concurrent_service_projection()
@@ -247,6 +265,7 @@ def main() -> None:
     verify_manifest()
     verify_database()
     verify_isolation_report()
+    verify_capability_gap_reports()
     verify_single_dependency_report()
     verify_seasonal_loss_report()
     second = output_hashes()

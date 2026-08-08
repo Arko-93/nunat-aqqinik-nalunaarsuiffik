@@ -24,6 +24,14 @@
       "historicalName": null,
       "longitude": -45.24,
       "latitude": 60.141
+    },
+    {
+      "placeId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "officialName": "Nuuk",
+      "danishName": "Godthåb",
+      "historicalName": null,
+      "longitude": -51.733,
+      "latitude": 64.175
     }
   ],
   "edges": [
@@ -100,6 +108,45 @@
       ],
       "operator": "Air Greenland",
       "frequencyBand": "multiple_daily",
+      "seasonality": {
+        "kind": "year_round",
+        "months": []
+      }
+    },
+    {
+      "id": "con_f57d0f4a-6927-482c-bde5-bd72a97a1693",
+      "fromPlaceId": "plc_67e038aa-f9c6-4ab5-84ce-62c04dad3e80",
+      "toPlaceId": "plc_ebf06a92-e8e1-42e8-b45b-eedbc7843722",
+      "fromName": "Nuuk",
+      "toName": "Qaqortoq",
+      "direction": "bidirectional",
+      "mode": "air",
+      "services": [
+        {
+          "serviceId": "svc_59dcab58-0d0c-4f62-81eb-dc7274fc3e2b",
+          "operator": "Air Greenland",
+          "capabilities": [
+            "passenger"
+          ],
+          "frequencyBand": "multiple_weekly",
+          "frequencyBasis": "published_maximum",
+          "seasonality": {
+            "kind": "year_round",
+            "months": []
+          },
+          "status": "active",
+          "validFrom": "2026-04-16",
+          "validTo": null,
+          "sourceRefs": [
+            {
+              "source_id": "src_sermitsiaq_south_greenland",
+              "record_id": null
+            }
+          ]
+        }
+      ],
+      "operator": "Air Greenland",
+      "frequencyBand": "multiple_weekly",
       "seasonality": {
         "kind": "year_round",
         "months": []

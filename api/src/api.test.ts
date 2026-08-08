@@ -116,16 +116,21 @@ describe("Decision Geography read API", () => {
     expect(body.release_id).toBe(ctx.release.releaseId);
     expect(body.place_id).toBe(QAQORTOQ_ID);
     expect(body.effective_date).toBe("2026-08-01");
-    expect(body.connections.length).toBe(2);
-    expect(body.connections.every((c) => c.mode === "helicopter")).toBe(true);
+    // Structural edges always listed; August is off-season for settlement helis.
+    expect(body.connections.length).toBe(14);
+    expect(body.connections.some((c) => c.mode === "air")).toBe(true);
+    expect(body.connections.filter((c) => c.mode === "helicopter")).toHaveLength(
+      13,
+    );
     expect(
       body.connections.every(
         (c) =>
           c.connection_id.startsWith("con_") &&
-          c.peer_place_id.startsWith("plc_") &&
-          c.services.length >= 1,
+          c.peer_place_id.startsWith("plc_"),
       ),
     ).toBe(true);
+    const active = body.connections.filter((c) => c.services.length >= 1);
+    expect(active.length).toBe(3);
   });
 
   it("keeps structural edges before service valid_from with empty services", async () => {
@@ -141,7 +146,7 @@ describe("Decision Geography read API", () => {
       }>;
     };
 
-    expect(body.connections.length).toBe(2);
+    expect(body.connections.length).toBe(14);
     expect(body.connections.every((c) => c.services.length === 0)).toBe(true);
   });
 
@@ -159,7 +164,7 @@ describe("Decision Geography read API", () => {
       };
     };
     expect(modeBody.filters.mode).toBe("helicopter");
-    expect(modeBody.connections.length).toBe(2);
+    expect(modeBody.connections.length).toBe(13);
     expect(modeBody.connections.every((c) => c.mode === "helicopter")).toBe(
       true,
     );
@@ -180,7 +185,7 @@ describe("Decision Geography read API", () => {
     const capBody = (await byCapability.json()) as {
       connections: Array<{ services: Array<{ capabilities: string[] }> }>;
     };
-    expect(capBody.connections.length).toBe(2);
+    expect(capBody.connections.length).toBe(3);
     expect(
       capBody.connections.every((c) =>
         c.services.every((s) => s.capabilities.includes("passenger")),
@@ -201,7 +206,7 @@ describe("Decision Geography read API", () => {
     const opBody = (await byOperator.json()) as {
       connections: Array<{ services: Array<{ operator: string | null }> }>;
     };
-    expect(opBody.connections.length).toBe(2);
+    expect(opBody.connections.length).toBe(3);
     expect(
       opBody.connections.every((c) =>
         c.services.every((s) => s.operator === "Air Greenland"),
@@ -239,10 +244,30 @@ describe("Decision Geography read API", () => {
         isolated_place_ids: string[];
       };
     };
-    expect(afterBody.report.counts.connected).toBeGreaterThanOrEqual(3);
+    expect(afterBody.report.counts.connected).toBeGreaterThanOrEqual(4);
     expect(afterBody.report.connected_place_ids).toContain(QAQORTOQ_ID);
-    expect(afterBody.report.isolated_place_ids).toContain(NUUK_ID);
+    expect(afterBody.report.connected_place_ids).toContain(NUUK_ID);
     expect(afterBody.report.isolated_place_ids).not.toContain(QAQORTOQ_ID);
+  });
+
+  it("reports freight and emergency capability gaps", async () => {
+    for (const capability of ["freight", "emergency"] as const) {
+      const response = await app.request(
+        `/v1/reports/capability-gap?at=2026-08-01&capability=${capability}`,
+      );
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as {
+        report: {
+          capability: string;
+          counts: { places: number; connected: number; isolated: number };
+          connected_place_ids: string[];
+        };
+      };
+      expect(body.report.capability).toBe(capability);
+      expect(body.report.counts.connected).toBe(0);
+      expect(body.report.connected_place_ids).toHaveLength(0);
+      expect(body.report.counts.isolated).toBe(body.report.counts.places);
+    }
   });
 
   it("reports single-dependency places for an effective date", async () => {
@@ -278,10 +303,8 @@ describe("Decision Geography read API", () => {
       body.report.single_connection.some((r) => r.place_id === QAQORTOQ_ID),
     ).toBe(false);
     expect(
-      body.report.single_mode.some(
-        (r) => r.place_id === QAQORTOQ_ID && r.mode === "helicopter",
-      ),
-    ).toBe(true);
+      body.report.single_mode.some((r) => r.place_id === QAQORTOQ_ID),
+    ).toBe(false);
     expect(
       body.report.single_operator.some(
         (r) =>
@@ -311,13 +334,13 @@ describe("Decision Geography read API", () => {
 
     expect(body.report.year).toBe(2026);
     expect(body.report.capability).toBe("passenger");
-    // Services valid_from 2026-04-16 → mid-month check isolates Jan–Apr.
-    expect(body.report.counts.places_with_seasonal_loss).toBe(3);
+    // Year-round hubs: valid_from gap Jan–Apr. Settlements: seasonal months only.
+    expect(body.report.counts.places_with_seasonal_loss).toBe(15);
     const qaq = body.report.losses.find((r) => r.place_id === QAQORTOQ_ID);
     expect(qaq).toBeDefined();
     expect(qaq!.isolated_months).toEqual([1, 2, 3, 4]);
     expect(qaq!.connected_months).toEqual([5, 6, 7, 8, 9, 10, 11, 12]);
-    expect(body.report.losses.some((r) => r.place_id === NUUK_ID)).toBe(false);
+    expect(body.report.losses.some((r) => r.place_id === NUUK_ID)).toBe(true);
   });
 
   it("finds a structural passenger path between places", async () => {
@@ -330,12 +353,14 @@ describe("Decision Geography read API", () => {
       to_place_id: string;
       effective_date: string;
       capability: string;
+      max_transfers: number | null;
       reachable: boolean;
       hops: number;
       path: string[];
       connections: string[];
     };
     expect(directBody.reachable).toBe(true);
+    expect(directBody.max_transfers).toBeNull();
     expect(directBody.hops).toBe(1);
     expect(directBody.path).toEqual([QAQORTOQ_ID, NANORTALIK_ID]);
     expect(directBody.connections).toHaveLength(1);
@@ -355,18 +380,31 @@ describe("Decision Geography read API", () => {
     expect(viaBody.path[viaBody.path.length - 1]).toBe(NARSAQ_ID);
     expect(viaBody.path).toContain(QAQORTOQ_ID);
 
-    const isolated = await app.request(
+    const blocked = await app.request(
+      `/v1/reachability?from=${NANORTALIK_ID}&to=${NARSAQ_ID}&at=2026-08-01&max_transfers=0`,
+    );
+    expect(blocked.status).toBe(200);
+    const blockedBody = (await blocked.json()) as {
+      reachable: boolean;
+      max_transfers: number | null;
+      hops: number | null;
+    };
+    expect(blockedBody.max_transfers).toBe(0);
+    expect(blockedBody.reachable).toBe(false);
+    expect(blockedBody.hops).toBeNull();
+
+    const nuukLink = await app.request(
       `/v1/reachability?from=${NUUK_ID}&to=${QAQORTOQ_ID}&at=2026-08-01`,
     );
-    expect(isolated.status).toBe(200);
-    const isolatedBody = (await isolated.json()) as {
+    expect(nuukLink.status).toBe(200);
+    const nuukBody = (await nuukLink.json()) as {
       reachable: boolean;
       hops: number | null;
       path: string[];
     };
-    expect(isolatedBody.reachable).toBe(false);
-    expect(isolatedBody.hops).toBeNull();
-    expect(isolatedBody.path).toHaveLength(0);
+    expect(nuukBody.reachable).toBe(true);
+    expect(nuukBody.hops).toBe(1);
+    expect(nuukBody.path).toEqual([NUUK_ID, QAQORTOQ_ID]);
 
     const beforeService = await app.request(
       `/v1/reachability?from=${QAQORTOQ_ID}&to=${NANORTALIK_ID}&at=2026-04-15`,

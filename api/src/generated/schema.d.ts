@@ -182,6 +182,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reports/capability-gap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Isolation report for a named capability (freight/emergency gaps) */
+        get: operations["getCapabilityGapReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/reports/single-dependency": {
         parameters: {
             query?: never;
@@ -400,8 +417,8 @@ export interface components {
         IsolationReport: {
             /** Format: date */
             effective_date: string;
-            /** @constant */
-            capability: "passenger";
+            /** @enum {string} */
+            capability: "passenger" | "freight" | "emergency";
             connected_place_ids: string[];
             isolated_place_ids: string[];
             counts: {
@@ -462,6 +479,8 @@ export interface components {
             /** Format: date */
             effective_date: string;
             capability: string;
+            /** @description Requested transfer cap, or null when unbounded */
+            max_transfers: number | null;
             reachable: boolean;
             hops: number | null;
             path: string[];
@@ -817,6 +836,40 @@ export interface operations {
             };
         };
     };
+    getCapabilityGapReport: {
+        parameters: {
+            query: {
+                /** @description Effective date `YYYY-MM-DD` (defaults to release `data_as_of`) */
+                at?: components["parameters"]["EffectiveDate"];
+                /** @description Capability to score isolation against */
+                capability: "passenger" | "freight" | "emergency";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Capability gap / isolation report */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IsolationReportResponse"];
+                };
+            };
+            /** @description Invalid `at` or `capability` */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     getSingleDependencyReport: {
         parameters: {
             query?: {
@@ -891,6 +944,8 @@ export interface operations {
                 /** @description Effective date `YYYY-MM-DD` (defaults to release `data_as_of`) */
                 at?: components["parameters"]["EffectiveDate"];
                 capability?: string;
+                /** @description Maximum intermediate transfers (0 = direct only) */
+                max_transfers?: number;
             };
             header?: never;
             path?: never;
