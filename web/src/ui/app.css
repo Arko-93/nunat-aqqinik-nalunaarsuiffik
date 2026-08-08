@@ -626,6 +626,63 @@ button.place-result-card:focus-visible {
   gap: 0.75rem;
 }
 
+.place-dossier-title:focus {
+  outline: none;
+}
+
+.place-dossier-title:focus-visible {
+  outline: 2px solid var(--sea);
+  outline-offset: 2px;
+}
+
+.dossier-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.dossier-tablist {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.15rem;
+  border-radius: 0.4rem;
+  background: rgba(28, 70, 90, 0.08);
+}
+
+.dossier-tab {
+  flex: 1;
+  min-width: 0;
+  padding: 0.35rem 0.55rem;
+  border: 0;
+  border-radius: 0.3rem;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dossier-tab.is-selected {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 0 0 1px rgba(20, 36, 44, 0.08);
+}
+
+.dossier-tab:focus-visible {
+  outline: 2px solid var(--sea);
+  outline-offset: 1px;
+}
+
+.dossier-tabpanel:focus {
+  outline: none;
+}
+
+.dossier-tabpanel:focus-visible {
+  outline: 2px solid var(--sea);
+  outline-offset: 2px;
+}
+
 .place-dossier-header {
   display: grid;
   gap: 0.4rem;

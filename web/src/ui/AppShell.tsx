@@ -26,7 +26,19 @@ export function AppShell({
 
   return (
     <div className={`app-shell map-first${railExpanded ? " rail-expanded" : ""}`}>
-      <a className="skip-link" href="#place-search">
+      <a
+        className="skip-link"
+        href="#place-search"
+        onClick={(event) => {
+          event.preventDefault();
+          const target =
+            document.querySelector<HTMLElement>(
+              ".shell-rail [data-place-search]",
+            ) ??
+            document.querySelector<HTMLElement>("[data-place-search]");
+          target?.focus();
+        }}
+      >
         {t.skipToSearch}
       </a>
       <header className="shell-header shell-header-soft">

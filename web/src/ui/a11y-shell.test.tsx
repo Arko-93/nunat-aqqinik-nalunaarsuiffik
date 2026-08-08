@@ -1,10 +1,14 @@
 /** @vitest-environment jsdom */
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 import { I18nProvider } from "../i18n/I18nContext.tsx";
 import { AppShell } from "./AppShell.tsx";
 import { PlaceList } from "./PlaceList.tsx";
 import { MESSAGES } from "../i18n/messages.ts";
+
+afterEach(() => {
+  cleanup();
+});
 
 describe("shell accessibility", () => {
   it("exposes a skip link to place search", () => {
