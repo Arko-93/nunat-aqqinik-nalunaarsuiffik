@@ -29,7 +29,7 @@ SOURCE_NDJSON := $(SOURCE_DIR)/places.ndjson \
                  $(SOURCE_DIR)/sources.ndjson
 
 NUNAGIS_AUTHORITY := reconciliation/authority/oqaasileriffik-nunagis.ndjson
-RELEASE_ID ?= 2026.08.07.8
+RELEASE_ID ?= 2026.08.07.9
 
 .PHONY: all validate test publish-check reconcile fetch-nunagis fetch-nunagis-localities normalize-nunagis build clean release register-snapshot
 

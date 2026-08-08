@@ -1,0 +1,252 @@
+{
+  "release_id": "2026.08.07.9",
+  "created_at": "2026-08-08T00:37:57Z",
+  "data_as_of": "2026-08-07",
+  "schema_versions": {
+    "canonical_source": "1.0",
+    "release_manifest": "1.0",
+    "source_snapshot": "1.0",
+    "source_dataset": "1.0"
+  },
+  "record_counts": {
+    "places": 73,
+    "place_classifications": 73,
+    "place_names": 106,
+    "place_geometries": 15,
+    "administrative_areas": 5,
+    "administrative_memberships": 73,
+    "external_identifiers": 73,
+    "connections": 36,
+    "connection_services": 37,
+    "sources": 7
+  },
+  "source_snapshot_ids": [
+    "snp_nunagis_placenames_2026_08_01",
+    "snp_nunagis_placenames_2026_08_07",
+    "snp_nunagis_placenames_midpoint_2026_08_05",
+    "snp_nunagis_placenames_midpoint_2026_08_07"
+  ],
+  "checksums": {
+    "nunat-aqqinik-nalunaarsuiffik.ndjson": "sha256:24bf4c03577ff9e740ff8833814c95805dff1f20991d03baa4905aaddad2500f",
+    "nunat-aqqinik-nalunaarsuiffik.json": "sha256:a0b6e7c76a20b911978a6b000817eeeba1e340d4b8846c058d20f9f4aa588aa3",
+    "nunat-aqqinik-nalunaarsuiffik.geojson": "sha256:5a070e971b03502becdaee984c72cabafcf2663fa3f581704f46eef1914c949d",
+    "nunat-aqqinik-nalunaarsuiffik.csv": "sha256:02de4687d79c1d8d50bf2ecf3f38854db92dbc3e6feef48fa1e9cb6bf0e4db36",
+    "reachability.ndjson": "sha256:33b8a8ed4b44ffeb6bc80e5c67dc951c7875f02189a1b7425b0fc3433239e599",
+    "reachability.json": "sha256:b16028bdf4676e224c6cddcd413a8919e6d00ba0486bdfcbb8104ad86e49dff3",
+    "reachability.csv": "sha256:a2c7247e1caa99870e5539006249bee6606823aeccbdb4bc46a08c756cd3d935",
+    "isolation-report.json": "sha256:a1948576247b0ad0ddcb0a3668943917a02aa0349de8737893eb36e691e37b9a",
+    "freight-gap-report.json": "sha256:eb5a34599922e410b9dac64a8554bc60256ea0aa24d870997d53675864289991",
+    "emergency-gap-report.json": "sha256:dae8d0afdfdc07af4beeb5feb3c460a4c9f3630468255b8793be65eaf1927887",
+    "single-dependency-report.json": "sha256:b9d93695e4e7df1ee78a19e16284b0a043374c0be75404e581049b7b4a660025",
+    "seasonal-loss-report.json": "sha256:24aab0082150116fef208215ee18c25d17148943890be651b84a720c8f4acd5f",
+    "decision-geography.db": "sha256:0e5dcb6e386e52cf6b7a0ad10b9e7612d27dfd06a8218be77289fc5693ef3eb3",
+    "build-manifest.json": "sha256:dfd68684903b6d7aae7b10963c33d34cdab4d416247cf803c2321d9105c5f209",
+    "placenames.geojson": "sha256:56cbb65db9b4826810fde134a84245f1e3303ec044ee1d2f03d21ac9c7b29324"
+  },
+  "publication_blockers": [
+    {
+      "code": "pending_provenance",
+      "message": "sources.ndjson:1: source 'src_legacy_seed' pending — blocks publish",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-names.ndjson:10: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-names.ndjson:19: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-names.ndjson:28: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:1: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:2: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:3: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:4: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:5: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:6: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:7: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:8: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:9: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:10: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:11: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:12: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:13: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:14: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "place-geometries.ndjson:15: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-areas.ndjson:1: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-areas.ndjson:2: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-areas.ndjson:3: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-areas.ndjson:4: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "pending_provenance",
+      "message": "administrative-areas.ndjson:5: current assertion references pending source 'src_legacy_seed'",
+      "severity": "blocker",
+      "source_id": "src_legacy_seed"
+    },
+    {
+      "code": "unknown_redistribution_status",
+      "message": "Snapshot 'snp_nunagis_placenames_2026_08_01' has unknown licence_status; redistribution terms are not verified.",
+      "severity": "blocker",
+      "snapshot_id": "snp_nunagis_placenames_2026_08_01"
+    },
+    {
+      "code": "unknown_redistribution_status",
+      "message": "Snapshot 'snp_nunagis_placenames_2026_08_07' has unknown licence_status; redistribution terms are not verified.",
+      "severity": "blocker",
+      "snapshot_id": "snp_nunagis_placenames_2026_08_07"
+    },
+    {
+      "code": "unknown_redistribution_status",
+      "message": "Snapshot 'snp_nunagis_placenames_midpoint_2026_08_05' has unknown licence_status; redistribution terms are not verified.",
+      "severity": "blocker",
+      "snapshot_id": "snp_nunagis_placenames_midpoint_2026_08_05"
+    },
+    {
+      "code": "unknown_redistribution_status",
+      "message": "Snapshot 'snp_nunagis_placenames_midpoint_2026_08_07' has unknown licence_status; redistribution terms are not verified.",
+      "severity": "blocker",
+      "snapshot_id": "snp_nunagis_placenames_midpoint_2026_08_07"
+    },
+    {
+      "code": "unknown_source_licence",
+      "message": "Verified source 'src_58f6b0b6-7a68-4b81-9c58-8ed742912d04' has no licence field; redistribution status is not recorded.",
+      "severity": "warning",
+      "source_id": "src_58f6b0b6-7a68-4b81-9c58-8ed742912d04"
+    },
+    {
+      "code": "unknown_source_licence",
+      "message": "Verified source 'src_nunagis_placenames_register' has no licence field; redistribution status is not recorded.",
+      "severity": "warning",
+      "source_id": "src_nunagis_placenames_register"
+    },
+    {
+      "code": "unknown_source_licence",
+      "message": "Verified source 'src_sermitsiaq_south_greenland' has no licence field; redistribution status is not recorded.",
+      "severity": "warning",
+      "source_id": "src_sermitsiaq_south_greenland"
+    },
+    {
+      "code": "unknown_source_licence",
+      "message": "Verified source 'src_air_greenland_routemap' has no licence field; redistribution status is not recorded.",
+      "severity": "warning",
+      "source_id": "src_air_greenland_routemap"
+    },
+    {
+      "code": "unknown_source_licence",
+      "message": "Verified source 'src_royal_arctic_line_ports' has no licence field; redistribution status is not recorded.",
+      "severity": "warning",
+      "source_id": "src_royal_arctic_line_ports"
+    },
+    {
+      "code": "unknown_source_licence",
+      "message": "Verified source 'src_greenland_healthcare_transfers' has no licence field; redistribution status is not recorded.",
+      "severity": "warning",
+      "source_id": "src_greenland_healthcare_transfers"
+    }
+  ]
+}
