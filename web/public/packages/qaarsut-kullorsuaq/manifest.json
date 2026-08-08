@@ -12,7 +12,7 @@
     -50.5,
     74.9
   ],
-  "bytes": 272620646,
+  "bytes": 273053778,
   "createdAt": "2026-08-07T17:26:13Z",
   "kind": "full",
   "files": [
@@ -23,8 +23,8 @@
     },
     {
       "path": "land-peaks.pmtiles",
-      "bytes": 420475,
-      "sha256": "2c86e9b79e10303ceb6987804068470e3c4ac8074b512803c8c2048d70140458"
+      "bytes": 853607,
+      "sha256": "93b80272f9aa00402b599c001e1047be2120037e07fd1eb77a37124fc317d811"
     },
     {
       "path": "ocean-depth-vector.pmtiles",

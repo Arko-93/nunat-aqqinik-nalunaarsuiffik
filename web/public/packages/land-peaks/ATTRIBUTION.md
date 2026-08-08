@@ -8,9 +8,9 @@ Klimadatastyrelsen Greenland DEM, CC BY 4.0
 - Same source as the land hillshade the style serves: the bands sit on
   the relief they were cut from, so they cannot drift (issue #24).
 - Elevation below 500 m is transparent (peaks-only — never a full land
-  wash); discrete bands at 500 / 1000 /
-  2000 m use the product colors in
-  web/src/map/meter-bands.ts (`landPeakBandColor`).
+  wash); discrete bands at 500/750/1000/1250/1500/2000/2500 m
+  use the product colors in web/src/map/meter-bands.ts
+  (`landPeakBandColor`).
 - z0–z10, 256 px lossless webp; z11+ renders
   overzoomed (same policy as the corridor land-relief).
 

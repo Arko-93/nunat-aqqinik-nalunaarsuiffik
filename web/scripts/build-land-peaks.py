@@ -51,7 +51,7 @@ DEM_CACHE = CACHE / "dem"
 GREENLAND_BBOX = (-75.0, 59.5, -10.0, 84.0)  # W,S,E,N (same as ocean-depth)
 
 # Same breaks the style renders (web/src/map/meter-bands.ts LAND_BREAKS_M).
-LAND_BREAKS_M = [500, 1000, 2000]
+LAND_BREAKS_M = [500, 750, 1000, 1250, 1500, 2000, 2500]
 
 # z10 cap: same policy as the corridor land-relief — z11+ overzooms.
 LAND_PEAKS_MAX_ZOOM = 10
@@ -63,9 +63,13 @@ TILE_PX = 256  # re-encoded from native 512 px Mapterhorn tiles
 # below 500 m are never colored (RGBA stays alpha 0), so a mixed tile
 # keeps its lowland pixels transparent instead of washing them.
 BAND_COLORS: list[tuple[tuple[float, float], tuple[int, int, int]]] = [
-    ((500, 1000), (138, 122, 92)),  # [500, 1000) -> #8a7a5c
-    ((1000, 2000), (107, 94, 74)),  # [1000, 2000) -> #6b5e4a
-    ((2000, math.inf), (74, 70, 63)),  # >=2000 -> #4a463f
+    ((500, 750), (154, 138, 108)),  # #9a8a6c
+    ((750, 1000), (138, 122, 92)),  # #8a7a5c
+    ((1000, 1250), (122, 108, 84)),  # #7a6c54
+    ((1250, 1500), (107, 94, 74)),  # #6b5e4a
+    ((1500, 2000), (92, 82, 66)),  # #5c5242
+    ((2000, 2500), (74, 70, 63)),  # #4a463f
+    ((2500, math.inf), (58, 56, 50)),  # #3a3832
 ]
 
 DEM_TILE_URL = "https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"
@@ -277,7 +281,7 @@ def build_peaks(measure_only: bool) -> Path | None:
             "name": "Greenland land peak color bands (Mapterhorn)",
             "description": (
                 "Peaks-only color relief: transparent below 500 m, discrete "
-                f"bands at {LAND_BREAKS_M[0]}/{LAND_BREAKS_M[1]}/{LAND_BREAKS_M[2]} m "
+                f"bands at {'/'.join(str(b) for b in LAND_BREAKS_M)} m "
                 "(web/src/map/meter-bands.ts LAND_BREAKS_M). Same Mapterhorn "
                 "DEM as the land hillshade (CC BY 4.0). z11+ renders "
                 "overzoomed."
@@ -344,9 +348,9 @@ Klimadatastyrelsen Greenland DEM, CC BY 4.0
 - Same source as the land hillshade the style serves: the bands sit on
   the relief they were cut from, so they cannot drift (issue #24).
 - Elevation below 500 m is transparent (peaks-only — never a full land
-  wash); discrete bands at {LAND_BREAKS_M[0]} / {LAND_BREAKS_M[1]} /
-  {LAND_BREAKS_M[2]} m use the product colors in
-  web/src/map/meter-bands.ts (`landPeakBandColor`).
+  wash); discrete bands at {'/'.join(str(b) for b in LAND_BREAKS_M)} m
+  use the product colors in web/src/map/meter-bands.ts
+  (`landPeakBandColor`).
 - z0–z{LAND_PEAKS_MAX_ZOOM}, 256 px lossless webp; z11+ renders
   overzoomed (same policy as the corridor land-relief).
 
@@ -385,7 +389,7 @@ def write_manifest(created_at: str) -> Path:
         "notForNavigation": True,
         "notes": (
             f"Peaks-only color relief (transparent below {LAND_BREAKS_M[0]} m, "
-            f"bands {LAND_BREAKS_M[0]}/{LAND_BREAKS_M[1]}/{LAND_BREAKS_M[2]} m), "
+            f"bands {'/'.join(str(b) for b in LAND_BREAKS_M)} m), "
             f"z0-z{LAND_PEAKS_MAX_ZOOM} 256 px webp from the Mapterhorn DEM "
             "(CC BY 4.0); z11+ renders overzoomed."
         ),
